@@ -1,0 +1,73 @@
+<scene exported_by="toffer" formatVersion="1.0.1" previous_export_time="1336226786.197451" export_time="1336227895.246957" >
+	<nodes >
+		<node name="Camera.001" uuid="d0946a2f6ff73517b453fd88c983667a" >
+			<position y="4.049263" x="-8.681873" z="-15.573429" />
+			<rotation qy="-0.620618" qx="0.176149" qz="0.744145" qw="0.173360" />
+			<scale y="5.019563" x="5.019563" z="5.019563" />
+			<game >
+				<sensors />
+				<actuators />
+			</game>
+			<camera projectionType="perspective" fov="28.841546255021967" name="Camera.001" >
+				<clipping nearPlaneDist="0.10000000149011612" farPlaneDist="100.0" />
+			</camera>
+		</node>
+		<node name="Armature" uuid="80883105ed4f52a3848a060ef6e41152" >
+			<position y="0.000000" x="0.000000" z="-0.000000" />
+			<rotation qy="0.000000" qx="0.000000" qz="-0.000000" qw="1.000000" />
+			<scale y="1.000000" x="1.000000" z="1.000000" />
+			<game >
+				<sensors />
+				<actuators />
+			</game>
+			<node name="Hand" uuid="8749443a3d45d7abe114e9e4e68a4878" >
+				<position y="0.000000" x="0.000000" z="-0.000000" />
+				<rotation qy="0.000000" qx="0.000000" qz="-0.000000" qw="1.000000" />
+				<scale y="1.000000" x="1.000000" z="1.000000" />
+				<game >
+					<sensors />
+					<actuators />
+				</game>
+				<entity anisotropic_friction="False" lock_trans_y="False" damping_trans="0.02539999969303608" damping_rot="0.1589999943971634" inertia_tensor="0.4000000059604645" actor="False" velocity_min="0.0" lock_trans_z="False" physics_type="STATIC" lock_trans_x="False" meshFile="Hand.mesh" friction_y="1.0" friction_x="1.0" friction_z="1.0" velocity_max="0.0" ghost="False" name="Hand" mass_radius="1.0" mass="1.0" lock_rot_x="False" lock_rot_y="False" lock_rot_z="False" />
+			</node>
+		</node>
+		<node name="Lamp" uuid="48f1b31b539d63289883a68a2182c9bc" >
+			<position y="6.218169" x="5.017194" z="5.321029" />
+			<rotation qy="0.755880" qx="0.169076" qz="-0.272171" qw="0.570947" />
+			<scale y="1.000000" x="1.000000" z="1.000000" />
+			<game >
+				<sensors />
+				<actuators />
+			</game>
+			<light shadow="true" type="point" name="Lamp" powerScale="1.0" >
+				<position y="6.218169" x="5.017194" z="5.321029" />
+				<lightAttenuation range="5000" quadratic="0.0" constant="1.0" linear="0.03333335240683057" />
+				<colourDiffuse r="1.0" b="1.0" g="1.0" />
+				<colourSpecular r="1.0" b="1.0" g="1.0" />
+				<colourShadow r="1.0" b="1.0" g="1.0" />
+			</light>
+		</node>
+		<node name="Camera" uuid="493e6ec8ab93bb9504805242aab94c94" >
+			<position y="5.612942" x="14.448696" z="15.319085" />
+			<rotation qy="0.243588" qx="0.631722" qz="-0.277431" qw="0.681634" />
+			<scale y="2.800563" x="2.800564" z="2.800563" />
+			<game >
+				<sensors />
+				<actuators />
+			</game>
+			<camera projectionType="perspective" fov="28.841546255021967" name="Camera" >
+				<clipping nearPlaneDist="0.10000000149011612" farPlaneDist="100.0" />
+			</camera>
+		</node>
+	</nodes>
+	<externals >
+		<item type="material" >
+			<file name="/home/toffer/Dropbox/workspace/IMUAnalyzer/assets/Models/ogre/Hand.material" />
+		</item>
+	</externals>
+	<environment >
+		<colourBackground r="0.05087608844041824" b="0.05087608844041824" g="0.05087608844041824" />
+		<colourAmbient r="0.0" b="0.0" g="0.0" />
+		<colourDiffuse r="0.05087608844041824" b="0.05087608844041824" g="0.05087608844041824" />
+	</environment>
+</scene>
