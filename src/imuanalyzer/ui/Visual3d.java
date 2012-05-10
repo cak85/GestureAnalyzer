@@ -1,6 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.filter.Quaternion;
+import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
@@ -10,16 +11,15 @@ import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
+
+import org.apache.log4j.Logger;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
@@ -33,8 +33,6 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
-import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
@@ -49,7 +47,12 @@ import com.jme3.system.JmeCanvasContext;
 
 public class Visual3d extends SimpleApplication {
 
+	private static final Logger LOGGER = Logger.getLogger(Visual3d.class
+			.getName());
+
 	private static final float CAM_MOVEMENT = 2f;
+
+	private static final float OPACITY_STEP = 0.05f;
 
 	/**
 	 * JPanel holding the JME3 3d view
@@ -96,7 +99,13 @@ public class Visual3d extends SimpleApplication {
 
 	Dimension dim = new Dimension(640, 480);
 
-	ArrayList<VisualHand3d> movementSteps = new ArrayList<VisualHand3d>();
+	ArrayList<VisualHand3d> liveMovementSteps = new ArrayList<VisualHand3d>();
+
+	ArrayList<VisualHand3d> analysesMovementSteps = new ArrayList<VisualHand3d>();
+
+	Analyses analyses = null;
+
+	LinkedList<MovementStep> analysesMovementPositions = new LinkedList<MovementStep>();
 
 	private Visual3d myInstance;
 
@@ -117,7 +126,6 @@ public class Visual3d extends SimpleApplication {
 		AppSettings settings = new AppSettings(true);
 		settings.setWidth(640);
 		settings.setHeight(480);
-		this.setShowSettings(false);
 		this.setSettings(settings);
 		this.createCanvas();
 		JmeCanvasContext ctx = (JmeCanvasContext) this.getContext();
@@ -132,11 +140,7 @@ public class Visual3d extends SimpleApplication {
 		this.startCanvas();
 
 	}
-
-	public JPanel get3dPanel() {
-		return panel3d;
-	}
-
+	
 	@Override
 	public void simpleInitApp() {
 
@@ -154,8 +158,6 @@ public class Visual3d extends SimpleApplication {
 		rootNode.attachChild(visualHand);
 
 		adjustBoneJointMapping();
-
-		hand.setSaveMovement(true); // TODO remove
 
 		configureCam();
 
@@ -287,16 +289,17 @@ public class Visual3d extends SimpleApplication {
 				visualHand.collideWith(ray, results);
 
 				// Use the results
-				if (results.size() > 0) { // TODO
+				if (results.size() > 0) {
 					// The closest result is the target that the player picked:
 					Geometry target = results.getClosestCollision()
 							.getGeometry();
 
-					System.out.println("Name: " + target.getName());
-					System.out.println("Mouse " + click2d);
+					LOGGER.debug("Name: " + target.getName());
+					LOGGER.debug("Mouse " + click2d);
 
-					Visual3dPopUpMenu menu = new Visual3dPopUpMenu(myInstance, hand,
-							Utils.getJointTypeFromGeometry(target));
+					// create popUp with further options
+					Visual3dPopUpMenu menu = new Visual3dPopUpMenu(myInstance,
+							hand, Utils.getJointTypeFromGeometry(target));
 
 					menu.show(panel3d, (int) click2d.x + 10, dim.height
 							- (int) click2d.y);
@@ -373,59 +376,121 @@ public class Visual3d extends SimpleApplication {
 		rootNode.attachChild(ball_geo);
 	}
 
+	Object simpleUpdateLock = new Object();
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public void simpleUpdate(float tpf) {
-		try {
-			Set<Entry<JointType, Joint>> handset = hand.getJointSet();
+		synchronized (simpleUpdateLock) {
 
-			LinkedList<MovementStep> storedMovementPositions = hand
-					.getSavedMovementFlow();
-			// don't draw the last state because it is current one
-			int numberOfSteps = storedMovementPositions.size() - 1;
+			try {
+				Set<Entry<JointType, Joint>> handset = hand.getJointSet();
 
-			// add additional hand geometries for movement if necessary
-			while (numberOfSteps > movementSteps.size()) {
-				VisualHand3d newHand = new VisualHand3d(assetManager,
-						HandOrientation.LEFT, false);
-				newHand.setOpacity(0.35f);
-				movementSteps.add(newHand);
-				rootNode.attachChild(newHand);
-			}
+				// handle livemovement
+				LinkedList<MovementStep> storedMovementPositions = (LinkedList<MovementStep>) hand
+						.getSavedMovementFlow();
+				// don't draw the last state because it is current one
+				int numberOfLiveSteps = storedMovementPositions.size() - 1;
 
-			for (Entry<JointType, Joint> entry : handset) {
-
-				// update actual hand
-				Joint joint = entry.getValue();
-				JointType type = entry.getKey();
-				Quaternion quat = joint.getWorldOrientation();
-				visualHand.setBoneRotationAbs(type, Utils.getJMEQuad(quat));
-				visualHand.setVisible(type, joint.isVisible());
-
-				for (int i = 0; i < numberOfSteps; i++) {
-					VisualHand3d hand = movementSteps.get(i);
-
-					// TODO not effecient to calculate the set every time
-					EnumMap<JointType, StoredJointState> storedSet = storedMovementPositions
-							.get(i).getMove().getAll();
-
-					// update movement flow with joint from actual hand if not
-					// available in movement.
-					if (storedSet.containsKey(type)) {
-						hand.setBoneRotationAbs(type, Utils
-								.getJMEQuad(storedSet.get(type)
-										.getWorldOrientation()));
-
-						hand.setVisible(type, joint.isVisible());
-					} else {
-						hand.setBoneRotationAbs(type, Utils.getJMEQuad(quat));
-						hand.setVisible(type, false);
-					}
+				// add additional hand geometries for movement if necessary
+				while (numberOfLiveSteps > liveMovementSteps.size()) {
+					VisualHand3d newHand = new VisualHand3d(assetManager,
+							HandOrientation.LEFT, false);
+					newHand.setOpacity(OPACITY_STEP, 1);
+					liveMovementSteps.add(newHand);
+					rootNode.attachChild(newHand);
 				}
 
-			}
+				// handle stored analyses movement
+				// don't draw the last state because it is current one
+				int numberOfStoredSteps = analysesMovementPositions.size() - 1;
 
-		} catch (Exception e) {
-			e.printStackTrace();
+				// add additional hand geometries for movement if necessary
+				while (numberOfStoredSteps > analysesMovementSteps.size()) {
+					VisualHand3d newHand = new VisualHand3d(assetManager,
+							HandOrientation.LEFT, false);
+					newHand.setOpacity(OPACITY_STEP, 1);
+					analysesMovementSteps.add(newHand);
+					rootNode.attachChild(newHand);
+				}
+
+				for (Entry<JointType, Joint> entry : handset) {
+
+					// update actual hand << non transparent one
+					Joint joint = entry.getValue();
+					JointType type = entry.getKey();
+					Quaternion quat = joint.getWorldOrientation();
+					visualHand.setBoneRotationAbs(type, Utils.getJMEQuad(quat));
+					visualHand.setVisible(type, joint.isVisible());
+
+					// update live movement
+					for (int i = 0; i < numberOfLiveSteps; i++) {
+						VisualHand3d hand = liveMovementSteps.get(i);
+
+						MovementStep moveStep = storedMovementPositions.get(i);
+
+						int count = moveStep.getCount();
+
+						hand.setOpacity(OPACITY_STEP, count);
+
+						// TODO not effecient to calculate the set every time
+						EnumMap<JointType, StoredJointState> storedSet = moveStep
+								.getMove().getAll();
+
+						// update movement flow with joint from actual hand if
+						// not
+						// available in movement.
+						if (storedSet.containsKey(type)) {
+							hand.setBoneRotationAbs(type, Utils
+									.getJMEQuad(storedSet.get(type)
+											.getWorldOrientation()));
+
+							hand.setVisible(type, joint.isVisible());
+						} else {
+							hand.setBoneRotationAbs(type,
+									Utils.getJMEQuad(quat));
+							hand.setVisible(type, false);
+						}
+					}
+
+					// update stored analyses movement
+					for (int i = 0; i < numberOfStoredSteps; i++) {
+						VisualHand3d hand = analysesMovementSteps.get(i);
+
+						MovementStep moveStep = analysesMovementPositions
+								.get(i);
+
+						StoredJointState currentStep = moveStep.getMove();
+						currentStep.updateWorldOrientation();
+
+						hand.setOpacity(OPACITY_STEP, moveStep.getCount());
+
+						// TODO not effecient to calculate the set every time
+						EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
+								.get(i).getMove().getAll();
+
+						// update movement flow with joint from actual hand if
+						// not
+						// available in movement.
+						if (storedSet.containsKey(type)) {
+
+							hand.setBoneRotationAbs(type, Utils
+									.getJMEQuad(storedSet.get(type)
+											.getWorldOrientation()));
+
+							hand.setVisible(type, joint.isVisible());
+						} else {
+							hand.setBoneRotationAbs(type,
+									Utils.getJMEQuad(quat));
+							hand.setVisible(type, false);
+						}
+					}
+
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -469,8 +534,84 @@ public class Visual3d extends SimpleApplication {
 		return currentManipulatedJoint;
 	}
 
-	public void setCurrentManipulatedJoint(JointType currentManipulatedJoint) {
-		this.currentManipulatedJoint = currentManipulatedJoint;
+	public void setCurrentManipulatedJoint(JointType newCurrentManipulatedJoint) {
+		if (newCurrentManipulatedJoint != this.currentManipulatedJoint) {
+			this.currentManipulatedJoint = newCurrentManipulatedJoint;
+			if (analyses != null) {
+				analyses.setMovementStartJoint(currentManipulatedJoint);
+				analyses.recalculate();
+			}
+			updateAnalysesData();
+		}
+	}
+
+	public Analyses getAnalyses() {
+		return analyses;
+	}
+
+	public void setAnalyses(Analyses analyses) {
+		this.analyses = analyses;
+		updateAnalysesData();
+	}
+
+	private void updateAnalysesData() {
+		synchronized (simpleUpdateLock) {
+			if (analyses != null) {
+				LinkedList<MovementStep> analysesMovementPositions = analyses
+						.getSumOfAll();
+
+				// update joint parent if not root node of object
+				// with the goal of moving the analyzed hand in the same frame
+				JointType currentObservedType = analyses
+						.getMovementStartJoint();
+				if (currentObservedType != JointType.HR) {
+					for (MovementStep m : analysesMovementPositions) {
+						StoredJointState observedRoot = m.getMove();
+						observedRoot = observedRoot.get(currentObservedType);
+						observedRoot.setParent(hand.getJoint(
+								currentObservedType).getParent());
+					}
+				}
+				this.analysesMovementPositions = analysesMovementPositions;
+
+			} else {
+				for(VisualHand3d hand : analysesMovementSteps){
+					hand.removeFromParent();
+				}
+				analysesMovementPositions.clear();
+				analysesMovementSteps.clear();
+			}
+		}
+	}
+
+	public VisualHand3d getVisualHand() {
+		return visualHand;
+	}
+
+	public void setVisualHand(VisualHand3d visualHand) {
+		this.visualHand = visualHand;
+	}
+
+	public void clearLiveMovement() {
+		synchronized (simpleUpdateLock) {
+			hand.setSaveMovement(false);
+			for(VisualHand3d hand : liveMovementSteps){
+				hand.removeFromParent();
+			}
+			liveMovementSteps.clear();
+		}
+	}
+	
+	public void setShowFPS(boolean isShown){
+		setDisplayFps(isShown);
+	}
+	
+	public void setShowStatistics(boolean isShown){
+		setDisplayStatView(isShown);
+	}
+
+	public JPanel get3dPanel() {
+		return panel3d;
 	}
 
 }

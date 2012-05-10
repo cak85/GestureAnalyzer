@@ -5,29 +5,29 @@ import Jama.Matrix;
 public class Quaternion implements Comparable<Quaternion> {
 
 	public static void main(String[] args) {
-		
-		Quaternion q1 = new Quaternion(Math.PI,0,0);
-		
-		System.out.println("Dotproduct: "+ q1.dotProdcut(q1));
-		
-		//Test for order of roll pitch yaw
-//		Quaternion quat;
-//
-//		quat = new Quaternion(Math.PI / 2, Math.PI / 4, Math.PI / 6);
-//
-//		double[] rad = quat.getAnglesRadFromQuaternion();
-//
-//		System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
-//
-//		quat.print(3);
-//
-//		Quaternion newQuat = new Quaternion(rad[0], rad[1], rad[2]);
-//
-//		rad = newQuat.getAnglesRadFromQuaternion();
-//
-//		System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
-//
-//		newQuat.print(3);
+
+		Quaternion q1 = new Quaternion(Math.PI, 0, 0);
+
+		System.out.println("Dotproduct: " + q1.dotProdcut(q1));
+
+		// Test for order of roll pitch yaw
+		// Quaternion quat;
+		//
+		// quat = new Quaternion(Math.PI / 2, Math.PI / 4, Math.PI / 6);
+		//
+		// double[] rad = quat.getAnglesRadFromQuaternion();
+		//
+		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
+		//
+		// quat.print(3);
+		//
+		// Quaternion newQuat = new Quaternion(rad[0], rad[1], rad[2]);
+		//
+		// rad = newQuat.getAnglesRadFromQuaternion();
+		//
+		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
+		//
+		// newQuat.print(3);
 
 		// //////////////////////
 		//
@@ -55,7 +55,7 @@ public class Quaternion implements Comparable<Quaternion> {
 		// System.out.println(quat2.toString());
 
 	}
-	
+
 	public final static Quaternion EMPTY = new Quaternion();
 
 	private double w; // w
@@ -314,6 +314,17 @@ public class Quaternion implements Comparable<Quaternion> {
 		System.out.printf(format, this.x);
 		System.out.printf(format, this.y);
 		System.out.printf(format, this.z);
+	}
+
+	@Override
+	public String toString() {
+		String format = "\n \t%." + 3 + "f";
+
+		String out = String.format(format, this.w);
+		out += String.format(format, this.x);
+		out += String.format(format, this.y);
+		out += String.format(format, this.z);
+		return out;
 	}
 
 	public double getW() {

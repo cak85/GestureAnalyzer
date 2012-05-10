@@ -1,6 +1,7 @@
 package imuanalyzer.data;
 
-import java.sql.Date;
+import java.util.Date;
+
 
 public class Marker {
 
@@ -73,6 +74,11 @@ public class Marker {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+	
+	@Override
+	public String toString() {
+		return name + description;
 	}
 
 }

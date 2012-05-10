@@ -11,7 +11,7 @@ import imuanalyzer.signalprocessing.Hand.JointType;
  * locks, sensors, update-routines....
  * 
  */
-public class StoredJointState implements IJoint{
+public class StoredJointState implements IJoint {
 	protected JointType type;
 
 	protected Quaternion localOrientation;
@@ -26,8 +26,7 @@ public class StoredJointState implements IJoint{
 		this(joint, null, true);
 	}
 
-	public StoredJointState(Joint joint, IJoint parent,
-			boolean addChildren) {
+	public StoredJointState(Joint joint, IJoint parent, boolean addChildren) {
 		this.parent = parent;
 		localOrientation = new Quaternion(joint.getLocalOrientation());
 		this.type = joint.getType();
@@ -55,7 +54,7 @@ public class StoredJointState implements IJoint{
 		this.children.add(elem);
 	}
 
-	protected void updateWorldOrientation() {
+	public void updateWorldOrientation() {
 		if (parent != null) {
 			worldOrientation = parent.getWorldOrientation().quaternionProduct(
 					localOrientation);
@@ -79,7 +78,7 @@ public class StoredJointState implements IJoint{
 			Quaternion difference = getDifferenceAbs(obj_j);
 
 			double dotProduct = Quaternion.EMPTY.dotProdcut(difference);
-			
+
 			if (dotProduct > 0.998) {
 				return true;
 			} else {
@@ -116,7 +115,6 @@ public class StoredJointState implements IJoint{
 				Quaternion childSum = children.get(i).getDifferenceAbs(
 						other.children.get(i));
 
-
 				if (childSum == null) {
 					return null;
 				}
@@ -147,5 +145,20 @@ public class StoredJointState implements IJoint{
 	public void setParent(IJoint parent) {
 		this.parent = parent;
 		updateWorldOrientation();
+	}
+
+	public StoredJointState get(JointType type) {
+		if (this.type.equals(type)) {
+			return this;
+		} else {
+			StoredJointState res = null;
+			for (StoredJointState s : children) {
+				res = s.get(type);
+				if (res != null) {
+					break;
+				}
+			}
+			return res;
+		}
 	}
 }

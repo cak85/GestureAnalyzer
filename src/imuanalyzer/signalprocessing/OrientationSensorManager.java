@@ -13,6 +13,7 @@ import imuanalyzer.tools.SensorVector;
 import imuanalyzer.tools.parallel.LoopBody;
 import imuanalyzer.tools.parallel.Parallel;
 
+import java.util.Date;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -21,8 +22,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(OrientationSensorManager.class.getName());
-
-	public static final int NUMBER_OF_SENSORS = 4;
 
 	private long lastFilterUpdate = 0;
 
@@ -40,21 +39,30 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	boolean isRecording = false;
 
-	public OrientationSensorManager(FilterTypes filterType) throws Exception {
+	public OrientationSensorManager(FilterTypes filterType, int numberOfImus)
+			throws Exception {
 
+		currentType = filterType;
+		setNumberOfImus(numberOfImus);
+	}
+
+	private void setNumberOfImus(int number) {
+		this.numberOfImus = number;
+
+		filters.clear();
+		for (int j = 0; j < numberOfImus; j++) {
+			filters.add(new Vector<Filter>());
+		}
+	}
+
+	public void setImuReader(ImuReader imureader) throws Exception {
 		try {
 
-			imureader = new ImuReader("/dev/ttyUSB0", NUMBER_OF_SENSORS, true);
+			this.imureader = imureader;
 
 			lastFilterUpdate = System.currentTimeMillis();
 
-			numberOfImus = imureader.getNumberOfIMUs();
-
-			for (int j = 0; j < numberOfImus; j++) {
-				filters.add(new Vector<Filter>());
-			}
-
-			currentType = filterType;
+			setNumberOfImus(imureader.getNumberOfIMUs());
 
 			// TODO..?
 			// Pipe filterPipe = new Pipe(numberOfImus);
@@ -84,57 +92,53 @@ public class OrientationSensorManager implements IOrientationSensors {
 							long newFilterUpdate = System.currentTimeMillis();
 							final double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
 									/ (double) 1000;
-							//LOGGER.debug("SamplePeriod: " + samplePeriod);
+							// LOGGER.debug("SamplePeriod: " + samplePeriod);
 
 							lastFilterUpdate = newFilterUpdate;
 
-							synchronized (filterEditLock) {
-
-								Parallel.For(0, numberOfImus,
-										new LoopBody<Integer>() {
-
-											@Override
-											public void run(Integer i) {
-
-												ImuRawData data[] = event
-														.getData();
-
-												SensorVector accel = data[i]
-														.getAccelerometer();
-												SensorVector magneto = data[i]
-														.getMagnetometer();
-												SensorVector gyro = data[i]
-														.getGyroskope();
-
-												if (isRecording) {
-													database.writeImuData(i,
-															accel, gyro,
-															magneto);
-												}
-												// it is possible to assign
-												// several filters to one sensor
-												for (Filter f : filters.get(i)) {
-
-													f.filterStep(samplePeriod,
-															gyro.x * Math.PI
-																	/ 180,
-															gyro.y * Math.PI
-																	/ 180,
-															gyro.z * Math.PI
-																	/ 180,
-															accel.x, accel.y,
-															accel.z, magneto.x,
-															magneto.y,
-															magneto.z);
-												}
-
-											}
-										});
-							}
+							processImuData(event.getData(), samplePeriod);
 						}
+
 					});
 		} catch (Exception e) {
 			throw e;
+		}
+	}
+
+	public void processImuData(final ImuRawData data[],
+			final double samplePeriod) {
+		synchronized (filterEditLock) {
+
+			final Date timestamp = new Date();
+
+			// necessary for alway getting full sets in db
+			final boolean localIsRecording = isRecording;
+
+			Parallel.For(0, numberOfImus, new LoopBody<Integer>() {
+
+				@Override
+				public void run(Integer i) {
+
+					SensorVector accel = data[i].getAccelerometer();
+					SensorVector magneto = data[i].getMagnetometer();
+					SensorVector gyro = data[i].getGyroskope();
+
+					if (localIsRecording) { // should never be true on processing recorded data
+						database.writeImuData(data[i].getId(), accel, gyro, magneto,
+								samplePeriod, timestamp);
+					}
+					// it is possible to assign
+					// several filters to one sensor
+					for (Filter f : filters.get(data[i].getId())) {
+
+						f.filterStep(samplePeriod, gyro.x * Math.PI / 180,
+								gyro.y * Math.PI / 180, gyro.z * Math.PI / 180,
+								accel.x, accel.y, accel.z, magneto.x,
+								magneto.y, magneto.z);
+					}
+
+				}
+			});
 		}
 	}
 
@@ -156,7 +160,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	@Override
 	public int getNumberOfSensors() {
-		return NUMBER_OF_SENSORS;
+		return numberOfImus;
 	}
 
 	@Override
@@ -207,10 +211,12 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	@Override
 	public void addListener(int i, IFilterListener listner) {
-		Filter newFilter = FilterFactory.getFilter(currentType);
-		newFilter.setListener(listner);
-		newFilter.init();
-		filters.get(i).add(newFilter);
+		if (i > -1 && i < filters.size()) {
+			Filter newFilter = FilterFactory.getFilter(currentType);
+			newFilter.setListener(listner);
+			newFilter.init();
+			filters.get(i).add(newFilter);
+		}
 	}
 
 	@Override
@@ -230,6 +236,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public void setRecording(boolean isRecording) {
 		this.isRecording = isRecording;
+
 	}
 
 }

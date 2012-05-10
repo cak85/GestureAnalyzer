@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map.Entry;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,6 +25,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class MainFrame extends JFrame {
 
@@ -64,7 +67,8 @@ public class MainFrame extends JFrame {
 	public MainFrame() {
 
 		try {
-			sensors = OrientationSensorManagerFactory.getOrientationSensor();
+			sensors = OrientationSensorManagerFactory
+					.getLiveOrientationManager();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -110,8 +114,27 @@ public class MainFrame extends JFrame {
 		// Build the first menu.
 		menu = new JMenu("Tools");
 
-		menuItem = new JMenuItem("Calibration");
+		menuItem = new JMenuItem("Disable movement saving");
+		menuItem.addActionListener(new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				visual3d.clearLiveMovement();
+			}
+		});
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Clear analysis");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				visual3d.setAnalyses(null);
+			}
+		});
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Calibration");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override
@@ -163,10 +186,46 @@ public class MainFrame extends JFrame {
 					chart.removeChart(type);
 				}
 			});
-
 			submenuRemove.add(submenuitemRemove);
-
 		}
+
+		JCheckBoxMenuItem checkMenuItem = new JCheckBoxMenuItem("Show Skeleton");
+		checkMenuItem.setSelected(true);
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.getVisualHand().setSkeletonVisible(
+						checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
+
+		checkMenuItem = new JCheckBoxMenuItem("Show FPS");
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.setShowFPS(checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
+
+		checkMenuItem = new JCheckBoxMenuItem("Show Statistics");
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.setShowStatistics(checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
 
 		menuBar.add(menu);
 
@@ -272,6 +331,8 @@ public class MainFrame extends JFrame {
 		final JComboBox filterTypes = new JComboBox(
 				sensors.getAvailableFilters());
 
+		filterTypes
+				.setToolTipText("Select filter for IMU-Orientation calculation");
 		filterTypes.setSelectedItem(sensors.getCurrentFilter());
 
 		filterTypes.addActionListener(new ActionListener() {
@@ -325,10 +386,10 @@ public class MainFrame extends JFrame {
 		c.gridy = 3;
 
 		mainPanel.add(toolBarPanel, c);
-		
-		
-		MarkerControl markerControl = new MarkerControl(sensors);
-		
+
+		MarkerControl markerControl = new MarkerControl(this, visual3d,
+				sensors, hand);
+
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.LAST_LINE_END;
 		c.ipady = 0; // reset to default
@@ -339,6 +400,9 @@ public class MainFrame extends JFrame {
 
 		mainPanel.add(markerControl, c);
 
+	}
 
+	public Visual3d getVisual3d() {
+		return visual3d;
 	}
 }

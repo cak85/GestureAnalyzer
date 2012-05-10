@@ -35,7 +35,6 @@ class Visual3dPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				analyzeMovement();
-
 			}
 		});
 		add(anItem);
@@ -46,7 +45,6 @@ class Visual3dPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setManualManipulatedJoint();
-
 			}
 		});
 		add(anItem);
@@ -57,7 +55,6 @@ class Visual3dPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				switchVisibility();
-
 			}
 		});
 		add(anItem);
@@ -65,6 +62,7 @@ class Visual3dPopUpMenu extends JPopupMenu {
 	}
 
 	private void analyzeMovement() {
+		hand.setSaveMovement(true);
 		hand.setSavedMovementStartJoint(jointType);
 	}
 

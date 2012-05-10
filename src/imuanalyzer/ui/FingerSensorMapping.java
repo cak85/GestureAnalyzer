@@ -3,14 +3,15 @@ package imuanalyzer.ui;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.EnumMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
@@ -49,13 +50,19 @@ public class FingerSensorMapping extends JPanel {
 				0.0f);
 		background.setLayout(null);
 
-		this.setLayout(new FlowLayout());
-		this.add(background);
+		this.setLayout(new BorderLayout());
+
+		this.add(background, BorderLayout.CENTER);
+
+		JLabel infoText = new JLabel(
+				"<html><h2>Select sensor-id's for hand links</h2></html>");
+
+		this.add(infoText, BorderLayout.NORTH);
 
 		addHandSpinner(JointType.HR, 245, 350);
 
 		addHandSpinner(JointType.DT, 30, 275);
-		
+
 		addHandSpinner(JointType.DM, 76, 318);
 
 		addHandSpinner(JointType.DD, 120, 370);
@@ -119,9 +126,9 @@ public class FingerSensorMapping extends JPanel {
 		@Override
 		public void stateChanged(ChangeEvent e) {
 			JSpinner s = (JSpinner) e.getSource();
-
-			hand.setSensorID(f, ((Integer) s.getValue()) - 1);
-
+			int id = ((Integer) s.getValue()) - 1;
+			hand.setSensorID(f, id);
+			hand.saveJointSensorMapping(f);
 		}
 
 	}

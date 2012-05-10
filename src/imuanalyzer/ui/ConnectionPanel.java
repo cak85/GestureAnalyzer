@@ -49,6 +49,7 @@ public class ConnectionPanel extends JPanel {
 		c.gridy = 1; // third row
 
 		JButton connectButton = new JButton("Connect");
+		connectButton.setToolTipText("Connect with IMU-Reader device");
 
 		connectButton.addActionListener(new ActionListener() {
 
@@ -69,6 +70,7 @@ public class ConnectionPanel extends JPanel {
 		c.gridy = 1; // third row
 
 		JButton refreshButton = new JButton("Refresh");
+		refreshButton.setToolTipText("Refresh available COM-Ports");
 
 		refreshButton.addActionListener(new ActionListener() {
 

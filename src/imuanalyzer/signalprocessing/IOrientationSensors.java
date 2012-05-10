@@ -1,5 +1,6 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
 
@@ -25,5 +26,8 @@ public interface IOrientationSensors {
 	FilterTypes getCurrentFilter();
 	
 	void setRecording(boolean isRecording);
+	
+	public void processImuData(final ImuRawData data[],
+			final double samplePeriod);
 	
 }

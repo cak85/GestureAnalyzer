@@ -5,11 +5,9 @@ import imuanalyzer.data.Marker;
 import imuanalyzer.filter.Quaternion;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -118,7 +116,8 @@ public class Hand {
 		addAllElementsToMap(elemHR);
 
 		for (JointType j : JointType.values()) {
-			setSensorID(j, db.getJointSensorMapping(currentMarker, j));
+			int id = db.getJointSensorMapping(currentMarker, j);
+			setSensorID(j, id);
 		}
 
 	}
@@ -143,8 +142,11 @@ public class Hand {
 	public void setSensorID(JointType type, int id) {
 		Joint joint = ((Joint) joints.get(type));
 		joint.setSensorID(id);
-		db.setJointSensorMapping(currentMarker, type, id);
+	}
 
+	public void saveJointSensorMapping(JointType type) {
+		Joint joint = ((Joint) joints.get(type));
+		db.setJointSensorMapping(currentMarker, type, joint.getSensorID());
 	}
 
 	public Quaternion getLocalJointOrientation(JointType type) {
@@ -189,9 +191,9 @@ public class Hand {
 	public void setSavedMovementStartJoint(JointType savedMovementStartJoint) {
 		if (this.saveMovementStartJoint != savedMovementStartJoint) {
 			this.saveMovementStartJoint = savedMovementStartJoint;
-			savedMovementFlow.clear();			
+			savedMovementFlow.clear();
 			addInitialSavedMove();
-		}		
+		}
 	}
 
 	/**
@@ -199,38 +201,40 @@ public class Hand {
 	 */
 	private void addInitialSavedMove() {
 		Joint startMovementJoint = joints.get(saveMovementStartJoint);
-		StoredJointState newState = new StoredJointState(
-				startMovementJoint,startMovementJoint.parent,true); 
+		StoredJointState newState = new StoredJointState(startMovementJoint,
+				startMovementJoint.parent, true);
 		savedMovementFlow.addLast(new MovementStep(newState));
 	}
 
-	public synchronized void informJointsUpdated() {
+	public synchronized void informJointsUpdated(Joint updatedBy) {
 
 		if (saveMovement) {
 
 			Joint startMovementJoint = joints.get(saveMovementStartJoint);
-			
+
 			for (MovementStep s : savedMovementFlow) {
 				s.getMove().updateWorldOrientation();
+			}
+
+			// check if updateBy is parent of currently observed joint
+			// if yes its not neccessary to update
+			if (startMovementJoint.hasParent(updatedBy)) {
+				return;
 			}
 
 			StoredJointState newState = new StoredJointState(
 					startMovementJoint, startMovementJoint.parent, true);
 
 			if (savedMovementFlow.size() > 0) {
-				StoredJointState lastState = savedMovementFlow.getLast().getMove();
+				StoredJointState lastState = savedMovementFlow.getLast()
+						.getMove();
 				Quaternion diff = lastState.getDifferenceAbs(newState);
 
 				if (diff == null) {
 					return;
 				}
 
-				// diff.print(3);
-
 				double[] angles = diff.getAnglesRadFromQuaternion();
-
-				// System.out.printf("X:%.3f Y:%.3f Z:%.3f\n", angles[0],
-				// angles[1], angles[2]);
 
 				// if difference to low return
 				if ((Math.abs(angles[0]) + Math.abs(angles[1]) + Math
@@ -238,16 +242,19 @@ public class Hand {
 					return;
 				}
 			}
-			
-			//check if same position is already saved
-			//if yes increase counter
-			for ( MovementStep m : savedMovementFlow){
-				if(m.getMove().equals(newState)){
+
+			// check if an almost same position is already saved and its not
+			// the last one (not increasing counter if we move slightly on
+			// position)
+			// if yes increase counter
+			for (int i = 0; i < savedMovementFlow.size() - 1; i++) {
+				MovementStep m = savedMovementFlow.get(i);
+				if (m.getMove().equals(newState)) {
 					m.incCount();
-					LOGGER.debug("Find existing position - Increase count");
+					// LOGGER.debug("Find existing position - Increase count");
 					return;
 				}
-			}	
+			}
 
 			savedMovementFlow.addLast(new MovementStep(newState));
 		}

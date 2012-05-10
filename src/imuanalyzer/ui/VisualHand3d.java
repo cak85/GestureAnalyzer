@@ -5,6 +5,8 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import java.util.ArrayList;
 import java.util.EnumMap;
 
+import org.apache.log4j.Logger;
+
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.Bone;
 import com.jme3.animation.Skeleton;
@@ -23,6 +25,9 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
 
 public class VisualHand3d extends Node {
+
+	private static final Logger LOGGER = Logger.getLogger(VisualHand3d.class
+			.getName());
 
 	public enum HandOrientation {
 		LEFT, RIGHT
@@ -46,15 +51,14 @@ public class VisualHand3d extends Node {
 
 	public VisualHand3d(AssetManager assetManager, HandOrientation orientation,
 			boolean showSkeleton) {
-		Spatial loadedAsset = assetManager
-				.loadModel("Models/Hand/Hand.j3o");
+		Spatial loadedAsset = assetManager.loadModel("Models/Hand/Hand.j3o");
 
 		model = findNodeByName((Node) loadedAsset, "Hand-ogremesh");
 		init(assetManager, orientation, showSkeleton);
 	}
 
 	private void init(AssetManager assetManager, HandOrientation orientation,
-			boolean showSkeleton) {
+			boolean addSkeleton) {
 		this.orientation = orientation;
 
 		if (orientation == HandOrientation.LEFT) {
@@ -77,7 +81,7 @@ public class VisualHand3d extends Node {
 
 		Skeleton skeleton = control.getSkeleton();
 
-		if (showSkeleton) {
+		if (addSkeleton) {
 			// Skeleton Debug
 			skeletonDebug = new SkeletonDebugger("Armature", skeleton);
 			Material mat2 = new Material(assetManager,
@@ -215,11 +219,34 @@ public class VisualHand3d extends Node {
 		return model;
 	}
 
-	public void setOpacity(float opa) {
+	private static final ColorRGBA[] ColorRange = { ColorRGBA.White,
+			ColorRGBA.Blue, ColorRGBA.Green, ColorRGBA.Yellow,
+			ColorRGBA.Orange, ColorRGBA.Red, };
+
+	public void setOpacity(float opaStep, int count) {
+
+		// 0.8 is max opacity; full opacity is not desired
+		int div = (int) (0.8 / opaStep);
+
+		int index = count / div;
+
+		if (index >= ColorRange.length) {
+			index = ColorRange.length - 1;
+		}
+
+		ColorRGBA colorAmbient = ColorRange[index];
+
+		ColorRGBA colorDiffuse = colorAmbient.clone();
+
+		colorDiffuse.a = opaStep * (count % div);
+
+		// LOGGER.debug("Count " + count + " Div " + div + " Opacity "
+		// +colorDiffuse.a);
+
 		for (Geometry geo : subgeometries) {
 			Material mat = geo.getMaterial();
-			mat.setColor("Diffuse", new ColorRGBA(1.0f, 1.0f, 1.0f, opa));
-			mat.setColor("Ambient", new ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
+			mat.setColor("Diffuse", colorDiffuse);
+			mat.setColor("Ambient", colorAmbient);
 			mat.setBoolean("UseMaterialColors", true);
 			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 			mat.setFloat("Shininess", 0.5f);
@@ -233,6 +260,16 @@ public class VisualHand3d extends Node {
 		for (Geometry geo : subgeometries) {
 			if (geo.getName().contains(type.toString())) {
 				Utils.setVisible(geo, visible);
+			}
+		}
+	}
+
+	public void setSkeletonVisible(boolean visible) {
+		if (skeletonDebug != null) {
+			if (visible) {
+				skeletonDebug.setCullHint(CullHint.Dynamic);
+			} else {
+				skeletonDebug.setCullHint(CullHint.Always);
 			}
 		}
 	}

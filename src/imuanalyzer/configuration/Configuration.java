@@ -2,6 +2,8 @@ package imuanalyzer.configuration;
 
 import java.sql.SQLException;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
 import imuanalyzer.data.Database;
@@ -32,7 +34,14 @@ public class Configuration {
 			LOGGER.error(e.toString());
 		}
 
-		filtertype = db.getFilterType();
+		try {
+			filtertype = db.getFilterType();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null,
+					"Could not start application, database is locked by another instance", "Error",
+					JOptionPane.OK_OPTION);
+			System.exit(-1);
+		}
 
 		if (filtertype == null) {
 			filtertype = FilterTypes.QUATERNION_COMPLEMENTARY;

@@ -1,6 +1,6 @@
 package imuanalyzer.device;
 
-import java.sql.Date;
+import java.util.Date;
 
 import imuanalyzer.tools.SensorVector;
 
@@ -15,7 +15,9 @@ public class ImuRawData {
 	SensorVector gyroskope;
 	SensorVector magnetometer;
 
-	Date sampleperiod;
+	Date timeStamp;
+
+	double samplePeriod = 0;
 
 	public ImuRawData() {
 		accelerometer = new SensorVector();
@@ -23,15 +25,12 @@ public class ImuRawData {
 		magnetometer = new SensorVector();
 	}
 
-	public ImuRawData(int id, SensorVector accelerometer,
-			SensorVector gyroskope, SensorVector magnetometer) {
-		this(id, new Date(0), accelerometer, gyroskope, magnetometer);
-	}
-
-	public ImuRawData(int id, Date samplePeriod, SensorVector accelerometer,
-			SensorVector gyroskope, SensorVector magnetometer) {
+	public ImuRawData(int id, Date timeStamp, double samplePeriod,
+			SensorVector accelerometer, SensorVector gyroskope,
+			SensorVector magnetometer) {
 		this.id = id;
-		this.sampleperiod = samplePeriod;
+		this.timeStamp = timeStamp;
+		this.samplePeriod = samplePeriod;
 		this.accelerometer = accelerometer;
 		this.gyroskope = gyroskope;
 		this.magnetometer = magnetometer;
@@ -45,12 +44,12 @@ public class ImuRawData {
 		this.id = id;
 	}
 
-	public Date getSampleperiod() {
-		return sampleperiod;
+	public Date getTimeStamp() {
+		return timeStamp;
 	}
 
-	public void setSampleperiod(Date sampleperiod) {
-		this.sampleperiod = sampleperiod;
+	public void setTimeStamp(Date timeStamp) {
+		this.timeStamp = timeStamp;
 	}
 
 	public SensorVector getAccelerometer() {
@@ -75,6 +74,14 @@ public class ImuRawData {
 
 	public void setMagnetometer(SensorVector magnetometer) {
 		this.magnetometer = magnetometer;
+	}
+
+	public double getSamplePeriod() {
+		return samplePeriod;
+	}
+
+	public void setSamplePeriod(double samplePeriod) {
+		this.samplePeriod = samplePeriod;
 	}
 
 }

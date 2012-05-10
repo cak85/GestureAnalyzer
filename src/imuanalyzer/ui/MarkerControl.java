@@ -2,7 +2,11 @@ package imuanalyzer.ui;
 
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
+import imuanalyzer.signalprocessing.Analyses;
+import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
+import imuanalyzer.signalprocessing.Joint;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -10,12 +14,18 @@ import java.awt.event.ActionListener;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+/**
+ * TODO seperate logic and gui into different classes
+ * 
+ */
 public class MarkerControl extends JPanel {
 
 	/**
@@ -28,11 +38,27 @@ public class MarkerControl extends JPanel {
 	IOrientationSensors sensor;
 
 	JComboBox markerComboBox;
-	
+
 	Marker currentActiveMarker;
 
-	public MarkerControl(IOrientationSensors _sensor) {
+	Hand hand;
+
+	MarkerControl myInstance;
+
+	JButton buttonStop;
+
+	JButton buttonRec;
+
+	MainFrame frame;
+
+	ArrayList<Marker> markers;
+
+	public MarkerControl(MainFrame frame, Visual3d visual3d,
+			IOrientationSensors _sensor, Hand hand) {
 		this.sensor = _sensor;
+		this.hand = hand;
+		this.frame = frame;
+		myInstance = this;
 
 		try {
 			db = Database.getInstance();
@@ -50,12 +76,12 @@ public class MarkerControl extends JPanel {
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
 		buttonBack.setBorderPainted(false);
+		buttonBack.setToolTipText("Select previous marker");
 		buttonBack.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("Test");
-
+				decreaseSelectedMarker();
 			}
 		});
 
@@ -63,29 +89,27 @@ public class MarkerControl extends JPanel {
 
 		icon = new ImageIcon(getClass().getResource("/Icons/player_rec.gif"));
 
-		final JButton buttonRec = new JButton(icon);
+		buttonRec = new JButton(icon);
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
+		buttonRec.setToolTipText("Record movement");
 		buttonRec.setBorderPainted(false);
 
 		this.add(buttonRec);
 
 		icon = new ImageIcon(getClass().getResource("/Icons/player_stop.gif"));
 
-		final JButton buttonStop = new JButton(icon);
-		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonStop = new JButton(icon);
+		buttonStop.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonStop.setContentAreaFilled(false);
 		buttonStop.setBorderPainted(false);
 		buttonStop.setEnabled(false);
+		buttonStop.setToolTipText("Stop recording");
 		buttonStop.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				currentActiveMarker.setEnd(new Date(new java.util.Date().getTime()));
-				buttonRec.setEnabled(true);
-				buttonStop.setEnabled(false);
-				sensor.setRecording(false);
-
+				stopRecording();
 			}
 		});
 
@@ -93,36 +117,74 @@ public class MarkerControl extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				buttonRec.setEnabled(false);
-				buttonStop.setEnabled(true);
-				currentActiveMarker=new Marker(markerComboBox.getSelectedItem()
-						.toString(), "");
-				db.setMarker(currentActiveMarker);
-				updateMarkers();
-				sensor.setRecording(true);
+				Object selectedItem = markerComboBox.getSelectedItem();
+
+				if (selectedItem != null) {
+					startRecording(selectedItem.toString());
+				} else {
+					JOptionPane.showMessageDialog(myInstance,
+							"Please enter a valid marker name", "Information",
+							JOptionPane.OK_OPTION);
+				}
 			}
 		});
 
 		this.add(buttonStop);
 
+		// forward button
 		icon = new ImageIcon(getClass().getResource("/Icons/player_for.gif"));
 
 		JButton buttonForward = new JButton(icon);
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonForward.setContentAreaFilled(false);
 		buttonForward.setBorderPainted(false);
+		buttonForward.setToolTipText("Select next marker");
 		buttonForward.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("Test");
-
+				increaseSelectedMarker();
 			}
 		});
 
 		this.add(buttonForward);
 
+		// eject button
+		icon = new ImageIcon(getClass().getResource("/Icons/player_eject.gif"));
+
+		JButton buttonEject = new JButton(icon);
+		buttonEject.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonEject.setContentAreaFilled(false);
+		buttonEject.setBorderPainted(false);
+		buttonEject.setToolTipText("Open markers for analyzing");
+		buttonEject.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				startAnaylses();
+			}
+		});
+
+		this.add(buttonEject);
+
+		// eject button
+		icon = new ImageIcon(getClass().getResource("/Icons/player_delete.gif"));
+
+		JButton buttonDelete = new JButton(icon);
+		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonDelete.setContentAreaFilled(false);
+		buttonDelete.setBorderPainted(false);
+		buttonDelete.setToolTipText("Delete current marker and dependent data");
+		buttonDelete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				deleteMarker();
+			}
+		});
+
+		this.add(buttonDelete);
+
 		markerComboBox = new JComboBox();
+		markerComboBox.setToolTipText("Select or create new marker");
 		markerComboBox.setEditable(true);
 
 		updateMarkers();
@@ -131,14 +193,108 @@ public class MarkerControl extends JPanel {
 
 	}
 
+	private void deleteMarker() {
+		int index = markerComboBox.getSelectedIndex();
+		if (index > -1) {
+			currentActiveMarker = markers.get(index);
+			if (currentActiveMarker != null) {
+				db.deleteImuData(currentActiveMarker);
+				db.removeMarker(currentActiveMarker);
+				updateMarkers();
+			}
+		}
+	}
+
+	private void startRecording(String markerName) {
+		buttonRec.setEnabled(false);
+		buttonStop.setEnabled(true);
+
+		currentActiveMarker = new Marker(markerName, "");
+		db.setMarker(currentActiveMarker);
+		updateMarkers();
+		storeInitialHandPosition(currentActiveMarker);
+		storeJointMapping(currentActiveMarker);
+		sensor.setRecording(true);
+	}
+
+	private void stopRecording() {
+		currentActiveMarker.setEnd(new Date(new java.util.Date().getTime()));
+		buttonRec.setEnabled(true);
+		buttonStop.setEnabled(false);
+		sensor.setRecording(false);
+		db.setMarker(currentActiveMarker);
+	}
+
+	private void startAnaylses() {
+		ArrayList<Marker> markers = db.getAvailableMarkers();
+		if (markers.size() > 0) {
+
+			MarkerCombinationSeletor selector = new MarkerCombinationSeletor(
+					frame, markers);
+
+			Analyses newAnalyses = new Analyses();
+			newAnalyses.calculate(selector.getSelectedMarkers(),
+					sensor.getCurrentFilter(),
+					hand.getSavedMovementStartJoint());
+			frame.getVisual3d().setAnalyses(newAnalyses);
+			JOptionPane.showMessageDialog(myInstance, "Calculation complete",
+					"Information", JOptionPane.OK_OPTION);
+		} else {
+			JOptionPane.showMessageDialog(myInstance, "No markers available",
+					"Information", JOptionPane.OK_OPTION);
+		}
+	}
+
+	private void increaseSelectedMarker() {
+		int index = markerComboBox.getSelectedIndex();
+		if (index < (markerComboBox.getItemCount() - 1)) {
+			index++;
+		}
+		markerComboBox.setSelectedIndex(index);
+	}
+
+	private void decreaseSelectedMarker() {
+		int index = markerComboBox.getSelectedIndex();
+		if (index > 1) {
+			index--;
+		}
+		markerComboBox.setSelectedIndex(index);
+	}
+
+	/**
+	 * Update marker combobox list
+	 */
 	private void updateMarkers() {
 		markerComboBox.removeAllItems();
-		ArrayList<Marker> markers = db.getAvailableMarkers();
+		markers = db.getAvailableMarkers();
 		int i = 0;
-		for (i=0; i < markers.size(); i++) {
-		
+		for (i = 0; i < markers.size(); i++) {
+
 			markerComboBox.addItem(markers.get(i).getName());
 		}
-		markerComboBox.setSelectedIndex(i-1);
+		markerComboBox.setSelectedIndex(i - 1);
+	}
+	
+	
+	private void storeJointMapping(Marker marker) {
+		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
+			JointType type = entry.getKey();
+			Joint joint = entry.getValue();
+			// write to db
+			db.setJointSensorMapping(marker, type, joint.getSensorID());
+		}
+	}
+
+	/**
+	 * save current local hand orientations as initial orientation for saved
+	 * movement
+	 */
+	private void storeInitialHandPosition(Marker marker) {
+		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
+			JointType type = entry.getKey();
+			Joint joint = entry.getValue();
+			// write to db
+			db.setInitialOrientation(marker, type, joint.getLocalOrientation());
+		}
 	}
 }

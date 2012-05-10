@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class Joint implements IFilterListener,IJoint {
+public class Joint implements IFilterListener, IJoint {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(Joint.class.getName());
@@ -34,24 +34,24 @@ public class Joint implements IFilterListener,IJoint {
 	protected IOrientationSensors sensors;
 
 	protected Hand hand;
-	
+
 	protected boolean visible = true;
-	
+
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors,
 			Restriction restriction) {
-		this.hand=hand;
+		this.hand = hand;
 		this.type = f;
 		this.sensors = sensors;
 		this.restriction = restriction;
 	}
 
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors) {
-		this(hand,f,sensors,new Restriction());
+		this(hand, f, sensors, new Restriction());
 	}
 
 	@Override
 	public Quaternion update(Quaternion measuredOrientation) {
-		
+
 		Quaternion oldOrientation = this.localOrientation;
 
 		if (parent != null) { // adjust measured orientation with know
@@ -62,9 +62,9 @@ public class Joint implements IFilterListener,IJoint {
 		} else {
 			this.localOrientation = measuredOrientation;
 		}
-		
-		if(!oldOrientation.equals(this.localOrientation)){
-			hand.informJointsUpdated();
+
+		if (!oldOrientation.equals(this.localOrientation)) {
+			hand.informJointsUpdated(this);
 		}
 
 		return this.localOrientation;
@@ -276,6 +276,22 @@ public class Joint implements IFilterListener,IJoint {
 
 	public void setVisible(boolean visible) {
 		this.visible = visible;
+	}
+
+	/**
+	 * Checks if given joint corresponds to one of its parents
+	 * 
+	 * @param joint
+	 * @return
+	 */
+	public boolean hasParent(Joint joint) {
+		if (parent == null) {
+			return joint == null;
+		} else if (parent.equals(joint)) {
+			return true;
+		} else {
+			return parent.hasParent(joint);
+		}
 	}
 
 }
