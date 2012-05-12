@@ -140,7 +140,7 @@ public class Visual3d extends SimpleApplication {
 		this.startCanvas();
 
 	}
-	
+
 	@Override
 	public void simpleInitApp() {
 
@@ -197,16 +197,23 @@ public class Visual3d extends SimpleApplication {
 
 	}
 
+	public void resetHand() {
+		visualHand.resetRotations();
+		adjustBoneJointMapping();
+	}
+
 	public void adjustBoneJointMapping() {
 		// init hand
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
+			
+			JointType type = entry.getKey();
 
 			Quaternion quat = Utils.getSensorQuad(visualHand
-					.getBoneRotation(entry.getKey()));
+					.getBoneRotation(type));
 
 			entry.getValue().setInitialOrientation(quat);
 
-			Vector3f pos = visualHand.getBonePosition(entry.getKey());
+			Vector3f pos = visualHand.getBonePosition(type);
 			entry.getValue().setInitialPosition(
 					new Quaternion(0, pos.x, pos.y, pos.z));
 		}
@@ -420,7 +427,9 @@ public class Visual3d extends SimpleApplication {
 					Joint joint = entry.getValue();
 					JointType type = entry.getKey();
 					Quaternion quat = joint.getWorldOrientation();
-					visualHand.setBoneRotationAbs(type, Utils.getJMEQuad(quat));
+					visualHand.setBoneRotationAbs(type,
+							//Utils.getPosition(joint.getWorldPosition()),
+							Utils.getJMEQuad(quat));
 					visualHand.setVisible(type, joint.isVisible());
 
 					// update live movement
@@ -575,7 +584,7 @@ public class Visual3d extends SimpleApplication {
 				this.analysesMovementPositions = analysesMovementPositions;
 
 			} else {
-				for(VisualHand3d hand : analysesMovementSteps){
+				for (VisualHand3d hand : analysesMovementSteps) {
 					hand.removeFromParent();
 				}
 				analysesMovementPositions.clear();
@@ -595,18 +604,18 @@ public class Visual3d extends SimpleApplication {
 	public void clearLiveMovement() {
 		synchronized (simpleUpdateLock) {
 			hand.setSaveMovement(false);
-			for(VisualHand3d hand : liveMovementSteps){
+			for (VisualHand3d hand : liveMovementSteps) {
 				hand.removeFromParent();
 			}
 			liveMovementSteps.clear();
 		}
 	}
-	
-	public void setShowFPS(boolean isShown){
+
+	public void setShowFPS(boolean isShown) {
 		setDisplayFps(isShown);
 	}
-	
-	public void setShowStatistics(boolean isShown){
+
+	public void setShowStatistics(boolean isShown) {
 		setDisplayStatView(isShown);
 	}
 

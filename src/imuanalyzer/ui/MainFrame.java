@@ -2,6 +2,7 @@ package imuanalyzer.ui;
 
 import imuanalyzer.configuration.Configuration;
 import imuanalyzer.data.Marker;
+import imuanalyzer.device.ImuReader;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
@@ -28,12 +29,17 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.log4j.Logger;
+
 public class MainFrame extends JFrame {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private static final Logger LOGGER = Logger
+	.getLogger(MainFrame.class.getName());
 
 	public static void main(String[] args) {
 
@@ -70,8 +76,7 @@ public class MainFrame extends JFrame {
 			sensors = OrientationSensorManagerFactory
 					.getLiveOrientationManager();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 			System.exit(-1);
 		}
 
@@ -111,9 +116,10 @@ public class MainFrame extends JFrame {
 		// Create the menu bar.
 		menuBar = new JMenuBar();
 
-		// Build the first menu.
+		// Build tools menu
 		menu = new JMenu("Tools");
 
+		//disable movement saving
 		menuItem = new JMenuItem("Disable movement saving");
 		menuItem.addActionListener(new ActionListener() {
 
@@ -124,12 +130,24 @@ public class MainFrame extends JFrame {
 		});
 		menu.add(menuItem);
 
+		// clear analysis
 		menuItem = new JMenuItem("Clear analysis");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				visual3d.setAnalyses(null);
+			}
+		});
+		menu.add(menuItem);
+		
+		//reset hand
+		menuItem = new JMenuItem("Reset hand");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				visual3d.resetHand();
 			}
 		});
 		menu.add(menuItem);

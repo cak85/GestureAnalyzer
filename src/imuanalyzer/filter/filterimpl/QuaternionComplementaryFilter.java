@@ -285,13 +285,4 @@ public class QuaternionComplementaryFilter extends Filter {
 		calibrationAVG = new Quaternion();
 	}
 
-	@Override
-	public void setCurrentFilteredQuaternion(Quaternion quaternion) {
-		qFilt = quaternion;
-		// seems to work better without
-		// qGyroFilt = new Quaternion(qFilt);
-		// qObserv = new Quaternion(qFilt);
-
-	}
-
 }

@@ -5,6 +5,7 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 
 public class Utils {
@@ -17,6 +18,10 @@ public class Utils {
 	public static imuanalyzer.filter.Quaternion getSensorQuad(Quaternion quad) {
 		return new imuanalyzer.filter.Quaternion(quad.getW(), quad.getX() * -1,
 				quad.getY() * -1, quad.getZ());
+	}
+	
+	public static Vector3f getPosition(imuanalyzer.filter.Quaternion quad){
+		return new Vector3f((float)quad.getX(), (float)quad.getY(), (float)quad.getZ());
 	}
 
 	public static void switchVisibility(Geometry geom) {

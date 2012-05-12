@@ -160,8 +160,7 @@ public class AHRSFilter extends Filter {
 
 	@Override
 	protected void initCalibration() {
-		// TODO Auto-generated method stub
-
+		//not used
 	}
 
 	@Override
@@ -173,12 +172,6 @@ public class AHRSFilter extends Filter {
 		exInt = 0;
 		eyInt = 0;
 		ezInt = 0;
-
-	}
-
-	@Override
-	public void setCurrentFilteredQuaternion(Quaternion quaternion) {
-		// TODO Auto-generated method stub
 
 	}
 

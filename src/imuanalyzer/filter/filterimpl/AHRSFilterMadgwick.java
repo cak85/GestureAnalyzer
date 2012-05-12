@@ -167,14 +167,7 @@ public class AHRSFilterMadgwick extends Filter {
 
 	@Override
 	protected void initCalibration() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setCurrentFilteredQuaternion(Quaternion quaternion) {
-		state_filtered = quaternion;
-
+		// not used
 	}
 
 }

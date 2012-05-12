@@ -27,7 +27,7 @@ public class Joint implements IFilterListener, IJoint {
 
 	protected Quaternion localOrientation = new Quaternion();
 
-	protected Quaternion currentPosition = new Quaternion();
+	protected Quaternion localPosition = new Quaternion();
 
 	protected Restriction restriction;
 
@@ -225,7 +225,7 @@ public class Joint implements IFilterListener, IJoint {
 	}
 
 	public void setInitialPosition(Quaternion pos) {
-		currentPosition = pos;
+		localPosition = pos;
 
 		// TODO update for position
 		// if (isActive()) {
@@ -234,6 +234,32 @@ public class Joint implements IFilterListener, IJoint {
 		// sensors.init(sensorID, this);
 		// }
 	}
+
+	public Quaternion getWorldPosition() {
+		//TODO wrong calculation
+		if (parent != null) {
+			Quaternion parentRotation =  parent.getWorldOrientation();
+			
+			Quaternion localRotatedPosition = parentRotation.quaternionProduct(localPosition);
+//				parentRotation.getConjugate().quaternionProduct(localPosition)
+//			.quaternionProduct(parentRotation);
+
+			return  localRotatedPosition.plus(parent.getWorldPosition());
+		} else {
+			return localPosition;
+		}
+	}
+	
+	
+	public Quaternion getWorldTranslation(){
+		if (parent != null) {
+			return parent.getWorldTranslation().plus(localPosition);
+		}else{
+			return localPosition;
+		}
+		
+	}
+	
 
 	public void setRestrictionsRoll(Restriction restriction) {
 		this.restriction = restriction;

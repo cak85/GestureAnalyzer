@@ -11,6 +11,7 @@ import imuanalyzer.signalprocessing.Joint;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,14 +20,22 @@ import java.util.Map.Entry;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
+
+import org.apache.log4j.Logger;
 
 /**
  * TODO seperate logic and gui into different classes
  * 
  */
 public class MarkerControl extends JPanel {
+	
+	private static final Logger LOGGER = Logger
+	.getLogger(MarkerControl.class.getName());
+
 
 	/**
 	 * 
@@ -63,8 +72,7 @@ public class MarkerControl extends JPanel {
 		try {
 			db = Database.getInstance();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 
 		this.setLayout(new FlowLayout());
@@ -182,6 +190,23 @@ public class MarkerControl extends JPanel {
 		});
 
 		this.add(buttonDelete);
+		
+		// save button
+		icon = new ImageIcon(getClass().getResource("/Icons/Save.png"));
+
+		JButton buttonSave = new JButton(icon);
+		buttonSave.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonSave.setContentAreaFilled(false);
+		buttonSave.setBorderPainted(false);
+		buttonSave.setToolTipText("Save current marker to csv");
+		buttonSave.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				saveMarker();
+			}
+		});
+
+		this.add(buttonSave);
 
 		markerComboBox = new JComboBox();
 		markerComboBox.setToolTipText("Select or create new marker");
@@ -191,6 +216,27 @@ public class MarkerControl extends JPanel {
 
 		this.add(markerComboBox);
 
+	}
+	
+	private void saveMarker(){
+		JFileChooser fileChooser = new JFileChooser(".");
+	    FileFilter filterCSV = new ExtensionFileFilter("CSV", new String[] { "CSV" });
+	    fileChooser.setFileFilter(filterCSV);
+	    int status = fileChooser.showSaveDialog(frame);
+	    if (status == JFileChooser.APPROVE_OPTION) {
+	      File selectedFile = fileChooser.getSelectedFile();
+	      //TODO ensure extension
+	      
+	      System.out.println(selectedFile.getAbsolutePath());	    
+	      db.writeImuDataToCsv(getCurrentMarker(),selectedFile.getAbsolutePath());
+	    } else if (status == JFileChooser.CANCEL_OPTION) {
+	      System.out.println(JFileChooser.CANCEL_OPTION);
+	    }
+
+	}
+	
+	private Marker getCurrentMarker(){
+		  return markers.get(markerComboBox.getSelectedIndex());
 	}
 
 	private void deleteMarker() {

@@ -38,8 +38,7 @@ public class Analyses {
 		try {
 			db = Database.getInstance();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 
 	}
@@ -158,7 +157,7 @@ public class Analyses {
 				for (int i = 0; i < sum.size(); i++) {
 					MovementStep m = sum.get(i);
 					if (m.getMove().equals(newState)) {
-						m.incCount();
+						m.setCount(m.getCount() + newState.getCount());
 						exists = true;
 						// LOGGER.debug("Find existing position - Increase count");
 						break;
@@ -171,6 +170,9 @@ public class Analyses {
 		}
 
 		// calculate avg
+		// average in every angle at start --> normalized
+		// average of angle change added to former position
+		// inclusion of counter...?
 		avg = new LinkedList<MovementStep>();
 
 		// TODO implement movement average calculation

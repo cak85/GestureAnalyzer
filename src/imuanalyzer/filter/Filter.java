@@ -57,8 +57,6 @@ public abstract class Filter {
 
 	protected abstract void initInteral();
 
-	public abstract void setCurrentFilteredQuaternion(Quaternion quaternion);
-
 	protected Matrix GradientDescent(double a_x, double a_y, double a_z,
 			double m_x, double m_y, double m_z, double mu, Matrix qObserv) {
 		int i = 0;
@@ -376,8 +374,6 @@ public abstract class Filter {
 			double m_y, double m_z) {
 
 		this.samplePeriod = samplePeriod;
-
-
 
 		// TODO möglicherweise besser die gerade berechnete orientierung zu
 		// nutzen, allerdings kann so die beschleunigung direkt für die

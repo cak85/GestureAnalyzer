@@ -4,6 +4,12 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -25,6 +31,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
 
 public class VisualHand3d extends Node {
+	
+	private static ExecutorService executor = Executors.newCachedThreadPool();
 
 	private static final Logger LOGGER = Logger.getLogger(VisualHand3d.class
 			.getName());
@@ -40,6 +48,9 @@ public class VisualHand3d extends Node {
 	private SkeletonDebugger skeletonDebug;
 
 	EnumMap<JointType, Bone> bones = new EnumMap<JointType, Bone>(
+			JointType.class);
+	
+	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
 			JointType.class);
 
 	ArrayList<Geometry> subgeometries = new ArrayList<Geometry>();
@@ -67,14 +78,23 @@ public class VisualHand3d extends Node {
 
 		this.attachChild(model);
 
-		// TODO try if better performance on doing this asychronous
-		findGeometries(model);
+		
+		Future<?> geometryFuture = executor.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				findGeometries(model);
+				
+			}
+		});
+				
 
 		// Everything necessary for disabling Animation and enabling control
 		// over skeleton
 		AnimControl control = model.getControl(AnimControl.class);
 		control.setEnabled(false);
-		// HACK dont know why it is necessary to add this control...but it works
+		// HACK don't know why it is necessary to add this control...but it works
+		// if I do not add this control the model structure collaspes
 		KinematicRagdollControl ragdoll = new KinematicRagdollControl(0.5f);
 		model.addControl(ragdoll);
 		ragdoll.setEnabled(false);
@@ -108,6 +128,28 @@ public class VisualHand3d extends Node {
 		bones.put(JointType.DM, skeleton.getBone("Bone.DM"));
 		bones.put(JointType.DD, skeleton.getBone("Bone.DD"));
 		bones.put(JointType.HR, skeleton.getBone("Bone"));
+		
+		//save initial bone rotations
+		for(Entry<JointType, Bone> entry : bones.entrySet()){
+			loadedOrientation.put(entry.getKey(),entry.getValue().getLocalRotation());
+		}
+		
+		//wait for parallel task
+		try {
+			geometryFuture.get();
+		} catch (InterruptedException e) {
+			LOGGER.error(e);
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			LOGGER.error(e);
+		}
+	}
+	
+	public void resetRotations(){
+		for(Entry<JointType, Bone> entry : bones.entrySet()){
+			
+			setBoneRotationAbs(entry.getKey(), loadedOrientation.get(entry.getKey()));
+		}
 	}
 
 	private void findGeometries(Node node) {
@@ -160,6 +202,11 @@ public class VisualHand3d extends Node {
 	public void setBoneRotationAbs(JointType finger, Quaternion quad) {
 		Bone bone = bones.get(finger);
 		setTransform(bone, bone.getModelSpacePosition(), quad);
+	}
+	
+	public void setBoneRotationAbs(JointType finger,Vector3f pos, Quaternion quad) {
+		Bone bone = bones.get(finger);
+		setTransform(bone, pos, quad);
 	}
 
 	public Quaternion getBoneRotation(JointType finger) {

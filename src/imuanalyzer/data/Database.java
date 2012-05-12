@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.h2.tools.Csv;
 
 public class Database {
 
@@ -303,13 +304,12 @@ public class Database {
 
 	}
 
-	public ArrayList<ImuRawData> getImuData(Marker marker) {
-		ArrayList<ImuRawData> data = new ArrayList<ImuRawData>();
+	public ResultSet selectImuData(PreparedStatement statement, Marker marker)
+			throws SQLException {
 
-		PreparedStatement statement = null;
 		ResultSet rs = null;
 
-		StringBuilder getType = new StringBuilder("select ")
+		StringBuilder select = new StringBuilder("select ")
 				.append(IMU_DATA_TABLE_SENSOR_ID).append(",")
 				.append(IMU_DATA_TABLE_TIME).append(",")
 				.append(IMU_DATA_TABLE_SAMPLEPERIOD).append(",")
@@ -328,11 +328,20 @@ public class Database {
 				.append(" where ").append(IMU_DATA_TABLE_TIME)
 				.append(" between ? and ?");
 
+		statement = conn.prepareStatement(select.toString());
+		statement.setTimestamp(1, new Timestamp(marker.start.getTime()));
+		statement.setTimestamp(2, new Timestamp(marker.end.getTime()));
+		rs = statement.executeQuery();
+
+		return rs;
+	}
+
+	public ArrayList<ImuRawData> getImuData(Marker marker) {
+		ArrayList<ImuRawData> data = new ArrayList<ImuRawData>();
+
+		PreparedStatement statement = null;
 		try {
-			statement = conn.prepareStatement(getType.toString());
-			statement.setTimestamp(1, new Timestamp(marker.start.getTime()));
-			statement.setTimestamp(2, new Timestamp(marker.end.getTime()));
-			rs = statement.executeQuery();
+			ResultSet rs = selectImuData(statement, marker);
 
 			while (rs.next()) {
 				SensorVector accelerometer = new SensorVector(
@@ -356,7 +365,8 @@ public class Database {
 						rs.getDouble(IMU_DATA_TABLE_SAMPLEPERIOD),
 						accelerometer, gyroskope, magnetometer);
 				data.add(dataItem);
-			} // end while
+			}
+
 		} catch (final SQLException e) {
 			LOGGER.error(e);
 		} finally {
@@ -370,6 +380,24 @@ public class Database {
 		}
 
 		return data;
+	}
+
+	public void writeImuDataToCsv(Marker marker, String filename) {
+		PreparedStatement statement = null;
+		try {
+			ResultSet rs = selectImuData(statement, marker);
+			new Csv().write(filename, rs, null);
+		} catch (final SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (final SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
 	}
 
 	public FilterTypes getFilterType() {

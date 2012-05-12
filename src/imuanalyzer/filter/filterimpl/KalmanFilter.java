@@ -359,13 +359,7 @@ public class KalmanFilter extends Filter {
 
 	@Override
 	protected void initCalibration() {
-		// TODO Auto-generated method stub
+		// not used
 
-	}
-
-	@Override
-	public void setCurrentFilteredQuaternion(Quaternion quaternion) {
-		state_observed = new Quaternion(quaternion).getQuaternionAsVector();
-		state_filtered = new Quaternion(quaternion).getQuaternionAsVector();
 	}
 }

@@ -145,13 +145,8 @@ public class AHRSFilterMahony extends Filter {
 
 	@Override
 	protected void initCalibration() {
-		// TODO Auto-generated method stub
+		// not used/necessary
 
-	}
-
-	@Override
-	public void setCurrentFilteredQuaternion(Quaternion quaternion) {
-		state_filtered = quaternion;
 	}
 
 }
