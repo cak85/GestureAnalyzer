@@ -32,10 +32,9 @@ import org.apache.log4j.Logger;
  * 
  */
 public class MarkerControl extends JPanel {
-	
-	private static final Logger LOGGER = Logger
-	.getLogger(MarkerControl.class.getName());
 
+	private static final Logger LOGGER = Logger.getLogger(MarkerControl.class
+			.getName());
 
 	/**
 	 * 
@@ -190,7 +189,7 @@ public class MarkerControl extends JPanel {
 		});
 
 		this.add(buttonDelete);
-		
+
 		// save button
 		icon = new ImageIcon(getClass().getResource("/Icons/Save.png"));
 
@@ -217,26 +216,28 @@ public class MarkerControl extends JPanel {
 		this.add(markerComboBox);
 
 	}
-	
-	private void saveMarker(){
+
+	private void saveMarker() {
 		JFileChooser fileChooser = new JFileChooser(".");
-	    FileFilter filterCSV = new ExtensionFileFilter("CSV", new String[] { "CSV" });
-	    fileChooser.setFileFilter(filterCSV);
-	    int status = fileChooser.showSaveDialog(frame);
-	    if (status == JFileChooser.APPROVE_OPTION) {
-	      File selectedFile = fileChooser.getSelectedFile();
-	      //TODO ensure extension
-	      
-	      System.out.println(selectedFile.getAbsolutePath());	    
-	      db.writeImuDataToCsv(getCurrentMarker(),selectedFile.getAbsolutePath());
-	    } else if (status == JFileChooser.CANCEL_OPTION) {
-	      System.out.println(JFileChooser.CANCEL_OPTION);
-	    }
+		FileFilter filterCSV = new ExtensionFileFilter("CSV",
+				new String[] { "CSV" });
+		fileChooser.setFileFilter(filterCSV);
+		int status = fileChooser.showSaveDialog(frame);
+		if (status == JFileChooser.APPROVE_OPTION) {
+			File selectedFile = fileChooser.getSelectedFile();
+			// TODO ensure extension
+
+			System.out.println(selectedFile.getAbsolutePath());
+			db.writeImuDataToCsv(getCurrentMarker(),
+					selectedFile.getAbsolutePath());
+		} else if (status == JFileChooser.CANCEL_OPTION) {
+			System.out.println(JFileChooser.CANCEL_OPTION);
+		}
 
 	}
-	
-	private Marker getCurrentMarker(){
-		  return markers.get(markerComboBox.getSelectedIndex());
+
+	private Marker getCurrentMarker() {
+		return markers.get(markerComboBox.getSelectedIndex());
 	}
 
 	private void deleteMarker() {
@@ -275,16 +276,21 @@ public class MarkerControl extends JPanel {
 		ArrayList<Marker> markers = db.getAvailableMarkers();
 		if (markers.size() > 0) {
 
-			MarkerCombinationSeletor selector = new MarkerCombinationSeletor(
-					frame, markers);
+			MarkerAnalysesUi selector = new MarkerAnalysesUi(frame, markers);
 
 			Analyses newAnalyses = new Analyses();
-			newAnalyses.calculate(selector.getSelectedMarkers(),
-					sensor.getCurrentFilter(),
-					hand.getSavedMovementStartJoint());
-			frame.getVisual3d().setAnalyses(newAnalyses);
-			JOptionPane.showMessageDialog(myInstance, "Calculation complete",
-					"Information", JOptionPane.OK_OPTION);
+
+			ArrayList<Marker> selectedMarkers = selector.getSelectedMarkers();
+
+			if (selectedMarkers.size() > 0) {
+				newAnalyses.calculate(selector.getSelectedCalculationMode(),
+						selectedMarkers, sensor.getCurrentFilter(),
+						hand.getSavedMovementStartJoint());
+				frame.getVisual3d().setAnalyses(newAnalyses);
+				JOptionPane.showMessageDialog(myInstance,
+						"Calculation complete", "Information",
+						JOptionPane.OK_OPTION);
+			}
 		} else {
 			JOptionPane.showMessageDialog(myInstance, "No markers available",
 					"Information", JOptionPane.OK_OPTION);
@@ -320,8 +326,7 @@ public class MarkerControl extends JPanel {
 		}
 		markerComboBox.setSelectedIndex(i - 1);
 	}
-	
-	
+
 	private void storeJointMapping(Marker marker) {
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 			JointType type = entry.getKey();

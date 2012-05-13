@@ -115,9 +115,11 @@ public class Hand {
 
 		addAllElementsToMap(elemHR);
 
-		for (JointType j : JointType.values()) {
-			int id = db.getJointSensorMapping(currentMarker, j);
-			setSensorID(j, id);
+		if (sensors != null) {
+			for (JointType j : JointType.values()) {
+				int id = db.getJointSensorMapping(currentMarker, j);
+				setSensorID(j, id);
+			}
 		}
 
 	}

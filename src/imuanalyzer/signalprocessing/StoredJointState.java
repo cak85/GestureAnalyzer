@@ -45,6 +45,10 @@ public class StoredJointState implements IJoint {
 	public Quaternion getLocalOrientation() {
 		return localOrientation;
 	}
+	
+	public void setLocalOrientation(Quaternion quad){
+		localOrientation=quad;
+	}
 
 	public JointType getType() {
 		return type;

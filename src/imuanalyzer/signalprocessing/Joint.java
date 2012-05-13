@@ -236,30 +236,29 @@ public class Joint implements IFilterListener, IJoint {
 	}
 
 	public Quaternion getWorldPosition() {
-		//TODO wrong calculation
+		// TODO wrong calculation
 		if (parent != null) {
-			Quaternion parentRotation =  parent.getWorldOrientation();
-			
-			Quaternion localRotatedPosition = parentRotation.quaternionProduct(localPosition);
-//				parentRotation.getConjugate().quaternionProduct(localPosition)
-//			.quaternionProduct(parentRotation);
+			Quaternion parentRotation = parent.getWorldOrientation();
 
-			return  localRotatedPosition.plus(parent.getWorldPosition());
+			Quaternion localRotatedPosition = parentRotation
+					.quaternionProduct(localPosition);
+			// parentRotation.getConjugate().quaternionProduct(localPosition)
+			// .quaternionProduct(parentRotation);
+
+			return localRotatedPosition.plus(parent.getWorldPosition());
 		} else {
 			return localPosition;
 		}
 	}
-	
-	
-	public Quaternion getWorldTranslation(){
+
+	public Quaternion getWorldTranslation() {
 		if (parent != null) {
 			return parent.getWorldTranslation().plus(localPosition);
-		}else{
+		} else {
 			return localPosition;
 		}
-		
+
 	}
-	
 
 	public void setRestrictionsRoll(Restriction restriction) {
 		this.restriction = restriction;

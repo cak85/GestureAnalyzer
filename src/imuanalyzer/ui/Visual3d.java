@@ -567,7 +567,7 @@ public class Visual3d extends SimpleApplication {
 		synchronized (simpleUpdateLock) {
 			if (analyses != null) {
 				LinkedList<MovementStep> analysesMovementPositions = analyses
-						.getSumOfAll();
+						.getResult();
 
 				// update joint parent if not root node of object
 				// with the goal of moving the analyzed hand in the same frame
