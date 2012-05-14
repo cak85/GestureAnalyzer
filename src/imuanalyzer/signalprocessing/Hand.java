@@ -4,13 +4,17 @@ import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.filter.Quaternion;
 
+import java.nio.FloatBuffer;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+
+import com.jme3.math.Vector3f;
 
 public class Hand {
 
@@ -35,11 +39,14 @@ public class Hand {
 	Database db;
 
 	protected LinkedList<MovementStep> savedMovementFlow = new LinkedList<MovementStep>();
-
 	protected JointType saveMovementStartJoint = JointType.RD;
-
 	protected Boolean saveMovement = false;
 	protected double movementMinDifference = 0.12;
+
+	Quaternion lastPos = new Quaternion();
+	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
+	protected JointType saveMovementLineJoint = JointType.RT;
+	protected Boolean saveMovementLine = false;
 
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
@@ -158,7 +165,7 @@ public class Hand {
 
 	public Quaternion setLocalJointOrientation(JointType type, Quaternion quad) {
 		Joint joint = ((Joint) joints.get(type));
-		return joint.update(quad);
+		return joint.update(quad, false);
 	}
 
 	public Joint getJoint(JointType type) {
@@ -261,10 +268,54 @@ public class Hand {
 			savedMovementFlow.addLast(new MovementStep(newState));
 		}
 
+		updatedTouchPosition();
+	}
+
+	public void updatedTouchPosition() {
+		if (saveMovementLine) {
+			Quaternion newPos = getJoint(saveMovementLineJoint)
+					.getFingertipPosition();
+
+			if (!lastPos.equals(newPos)) {
+				lastPos = newPos;
+				//conversion to jme representation not sure why it is different from
+				//that one in utils ....?
+				lineBuffer.add(new Vector3f((float) newPos.getX() * -1 ,
+						(float) newPos.getY(), (float) newPos.getZ() * -1));
+
+			}
+		}
+	}
+
+	public ArrayList<Vector3f> getLineBuffer() {
+
+		return lineBuffer;
 	}
 
 	public LinkedList<MovementStep> getSavedMovementFlow() {
 		return savedMovementFlow;
+	}
+
+	public Boolean getSaveTouchLine() {
+		return saveMovementLine;
+	}
+
+	public void setSaveTouchLine(Boolean saveMovementLine) {
+		if (!saveMovementLine) {
+			lineBuffer.clear();
+		}
+		this.saveMovementLine = saveMovementLine;
+	}
+
+	public JointType getSaveTouchLineJoint() {
+		return saveMovementLineJoint;
+	}
+
+	public void setSaveTouchLineJoint(JointType saveMovementLineJoint) {
+		if (saveMovementLineJoint != this.saveMovementLineJoint) {
+			this.saveMovementLineJoint = saveMovementLineJoint;
+			lineBuffer.clear();
+		}
 	}
 
 }

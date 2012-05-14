@@ -112,6 +112,13 @@ public class Quaternion implements Comparable<Quaternion> {
 		z = c1 * s2 * c3 - s1 * c2 * s3;
 
 	}
+	
+	public void set(double real, double i, double j, double k) {
+		this.w = real;
+		this.x = i;
+		this.y = j;
+		this.z = k;
+	}
 
 	public Matrix getQuaternionAsVector() {
 		Matrix result = new Matrix(4, 1);

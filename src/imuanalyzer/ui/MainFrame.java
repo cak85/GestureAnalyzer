@@ -2,7 +2,6 @@ package imuanalyzer.ui;
 
 import imuanalyzer.configuration.Configuration;
 import imuanalyzer.data.Marker;
-import imuanalyzer.device.ImuReader;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
@@ -37,9 +36,9 @@ public class MainFrame extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	private static final Logger LOGGER = Logger
-	.getLogger(MainFrame.class.getName());
+
+	private static final Logger LOGGER = Logger.getLogger(MainFrame.class
+			.getName());
 
 	public static void main(String[] args) {
 
@@ -117,10 +116,10 @@ public class MainFrame extends JFrame {
 		menuBar = new JMenuBar();
 
 		// Build tools menu
-		menu = new JMenu("Tools");
+		menu = new JMenu("Control");
 
-		//disable movement saving
-		menuItem = new JMenuItem("Disable movement saving");
+		// disable movement saving
+		menuItem = new JMenuItem("Disable movement anaylsis");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override
@@ -129,6 +128,18 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menu.add(menuItem);
+		
+		// disable movement saving
+		menuItem = new JMenuItem("Disable touch anaylsis");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				hand.setSaveTouchLine(false);
+			}
+		});
+		menu.add(menuItem);
+
 
 		// clear analysis
 		menuItem = new JMenuItem("Clear analysis");
@@ -140,8 +151,8 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menu.add(menuItem);
-		
-		//reset hand
+
+		// reset hand
 		menuItem = new JMenuItem("Reset hand");
 		menuItem.addActionListener(new ActionListener() {
 
@@ -157,9 +168,6 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				for (int i = 0; i < sensors.getNumberOfSensors(); i++) {
-					// sensors.setInitialOrientation(i, spatialView.getHand().)
-				}
 				sensors.calibrate();
 				visual3d.adjustBoneJointMapping();
 
@@ -297,7 +305,7 @@ public class MainFrame extends JFrame {
 
 	protected void createSettingsTab() {
 		fingerSensorMapping = new FingerSensorMapping(hand,
-				sensors.getNumberOfSensors());
+				OrientationSensorManagerFactory.NUMBER_OF_SENSORS);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.NONE;

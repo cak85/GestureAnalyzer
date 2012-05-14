@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
@@ -153,8 +152,7 @@ public class Analyses {
 					if (rawData.size() > 0) {
 
 						Date currentPeriod = rawData.get(0).getTimeStamp();
-						ImuRawData[] currentSet = new ImuRawData[orientationManager
-								.getNumberOfSensors()];
+						ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
 
 						int dataIdx = 0;
 						for (int i = 0; i < rawData.size(); i++) {

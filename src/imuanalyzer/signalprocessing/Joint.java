@@ -37,6 +37,8 @@ public class Joint implements IFilterListener, IJoint {
 
 	protected boolean visible = true;
 
+	Quaternion lastActiveChange = new Quaternion();
+
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors,
 			Restriction restriction) {
 		this.hand = hand;
@@ -49,13 +51,36 @@ public class Joint implements IFilterListener, IJoint {
 		this(hand, f, sensors, new Restriction());
 	}
 
+	protected Quaternion lastMeasuredOrientation = new Quaternion();
+
 	@Override
 	public Quaternion update(Quaternion measuredOrientation) {
+
+		return update(measuredOrientation, true);
+	}
+
+	public Quaternion update(Quaternion measuredOrientation,
+			boolean storeLastMovement) {
+		if (lastMeasuredOrientation.equals(measuredOrientation)) {
+			lastActiveChange.set(1, 0, 0, 0);
+			;
+			return localOrientation;
+		} else {
+			lastMeasuredOrientation = measuredOrientation;
+		}
 
 		Quaternion oldOrientation = this.localOrientation;
 
 		if (parent != null) { // adjust measured orientation with know
 								// restrictions
+
+			// measuredOrientation.print(3);
+
+			// substract change of parent/reference for getting the local frame
+			measuredOrientation = measuredOrientation.quaternionProduct(parent
+					.getLastActiveChange());
+
+			// measuredOrientation.print(3);
 
 			this.localOrientation = updateWithRestrictions(measuredOrientation);
 
@@ -64,11 +89,16 @@ public class Joint implements IFilterListener, IJoint {
 		}
 
 		if (!oldOrientation.equals(this.localOrientation)) {
+			// store last orientation change,
+			if (storeLastMovement) {
+				lastActiveChange = oldOrientation
+						.quaternionProduct(localOrientation.getConjugate());
+			}
 			hand.informJointsUpdated(this);
+		} else {
+			lastActiveChange.set(1, 0, 0, 0);
 		}
-
 		return this.localOrientation;
-
 	}
 
 	public void carryOrientationFromChild(Quaternion carry) {
@@ -190,11 +220,11 @@ public class Joint implements IFilterListener, IJoint {
 		id_lock.lock(); // necessary because currentOrientation could be reseted
 						// by update
 		if (isActive()) {
-			sensors.removeListner(this.sensorID, this);
+			sensors.removeListner(this);
 		}
 		this.sensorID = sensorID;
 		if (isActive()) {
-			sensors.addListener(this.sensorID, this);
+			sensors.addListener(this);
 		}
 		id_lock.unlock();
 	}
@@ -218,49 +248,39 @@ public class Joint implements IFilterListener, IJoint {
 	public void setInitialOrientation(Quaternion orientation) {
 		localOrientation = orientation;
 		if (isActive()) {
-			sensors.removeListner(sensorID, this);
+			sensors.removeListner(this);
 			// first could be removed with some improvements in sensor
-			sensors.addListener(sensorID, this);
+			sensors.addListener(this);
 		}
 	}
 
-	public void setInitialPosition(Quaternion pos) {
+	public void setLocalPosition(Quaternion pos) {
 		localPosition = pos;
-
-		// TODO update for position
-		// if (isActive()) {
-		// // first could be removed with some improvements in sensor
-		// sensors.setInitialOrientation(sensorID, currentOrientation);
-		// sensors.init(sensorID, this);
-		// }
 	}
+	
+	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0,0,0.7,0);
 
 	public Quaternion getWorldPosition() {
-		// TODO wrong calculation
 		if (parent != null) {
-			Quaternion parentRotation = parent.getWorldOrientation();
-
-			Quaternion localRotatedPosition = parentRotation
-					.quaternionProduct(localPosition);
-			// parentRotation.getConjugate().quaternionProduct(localPosition)
-			// .quaternionProduct(parentRotation);
-
-			return localRotatedPosition.plus(parent.getWorldPosition());
+			Quaternion rotation = parent.getWorldOrientation();
+			return parent.getWorldPosition().plus(
+					rotation.quaternionProduct(
+							localPosition).quaternionProduct(rotation.getConjugate()));
 		} else {
 			return localPosition;
 		}
 	}
-
-	public Quaternion getWorldTranslation() {
-		if (parent != null) {
-			return parent.getWorldTranslation().plus(localPosition);
-		} else {
-			return localPosition;
-		}
-
+	
+	public Quaternion getFingertipPosition(){
+		Quaternion bonePos = getWorldPosition();
+		Quaternion rotation = getWorldOrientation();
+		
+		return bonePos.plus(rotation.quaternionProduct(
+				FINGER_TIP_OFFSET).quaternionProduct(rotation.getConjugate()));
+		
 	}
 
-	public void setRestrictionsRoll(Restriction restriction) {
+	public void setRestrictions(Restriction restriction) {
 		this.restriction = restriction;
 	}
 
@@ -316,6 +336,24 @@ public class Joint implements IFilterListener, IJoint {
 			return true;
 		} else {
 			return parent.hasParent(joint);
+		}
+	}
+
+	@Override
+	public int getPriority() {
+		return this.type.ordinal();
+	}
+
+	public Quaternion getLastActiveChange() {
+		if (!isActive()) {
+			lastActiveChange.set(1, 0, 0, 0);
+		}
+		if (parent == null) {
+			return lastActiveChange;
+
+		} else {
+			return lastActiveChange.quaternionProduct(parent
+					.getLastActiveChange());
 		}
 	}
 

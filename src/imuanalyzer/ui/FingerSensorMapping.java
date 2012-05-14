@@ -5,12 +5,17 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.EnumMap;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -91,6 +96,23 @@ public class FingerSensorMapping extends JPanel {
 
 		addHandSpinner(JointType.KD, 360, 230);
 
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new FlowLayout());
+
+		JButton resetButton = new JButton("Reset");
+		resetButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				resetAllSpinners();
+
+			}
+		});
+
+		buttonPanel.add(resetButton);
+
+		this.add(buttonPanel, BorderLayout.SOUTH);
+
 	}
 
 	private JSpinner addHandSpinner(JointType finger, int xOffset, int yOffset) {
@@ -111,6 +133,12 @@ public class FingerSensorMapping extends JPanel {
 		background.add(spinner);
 
 		return spinner;
+	}
+
+	private void resetAllSpinners() {
+		for (Entry<JointType, JSpinner> e : spinners.entrySet()) {
+			e.getValue().setValue(0);
+		}
 	}
 
 	class SensorChangeListener implements ChangeListener {

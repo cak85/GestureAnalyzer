@@ -11,6 +11,8 @@ import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -21,6 +23,7 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import com.jme3.animation.Bone;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
@@ -37,13 +40,21 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.VertexBuffer.Format;
+import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.debug.Grid;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.BasicShadowRenderer;
+import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
+import com.jme3.util.BufferUtils;
 
 public class Visual3d extends SimpleApplication {
 
@@ -51,6 +62,8 @@ public class Visual3d extends SimpleApplication {
 			.getName());
 
 	private static final float CAM_MOVEMENT = 2f;
+	
+	private static final float MANUAL_ANGLE_CHANGE = 0.5f;
 
 	private static final float OPACITY_STEP = 0.05f;
 
@@ -72,12 +85,12 @@ public class Visual3d extends SimpleApplication {
 	/**
 	 * Used camera
 	 */
-	ChaseCamera chaseCam;
+	private ChaseCamera chaseCam;
 
 	/**
-	 * not used in the moment
+	 * Shadow renderer
 	 */
-	// BasicShadowRenderer bsr;
+	private PssmShadowRenderer pssmRenderer;
 
 	/**
 	 * Current Joint for manual manipulation
@@ -108,6 +121,8 @@ public class Visual3d extends SimpleApplication {
 	LinkedList<MovementStep> analysesMovementPositions = new LinkedList<MovementStep>();
 
 	private Visual3d myInstance;
+
+	Geometry motionLine = null;
 
 	/**
 	 * Constructor, needs handmodel
@@ -146,14 +161,11 @@ public class Visual3d extends SimpleApplication {
 
 		viewPort.setBackgroundColor(ColorRGBA.LightGray);
 
-		// bsr = new BasicShadowRenderer(assetManager, 256);
-		// bsr.setDirection(new Vector3f(0, 6, 6).normalizeLocal()); // light
-		// // direction
-		// viewPort.addProcessor(bsr);
-
 		attachLight();
 
 		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true);
+
+		visualHand.setShadowMode(ShadowMode.CastAndReceive);
 
 		rootNode.attachChild(visualHand);
 
@@ -166,6 +178,13 @@ public class Visual3d extends SimpleApplication {
 		initKeys();
 
 		attachGrid(new Vector3f(0, -10, 0), 50, ColorRGBA.Black);
+
+		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
+
+		motionLine = Utils.CreateLine(assetManager, lineBuffer, ColorRGBA.Red,
+				false, 2);
+
+		rootNode.attachChild(motionLine);
 
 	}
 
@@ -188,10 +207,10 @@ public class Visual3d extends SimpleApplication {
 
 		// Add the names to the action listener.
 		inputManager.addListener(actionListener, new String[] { "Switch", "X",
-				"Y", "Z", "Increase", "Decrease", "Quit" });
+				"Y", "Z", "Quit" });
 
 		inputManager.addListener(analogListener, new String[] { "CAM_UP",
-				"CAM_DOWN", "CAM_LEFT", "CAM_RIGHT" });
+				"CAM_DOWN", "CAM_LEFT", "CAM_RIGHT", "Increase", "Decrease", });
 
 		inputManager.addListener(mousePicker, new String[] { "pick target" });
 
@@ -205,7 +224,7 @@ public class Visual3d extends SimpleApplication {
 	public void adjustBoneJointMapping() {
 		// init hand
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
-			
+
 			JointType type = entry.getKey();
 
 			Quaternion quat = Utils.getSensorQuad(visualHand
@@ -214,7 +233,7 @@ public class Visual3d extends SimpleApplication {
 			entry.getValue().setInitialOrientation(quat);
 
 			Vector3f pos = visualHand.getBonePosition(type);
-			entry.getValue().setInitialPosition(
+			entry.getValue().setLocalPosition(
 					new Quaternion(0, pos.x, pos.y, pos.z));
 		}
 	}
@@ -224,20 +243,27 @@ public class Visual3d extends SimpleApplication {
 		al.setColor(ColorRGBA.White.mult(1.3f));
 		rootNode.addLight(al);
 
-		PointLight lamp_light = new PointLight();
-		lamp_light.setColor(ColorRGBA.White);
-		lamp_light.setRadius(12f);
-		Vector3f lamp_pos_1 = new Vector3f(0, 6, -6);
-		lamp_light.setPosition(lamp_pos_1);
-		rootNode.addLight(lamp_light);
+		// PointLight lamp_light = new PointLight();
+		// lamp_light.setColor(ColorRGBA.White);
+		// lamp_light.setRadius(12f);
+		// Vector3f lamp_pos_1 = new Vector3f(0, 6, -6);
+		// lamp_light.setPosition(lamp_pos_1);
+		// rootNode.addLight(lamp_light);
 
 		PointLight lamp_light2 = new PointLight();
 		lamp_light2.setColor(ColorRGBA.White);
 		lamp_light2.setRadius(10f);
-		Vector3f lamp_pos_2 = new Vector3f(0, 6, 6);
+		Vector3f lamp_pos_2 = new Vector3f(0, 8, 3);
 		lamp_light2.setPosition(lamp_pos_2);
 
 		rootNode.addLight(lamp_light2);
+
+		pssmRenderer = new PssmShadowRenderer(assetManager, 1024, 7);
+		pssmRenderer.setDirection(new Vector3f(0, -8, -3).normalizeLocal()); // light
+																				// direction
+		pssmRenderer.setShadowIntensity(0.15f);
+
+		viewPort.addProcessor(pssmRenderer);
 
 		// createTestSphere(lamp_pos_1);
 		// createTestSphere(lamp_pos_2);
@@ -325,6 +351,12 @@ public class Visual3d extends SimpleApplication {
 				moveCam(new Vector3f(0, 0, CAM_MOVEMENT * value));
 			} else if (name.equals("CAM_RIGHT")) {
 				moveCam(new Vector3f(0, 0, -CAM_MOVEMENT * value));
+			} else if (name.equals("Increase")) {
+				manualAddToQuat(currentManipulatedJoint, currentAxis,
+						MANUAL_ANGLE_CHANGE * value);
+			} else if (name.equals("Decrease")) {
+				manualAddToQuat(currentManipulatedJoint, currentAxis, -1
+						* MANUAL_ANGLE_CHANGE * value);
 			}
 		}
 	};
@@ -337,10 +369,6 @@ public class Visual3d extends SimpleApplication {
 			} else if ((name.equals("X") || name.equals("Y") || name
 					.equals("Z")) && !keyPressed) {
 				currentAxis = Axis.valueOf(name);
-			} else if (name.equals("Increase")) {
-				manualAddToQuat(currentManipulatedJoint, currentAxis, 0.05);
-			} else if (name.equals("Decrease")) {
-				manualAddToQuat(currentManipulatedJoint, currentAxis, -0.05);
 			} else if (name.equals("Quit")) {
 				System.exit(0);
 			}
@@ -428,8 +456,9 @@ public class Visual3d extends SimpleApplication {
 					JointType type = entry.getKey();
 					Quaternion quat = joint.getWorldOrientation();
 					visualHand.setBoneRotationAbs(type,
-							//Utils.getPosition(joint.getWorldPosition()),
+					// Utils.getPosition(joint.getWorldPosition()),
 							Utils.getJMEQuad(quat));
+
 					visualHand.setVisible(type, joint.isVisible());
 
 					// update live movement
@@ -496,6 +525,12 @@ public class Visual3d extends SimpleApplication {
 					}
 
 				}
+
+				// update line movement
+
+				ArrayList<Vector3f> motionLineBuffer = hand.getLineBuffer();
+
+				Utils.updateLine(motionLine, motionLineBuffer, false);
 
 			} catch (Exception e) {
 				e.printStackTrace();

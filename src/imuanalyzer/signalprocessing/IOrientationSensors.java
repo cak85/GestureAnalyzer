@@ -8,11 +8,9 @@ import java.util.Vector;
 
 public interface IOrientationSensors {
 	
-	void addListener(int i, IFilterListener listner);
-	void removeListner(int i, IFilterListener listner);
+	void addListener(IFilterListener listner);
+	void removeListner(IFilterListener listner);
 	
-	int getNumberOfSensors();
-
 	void calibrate();
 
 	boolean connect(String port);
