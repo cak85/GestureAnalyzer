@@ -165,9 +165,4 @@ public class AHRSFilterMadgwick extends Filter {
 		return state_filtered;
 	}
 
-	@Override
-	protected void initCalibration() {
-		// not used
-	}
-
 }

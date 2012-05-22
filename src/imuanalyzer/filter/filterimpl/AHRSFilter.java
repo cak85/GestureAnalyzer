@@ -159,11 +159,6 @@ public class AHRSFilter extends Filter {
 	}
 
 	@Override
-	protected void initCalibration() {
-		//not used
-	}
-
-	@Override
 	public void initInteral() {
 		// quaternion elements representing the estimated orientation
 		qFilt = initialOrientation;

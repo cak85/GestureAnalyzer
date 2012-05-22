@@ -31,4 +31,13 @@ public class RunningAvg {
 		return sum / buffer.size();
 	}
 
+	public int getCount() {
+		return buffer.size();
+	}
+
+	public void clear() {
+		buffer.clear();
+		sum = 0;
+	}
+
 }

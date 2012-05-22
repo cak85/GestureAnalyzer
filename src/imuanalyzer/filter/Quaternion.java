@@ -200,7 +200,7 @@ public class Quaternion implements Comparable<Quaternion> {
 	}
 
 	public Quaternion minus(Quaternion quad) {
-		return plus(this, quad);
+		return minus(this, quad);
 	}
 
 	public static Quaternion minus(Quaternion a, Quaternion b) {

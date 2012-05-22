@@ -5,14 +5,13 @@ import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
+import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -20,10 +19,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
-import com.jme3.animation.Bone;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
@@ -43,18 +42,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
-import com.jme3.scene.VertexBuffer;
-import com.jme3.scene.VertexBuffer.Format;
-import com.jme3.scene.VertexBuffer.Type;
-import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.debug.Grid;
-import com.jme3.scene.shape.Sphere;
-import com.jme3.shadow.BasicShadowRenderer;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
-import com.jme3.util.BufferUtils;
 
 public class Visual3d extends SimpleApplication {
 
@@ -62,7 +54,7 @@ public class Visual3d extends SimpleApplication {
 			.getName());
 
 	private static final float CAM_MOVEMENT = 2f;
-	
+
 	private static final float MANUAL_ANGLE_CHANGE = 0.5f;
 
 	private static final float OPACITY_STEP = 0.05f;
@@ -159,7 +151,7 @@ public class Visual3d extends SimpleApplication {
 	@Override
 	public void simpleInitApp() {
 
-		viewPort.setBackgroundColor(ColorRGBA.LightGray);
+		viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
 		attachLight();
 
@@ -186,6 +178,10 @@ public class Visual3d extends SimpleApplication {
 
 		rootNode.attachChild(motionLine);
 
+		deviceDummy = new DeviceDummy(assetManager);
+		deviceDummy.setVisible(false);
+		visualHand.attachChild(deviceDummy);
+
 	}
 
 	/** Custom Keybinding: Map named actions to inputs. */
@@ -204,6 +200,10 @@ public class Visual3d extends SimpleApplication {
 		inputManager.addMapping("Quit", new KeyTrigger(KeyInput.KEY_ESCAPE));
 		inputManager.addMapping("pick target", new MouseButtonTrigger(
 				MouseInput.BUTTON_RIGHT));
+		inputManager.addMapping("DeviceMove", new MouseButtonTrigger(
+				MouseInput.BUTTON_LEFT));
+		inputManager.addMapping("DeviceMoveTrigger", new MouseButtonTrigger(
+				MouseInput.BUTTON_LEFT));
 
 		// Add the names to the action listener.
 		inputManager.addListener(actionListener, new String[] { "Switch", "X",
@@ -213,6 +213,12 @@ public class Visual3d extends SimpleApplication {
 				"CAM_DOWN", "CAM_LEFT", "CAM_RIGHT", "Increase", "Decrease", });
 
 		inputManager.addListener(mousePicker, new String[] { "pick target" });
+
+		inputManager.addListener(deviceAnalogListener,
+				new String[] { "DeviceMove" });
+
+		inputManager.addListener(deviceClickListener,
+				new String[] { "DeviceMoveTrigger" });
 
 	}
 
@@ -230,7 +236,7 @@ public class Visual3d extends SimpleApplication {
 			Quaternion quat = Utils.getSensorQuad(visualHand
 					.getBoneRotation(type));
 
-			entry.getValue().setInitialOrientation(quat);
+			entry.getValue().setLocalOrientation(quat);
 
 			Vector3f pos = visualHand.getBonePosition(type);
 			entry.getValue().setLocalPosition(
@@ -242,13 +248,6 @@ public class Visual3d extends SimpleApplication {
 		AmbientLight al = new AmbientLight();
 		al.setColor(ColorRGBA.White.mult(1.3f));
 		rootNode.addLight(al);
-
-		// PointLight lamp_light = new PointLight();
-		// lamp_light.setColor(ColorRGBA.White);
-		// lamp_light.setRadius(12f);
-		// Vector3f lamp_pos_1 = new Vector3f(0, 6, -6);
-		// lamp_light.setPosition(lamp_pos_1);
-		// rootNode.addLight(lamp_light);
 
 		PointLight lamp_light2 = new PointLight();
 		lamp_light2.setColor(ColorRGBA.White);
@@ -264,9 +263,6 @@ public class Visual3d extends SimpleApplication {
 		pssmRenderer.setShadowIntensity(0.15f);
 
 		viewPort.addProcessor(pssmRenderer);
-
-		// createTestSphere(lamp_pos_1);
-		// createTestSphere(lamp_pos_2);
 
 	}
 
@@ -300,42 +296,124 @@ public class Visual3d extends SimpleApplication {
 
 	}
 
+	private Geometry mousePick() {
+		// Reset results list.
+		CollisionResults results = new CollisionResults();
+		// Convert screen click to 3d position
+		Vector2f click2d = inputManager.getCursorPosition();
+		Vector3f click3d = cam.getWorldCoordinates(
+				new Vector2f(click2d.x, click2d.y), 0f).clone();
+		Vector3f dir = cam
+				.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 1f)
+				.subtractLocal(click3d).normalizeLocal();
+		// Aim the ray from the clicked spot forwards.
+		Ray ray = new Ray(click3d, dir);
+		// Collect intersections between ray and all nodes in results
+		// list.
+		visualHand.updateCollisionData();
+		visualHand.collideWith(ray, results);
+
+		// Use the results
+		if (results.size() > 0) {
+			return results.getClosestCollision().getGeometry();
+		} else {
+			return null;
+		}
+	}
+
 	private ActionListener mousePicker = new ActionListener() {
 
 		@Override
 		public void onAction(String name, boolean isPressed, float tpf) {
 			if (name.equals("pick target") && !isPressed) {
-				// Reset results list.
-				CollisionResults results = new CollisionResults();
-				// Convert screen click to 3d position
-				Vector2f click2d = inputManager.getCursorPosition();
-				Vector3f click3d = cam.getWorldCoordinates(
-						new Vector2f(click2d.x, click2d.y), 0f).clone();
-				Vector3f dir = cam
-						.getWorldCoordinates(
-								new Vector2f(click2d.x, click2d.y), 1f)
-						.subtractLocal(click3d).normalizeLocal();
-				// Aim the ray from the clicked spot forwards.
-				Ray ray = new Ray(click3d, dir);
-				// Collect intersections between ray and all nodes in results
-				// list.
-				visualHand.collideWith(ray, results);
 
-				// Use the results
-				if (results.size() > 0) {
-					// The closest result is the target that the player picked:
-					Geometry target = results.getClosestCollision()
-							.getGeometry();
+				// The closest result is the target that the player picked:
+				Geometry target = mousePick();
 
-					LOGGER.debug("Name: " + target.getName());
-					LOGGER.debug("Mouse " + click2d);
+				if (target != null) {
 
-					// create popUp with further options
-					Visual3dPopUpMenu menu = new Visual3dPopUpMenu(myInstance,
-							hand, Utils.getJointTypeFromGeometry(target));
+					String targetName = target.getName();
 
-					menu.show(panel3d, (int) click2d.x + 10, dim.height
-							- (int) click2d.y);
+					LOGGER.debug("Name: " + targetName);
+
+					JPopupMenu menu = null;
+					if (targetName.contains("myIpad")) {
+						if (deviceDummy.isVisible()) {
+							// create popUp with further options
+							menu = new Visual3dDevicePopUpMenu(myInstance,
+									deviceDummy);
+						}
+					} else {
+						// create popUp with further options
+						menu = new Visual3dHandPopUpMenu(myInstance, hand,
+								Utils.getJointTypeFromGeometry(target));
+
+					}
+					if (menu != null) {
+						Vector2f click2d = inputManager.getCursorPosition();
+						menu.show(panel3d, (int) click2d.x + 10, dim.height
+								- (int) click2d.y);
+					}
+				}
+			}
+		}
+	};
+
+	private AnalogListener deviceAnalogListener = new AnalogListener() {
+
+		@Override
+		public void onAnalog(String name, float value, float tpf) {
+
+			if (deviceClickStart != null) {
+				Vector2f currentPos = inputManager.getCursorPosition().clone();
+
+				Vector3f start3d = cam.getWorldCoordinates(
+						new Vector2f(deviceClickStart.x, deviceClickStart.y),
+						0f).clone();
+
+				Vector3f end3d = cam.getWorldCoordinates(
+						new Vector2f(currentPos.x, currentPos.y), 0f).clone();
+
+				Vector3f diff = end3d.subtract(start3d);
+
+				if (deviceDummy.isMoving) {
+					Geometry geom = mousePick();
+					if (geom != null && geom.getName().contains("myIpad")) {
+						deviceDummy.move(diff);
+					}
+				}
+				if (deviceDummy.isRotating) {
+
+					Vector2f refHorizontal = new Vector2f(1, 0);
+
+					Vector2f startToCurrent = currentPos
+							.subtract(deviceClickStart);
+
+					float angle = refHorizontal.angleBetween(startToCurrent);
+
+					deviceDummy.setLocalRotation(deviceDummy.getLocalRotation()
+							.fromAngleAxis(angle, cam.getDirection()));
+
+				}
+			}
+
+		}
+
+	};
+
+	Vector2f deviceClickStart;
+
+	private ActionListener deviceClickListener = new ActionListener() {
+		public void onAction(String name, boolean keyPressed, float tpf) {
+			if (deviceDummy.isMoving() || deviceDummy.isRotating) {
+				if (name.equals("DeviceMoveTrigger") && keyPressed) {
+					if (deviceClickStart == null) {
+						deviceClickStart = inputManager.getCursorPosition()
+								.clone();
+						LOGGER.debug("Startpos:" + deviceClickStart);
+					}
+				} else {
+					deviceClickStart = null;
 				}
 			}
 		}
@@ -382,12 +460,12 @@ public class Visual3d extends SimpleApplication {
 
 	private void configureCam() {
 		flyCam.setMoveSpeed(8f);
-
 		flyCam.setDragToRotate(true);
-
 		flyCam.setEnabled(false);
 
 		chaseCam = new ChaseCamera(cam, visualHand, inputManager);
+		chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(
+				MouseInput.BUTTON_MIDDLE));
 		chaseCam.setInvertHorizontalAxis(true);
 		chaseCam.setInvertVerticalAxis(true);
 		chaseCam.setMinDistance(4f);
@@ -399,33 +477,22 @@ public class Visual3d extends SimpleApplication {
 		chaseCam.setLookAtOffset(new Vector3f(0, 3, 0));
 	}
 
-	public void createTestSphere(Vector3f pos) {
-		Sphere testSphere = new Sphere(20, 20, 1);
-		Geometry ball_geo = new Geometry("cannon ball", testSphere);
-		Material mat = new Material(assetManager,
-				"Common/MatDefs/Misc/Unshaded.j3md");
-		mat.getAdditionalRenderState().setWireframe(true);
-		mat.setColor("Color", ColorRGBA.Yellow);
-		ball_geo.setMaterial(mat);
-		ball_geo.setLocalTranslation(pos);
-		rootNode.attachChild(ball_geo);
-	}
-
 	Object simpleUpdateLock = new Object();
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void simpleUpdate(float tpf) {
+
 		synchronized (simpleUpdateLock) {
 
 			try {
 				Set<Entry<JointType, Joint>> handset = hand.getJointSet();
 
 				// handle livemovement
-				LinkedList<MovementStep> storedMovementPositions = (LinkedList<MovementStep>) hand
-						.getSavedMovementFlow();
+				// LinkedList<MovementStep> storedMovementPositions =
+				// hand.getMotionFlow();
+
 				// don't draw the last state because it is current one
-				int numberOfLiveSteps = storedMovementPositions.size() - 1;
+				int numberOfLiveSteps = hand.getNumberOfSavedMotionSteps();
 
 				// add additional hand geometries for movement if necessary
 				while (numberOfLiveSteps > liveMovementSteps.size()) {
@@ -449,51 +516,29 @@ public class Visual3d extends SimpleApplication {
 					rootNode.attachChild(newHand);
 				}
 
+				// TODO buggy/wrong remove
+				// visualHand.move(Utils.getPosition(hand.getJoint(JointType.HR).getLastMove()));
 				for (Entry<JointType, Joint> entry : handset) {
 
 					// update actual hand << non transparent one
-					Joint joint = entry.getValue();
-					JointType type = entry.getKey();
-					Quaternion quat = joint.getWorldOrientation();
-					visualHand.setBoneRotationAbs(type,
-					// Utils.getPosition(joint.getWorldPosition()),
-							Utils.getJMEQuad(quat));
+					Joint currentJoint = entry.getValue();
+					JointType currentJointType = entry.getKey();
+					Quaternion currentJointOrientation = currentJoint
+							.getWorldOrientation();
+					visualHand.setBoneRotationAbs(currentJointType,
+							Utils.getJMEQuad(currentJointOrientation));
 
-					visualHand.setVisible(type, joint.isVisible());
+					visualHand.setVisible(currentJointType,
+							currentJoint.isVisible());
 
 					// update live movement
-					for (int i = 0; i < numberOfLiveSteps; i++) {
-						VisualHand3d hand = liveMovementSteps.get(i);
 
-						MovementStep moveStep = storedMovementPositions.get(i);
-
-						int count = moveStep.getCount();
-
-						hand.setOpacity(OPACITY_STEP, count);
-
-						// TODO not effecient to calculate the set every time
-						EnumMap<JointType, StoredJointState> storedSet = moveStep
-								.getMove().getAll();
-
-						// update movement flow with joint from actual hand if
-						// not
-						// available in movement.
-						if (storedSet.containsKey(type)) {
-							hand.setBoneRotationAbs(type, Utils
-									.getJMEQuad(storedSet.get(type)
-											.getWorldOrientation()));
-
-							hand.setVisible(type, joint.isVisible());
-						} else {
-							hand.setBoneRotationAbs(type,
-									Utils.getJMEQuad(quat));
-							hand.setVisible(type, false);
-						}
-					}
+					updateLiveMovement(currentJoint, currentJointType,
+							currentJointOrientation);
 
 					// update stored analyses movement
 					for (int i = 0; i < numberOfStoredSteps; i++) {
-						VisualHand3d hand = analysesMovementSteps.get(i);
+						VisualHand3d hand3d = analysesMovementSteps.get(i);
 
 						MovementStep moveStep = analysesMovementPositions
 								.get(i);
@@ -501,7 +546,7 @@ public class Visual3d extends SimpleApplication {
 						StoredJointState currentStep = moveStep.getMove();
 						currentStep.updateWorldOrientation();
 
-						hand.setOpacity(OPACITY_STEP, moveStep.getCount());
+						hand3d.setOpacity(OPACITY_STEP, moveStep.getCount());
 
 						// TODO not effecient to calculate the set every time
 						EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
@@ -510,17 +555,18 @@ public class Visual3d extends SimpleApplication {
 						// update movement flow with joint from actual hand if
 						// not
 						// available in movement.
-						if (storedSet.containsKey(type)) {
+						if (storedSet.containsKey(currentJointType)) {
 
-							hand.setBoneRotationAbs(type, Utils
-									.getJMEQuad(storedSet.get(type)
+							hand3d.setBoneRotationAbs(currentJointType, Utils
+									.getJMEQuad(storedSet.get(currentJointType)
 											.getWorldOrientation()));
 
-							hand.setVisible(type, joint.isVisible());
+							hand3d.setVisible(currentJointType,
+									currentJoint.isVisible());
 						} else {
-							hand.setBoneRotationAbs(type,
-									Utils.getJMEQuad(quat));
-							hand.setVisible(type, false);
+							hand3d.setBoneRotationAbs(currentJointType,
+									Utils.getJMEQuad(currentJointOrientation));
+							hand3d.setVisible(currentJointType, false);
 						}
 					}
 
@@ -528,12 +574,56 @@ public class Visual3d extends SimpleApplication {
 
 				// update line movement
 
-				ArrayList<Vector3f> motionLineBuffer = hand.getLineBuffer();
-
-				Utils.updateLine(motionLine, motionLineBuffer, false);
-
+				ArrayList<ArrayList<Vector3f>> motionLineBuffer = hand
+						.getCurrentTouchLines();
+				Utils.updateLines(motionLine, motionLineBuffer);
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	private void updateLiveMovement(Joint currentJoint,
+			JointType currentJointType, Quaternion currentJointOrientation) {
+		int id_live_hand_modell = 0;
+
+		for (MotionAnalysis motionAnalysis : hand.getRunningMotionAnalysis()) {
+			LinkedList<MovementStep> storedMovementPositions = motionAnalysis
+					.getSavedMovementFlow();
+			for (int i = 0; i < storedMovementPositions.size(); i++) {
+				VisualHand3d hand3d = liveMovementSteps
+						.get(id_live_hand_modell);
+				MovementStep moveStep = storedMovementPositions.get(i);
+
+				int count = moveStep.getCount();
+
+				if (i == motionAnalysis.getMaxIdMotion()) {
+					hand3d.setOpacity(ColorRGBA.Red, 1, count);
+				} else if (i == motionAnalysis.getMinIdMotion()) {
+					hand3d.setOpacity(ColorRGBA.Blue, 1, count);
+				} else {
+					hand3d.setOpacity(OPACITY_STEP, count);
+				}
+
+				EnumMap<JointType, StoredJointState> storedSet = moveStep
+						.getJointSet();
+
+				// update movement flow with joint from actual hand
+				// if not available in movement.
+				if (storedSet.containsKey(currentJointType)) {
+					hand3d.setBoneRotationAbs(currentJointType, Utils
+							.getJMEQuad(storedSet.get(currentJointType)
+									.getWorldOrientation()));
+
+					hand3d.setVisible(currentJointType,
+							currentJoint.isVisible());
+				} else {
+					hand3d.setBoneRotationAbs(currentJointType,
+							Utils.getJMEQuad(currentJointOrientation));
+					hand3d.setVisible(currentJointType, false);
+				}
+
+				id_live_hand_modell++;
 			}
 		}
 	}
@@ -581,11 +671,6 @@ public class Visual3d extends SimpleApplication {
 	public void setCurrentManipulatedJoint(JointType newCurrentManipulatedJoint) {
 		if (newCurrentManipulatedJoint != this.currentManipulatedJoint) {
 			this.currentManipulatedJoint = newCurrentManipulatedJoint;
-			if (analyses != null) {
-				analyses.setMovementStartJoint(currentManipulatedJoint);
-				analyses.recalculate();
-			}
-			updateAnalysesData();
 		}
 	}
 
@@ -606,15 +691,12 @@ public class Visual3d extends SimpleApplication {
 
 				// update joint parent if not root node of object
 				// with the goal of moving the analyzed hand in the same frame
-				JointType currentObservedType = analyses
-						.getMovementStartJoint();
-				if (currentObservedType != JointType.HR) {
-					for (MovementStep m : analysesMovementPositions) {
-						StoredJointState observedRoot = m.getMove();
-						observedRoot = observedRoot.get(currentObservedType);
-						observedRoot.setParent(hand.getJoint(
-								currentObservedType).getParent());
-					}
+
+				for (MovementStep m : analysesMovementPositions) {
+					StoredJointState observedRoot = m.getMove();
+					JointType currentObservedType = observedRoot.getType();
+					observedRoot.setParent(hand.getJoint(currentObservedType)
+							.getParent());
 				}
 				this.analysesMovementPositions = analysesMovementPositions;
 
@@ -638,9 +720,8 @@ public class Visual3d extends SimpleApplication {
 
 	public void clearLiveMovement() {
 		synchronized (simpleUpdateLock) {
-			hand.setSaveMovement(false);
-			for (VisualHand3d hand : liveMovementSteps) {
-				hand.removeFromParent();
+			for (VisualHand3d hand3d : liveMovementSteps) {
+				hand3d.removeFromParent();
 			}
 			liveMovementSteps.clear();
 		}
@@ -657,5 +738,11 @@ public class Visual3d extends SimpleApplication {
 	public JPanel get3dPanel() {
 		return panel3d;
 	}
+
+	public void setDeviceVisible(boolean isVisible) {
+		deviceDummy.setVisible(isVisible);
+	}
+
+	DeviceDummy deviceDummy = null;
 
 }

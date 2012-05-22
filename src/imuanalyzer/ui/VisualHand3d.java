@@ -30,7 +30,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
 
 public class VisualHand3d extends Node {
-	
+
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
 	private static final Logger LOGGER = Logger.getLogger(VisualHand3d.class
@@ -48,7 +48,7 @@ public class VisualHand3d extends Node {
 
 	EnumMap<JointType, Bone> bones = new EnumMap<JointType, Bone>(
 			JointType.class);
-	
+
 	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
 			JointType.class);
 
@@ -63,7 +63,7 @@ public class VisualHand3d extends Node {
 			boolean showSkeleton) {
 		Spatial loadedAsset = assetManager.loadModel("Models/Hand/Hand.j3o");
 
-		model = findNodeByName((Node) loadedAsset, "Hand-ogremesh");
+		model = Utils.findNodeByName((Node) loadedAsset, "Hand-ogremesh");
 		init(assetManager, orientation, showSkeleton);
 	}
 
@@ -77,22 +77,21 @@ public class VisualHand3d extends Node {
 
 		this.attachChild(model);
 
-		
 		Future<?> geometryFuture = executor.submit(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				findGeometries(model);
-				
+
 			}
 		});
-				
 
 		// Everything necessary for disabling Animation and enabling control
 		// over skeleton
 		AnimControl control = model.getControl(AnimControl.class);
 		control.setEnabled(false);
-		// HACK don't know why it is necessary to add this control...but it works
+		// HACK don't know why it is necessary to add this control...but it
+		// works
 		// if I do not add this control the model structure collaspes
 		KinematicRagdollControl ragdoll = new KinematicRagdollControl(0.5f);
 		model.addControl(ragdoll);
@@ -127,13 +126,14 @@ public class VisualHand3d extends Node {
 		bones.put(JointType.DM, skeleton.getBone("Bone.DM"));
 		bones.put(JointType.DD, skeleton.getBone("Bone.DD"));
 		bones.put(JointType.HR, skeleton.getBone("Bone"));
-		
-		//save initial bone rotations
-		for(Entry<JointType, Bone> entry : bones.entrySet()){
-			loadedOrientation.put(entry.getKey(),entry.getValue().getLocalRotation());
+
+		// save initial bone rotations
+		for (Entry<JointType, Bone> entry : bones.entrySet()) {
+			loadedOrientation.put(entry.getKey(), entry.getValue()
+					.getLocalRotation());
 		}
-		
-		//wait for parallel task
+
+		// wait for parallel task
 		try {
 			geometryFuture.get();
 		} catch (InterruptedException e) {
@@ -143,11 +143,12 @@ public class VisualHand3d extends Node {
 			LOGGER.error(e);
 		}
 	}
-	
-	public void resetRotations(){
-		for(Entry<JointType, Bone> entry : bones.entrySet()){
-			
-			setBoneRotationAbs(entry.getKey(), loadedOrientation.get(entry.getKey()));
+
+	public void resetRotations() {
+		for (Entry<JointType, Bone> entry : bones.entrySet()) {
+
+			setBoneRotationAbs(entry.getKey(),
+					loadedOrientation.get(entry.getKey()));
 		}
 	}
 
@@ -161,23 +162,7 @@ public class VisualHand3d extends Node {
 		}
 	}
 
-	private Node findNodeByName(Node node, String name) {
-		for (Spatial s : node.getChildren()) {
-			if (s instanceof Node) {
-				Node n = (Node) s;
-				if (n.getName().equals(name)) {
-					return n;
-				} else {
-					Node n2 = findNodeByName(n, name);
-					if (n2 != null) {
-						return n2;
-					}
-				}
 
-			}
-		}
-		return null;
-	}
 
 	public HandOrientation getOrientation() {
 		return orientation;
@@ -202,8 +187,9 @@ public class VisualHand3d extends Node {
 		Bone bone = bones.get(finger);
 		setTransform(bone, bone.getModelSpacePosition(), quad);
 	}
-	
-	public void setBoneRotationAbs(JointType finger,Vector3f pos, Quaternion quad) {
+
+	public void setBoneRotationAbs(JointType finger, Vector3f pos,
+			Quaternion quad) {
 		Bone bone = bones.get(finger);
 		setTransform(bone, pos, quad);
 	}
@@ -264,27 +250,22 @@ public class VisualHand3d extends Node {
 	public Node getModel() {
 		return model;
 	}
-
-	private static final ColorRGBA[] ColorRange = { ColorRGBA.White,
-			ColorRGBA.Blue, ColorRGBA.Green, ColorRGBA.Yellow,
-			ColorRGBA.Orange, ColorRGBA.Red, };
-
+	
 	public void setOpacity(float opaStep, int count) {
+		setOpacity(ColorRGBA.White,opaStep,count);
+	}
 
-		// 0.8 is max opacity; full opacity is not desired
-		int div = (int) (0.8 / opaStep);
+	public void setOpacity(ColorRGBA color, float opaStep, int count) {
 
-		int index = count / div;
-
-		if (index >= ColorRange.length) {
-			index = ColorRange.length - 1;
-		}
-
-		ColorRGBA colorAmbient = ColorRange[index];
+		ColorRGBA colorAmbient = color.clone();
 
 		ColorRGBA colorDiffuse = colorAmbient.clone();
 
-		colorDiffuse.a = opaStep * (count % div);
+		colorDiffuse.a = opaStep * count;
+
+		if (colorDiffuse.a > 0.9f) {
+			colorDiffuse.a = 0.9f;
+		}
 
 		// LOGGER.debug("Count " + count + " Div " + div + " Opacity "
 		// +colorDiffuse.a);
@@ -317,6 +298,13 @@ public class VisualHand3d extends Node {
 			} else {
 				skeletonDebug.setCullHint(CullHint.Always);
 			}
+		}
+	}
+
+	public void updateCollisionData() {
+		for (Geometry geo : subgeometries) {
+			geo.getMesh().createCollisionData();
+			geo.updateModelBound();
 		}
 	}
 }

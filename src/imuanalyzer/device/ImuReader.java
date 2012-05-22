@@ -224,7 +224,9 @@ public class ImuReader implements SerialPortEventListener {
 	public void calibrate() {
 		try {
 			if (outSerial != null) {
+				outSerial.write(COMMAND_DISABLE_CONTINOUS_MODE);
 				outSerial.write(COMMAND_CALIBRATION);
+				outSerial.write(COMMAND_ENABLE_CONTINOUS_MODE);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

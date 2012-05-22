@@ -14,14 +14,14 @@ import com.sun.tools.visualvm.charts.ChartFactory;
 import com.sun.tools.visualvm.charts.SimpleXYChartDescriptor;
 import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 
-public class SensorChart extends JPanel {
+public class OrientationChart extends JPanel {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final long SLEEP_TIME = 500;
+	private static final long SLEEP_TIME = 250;
 	private static final int VALUES_LIMIT = 50;
 
 	private EnumMap<JointType, SimpleXYChartSupport> charts = new EnumMap<JointType, SimpleXYChartSupport>(
@@ -29,10 +29,10 @@ public class SensorChart extends JPanel {
 
 	protected Hand hand;
 
-	public SensorChart(Hand hand) {
+	public OrientationChart(Hand hand) {
 		this.hand = hand;
 
-		this.setLayout(new GridLayout(1, 2));
+		this.setLayout(new GridLayout(0, 1));
 
 		new Updater(charts, hand).start();
 
@@ -103,10 +103,6 @@ public class SensorChart extends JPanel {
 							values[1] = (long) (roll);
 							values[2] = (long) (yaw);
 
-							// System.out.println("Angles PRY "
-							// + " " + values[0] + " "
-							// + values[1] + " "
-							// + values[2]);
 
 							chart.addValues(System.currentTimeMillis(), values);
 							chart.updateDetails(new String[] {

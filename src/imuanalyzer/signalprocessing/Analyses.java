@@ -38,7 +38,7 @@ public class Analyses {
 
 	Collection<Marker> markers;
 	FilterTypes filterType;
-	JointType movementStartJoint;
+	ArrayList<JointType> saveMotionJoints;
 
 	public Analyses() {
 		try {
@@ -59,8 +59,8 @@ public class Analyses {
 	}
 
 	public void recalculate() {
-		if (markers != null && filterType != null && movementStartJoint != null) {
-			calculate(markers, filterType, movementStartJoint);
+		if (markers != null && filterType != null && saveMotionJoints != null) {
+			calculate(markers, filterType, saveMotionJoints);
 			switch (mode) {
 			case AVG:
 				calculateMotionAvg();
@@ -78,17 +78,17 @@ public class Analyses {
 	}
 
 	public void calculateAvg(Collection<Marker> _markers,
-			FilterTypes _filterType, JointType _movementStartJoint) {
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
 		calculate(AnalysesMode.AVG, _markers, _filterType, _movementStartJoint);
 	}
 
 	public void calculateSUM(Collection<Marker> _markers,
-			FilterTypes _filterType, JointType _movementStartJoint) {
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
 		calculate(AnalysesMode.SUM, _markers, _filterType, _movementStartJoint);
 	}
 
 	public void calculate(AnalysesMode mode, Collection<Marker> _markers,
-			FilterTypes _filterType, JointType _movementStartJoint) {
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
 
 		this.mode = mode;
 		calculate(_markers, _filterType, _movementStartJoint);
@@ -108,14 +108,14 @@ public class Analyses {
 	}
 
 	private void calculate(Collection<Marker> _markers,
-			FilterTypes _filterType, JointType _movementStartJoint) {
+			FilterTypes _filterType, ArrayList<JointType> _saveMotionJoints) {
 
 		this.markers = _markers;
 		this.filterType = _filterType;
-		this.movementStartJoint = _movementStartJoint;
+		this.saveMotionJoints = _saveMotionJoints;
 
 		LOGGER.debug("Start calulation with FilterType " + filterType
-				+ " and startJoint: " + movementStartJoint);
+				+ " and startJoint: " + saveMotionJoints);
 
 		hands.clear();
 
@@ -140,13 +140,14 @@ public class Analyses {
 						JointType type = entry.getKey();
 						Joint joint = entry.getValue();
 						// initial orientation
-						joint.setInitialOrientation(db.getInitialOrientation(
+						joint.setLocalOrientation(db.getInitialOrientation(
 								marker, type));
 					}
 
 					// save movement
-					hand.setSavedMovementStartJoint(movementStartJoint);
-					hand.setSaveMovement(true);
+					for (JointType type : saveMotionJoints) {
+						hand.addSaveMotionJoint(type);
+					}
 
 					// calculate movement based on recorded raw data
 					if (rawData.size() > 0) {
@@ -154,22 +155,20 @@ public class Analyses {
 						Date currentPeriod = rawData.get(0).getTimeStamp();
 						ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
 
-						int dataIdx = 0;
 						for (int i = 0; i < rawData.size(); i++) {
 
 							ImuRawData newData = rawData.get(i);
 							Date newPeriod = newData.getTimeStamp();
 
 							if (newPeriod.compareTo(currentPeriod) == 0
-									&& dataIdx < currentSet.length) {
-								currentSet[dataIdx] = newData;
-								dataIdx++;
+									&& newData.getId() < currentSet.length) {
+								//order array by id
+								currentSet[newData.getId()] = newData;
 							} else {
 
 								orientationManager.processImuData(currentSet,
 										newData.getSamplePeriod());
 								currentPeriod = newData.getTimeStamp();
-								dataIdx = 0;
 							}
 						}
 					}
@@ -186,96 +185,137 @@ public class Analyses {
 	private void calculateMotionAvg() {
 		if (hands.size() > 0) {
 
-			int motionLength = 0;
-			// get maximum motion length
-			for (Hand h : hands) {
-				int currentLength = h.getSavedMovementFlow().size();
-				if (currentLength > motionLength) {
-					motionLength = currentLength;
-				}
-			}
-
 			// calculate avg
 			result = new LinkedList<MovementStep>();
 
-			Hand emptyhand = new Hand(null, Marker.getDefaultMarker());
+			// calculate per motion analysis
+			for (int n = 0; n < saveMotionJoints.size(); n++) {
 
-			for (int i = 0; i < motionLength; i++) {
+				int maxMotionLength = 0;
+				// get maximum motion length of all captured motions
+				for (Hand h : hands) {
+					int currentLength = h.getRunningMotionAnalysis().get(n)
+							.getSavedMovementFlow().size();
+					if (currentLength > maxMotionLength) {
+						maxMotionLength = currentLength;
+					}
+				}
 
-				MovementStep avgElement = new MovementStep(
-						new StoredJointState(
-								emptyhand.getJoint(movementStartJoint)));
-				avgElement.setCount(0);
-				result.add(avgElement);
+				Hand emptyhand = new Hand(null, Marker.getDefaultMarker());
+				Quaternion nullQuat= new Quaternion(0,0,0,0);
+				
+				for(Entry<JointType, Joint> j: emptyhand.getJointSet()){
+					j.getValue().setLocalOrientation(nullQuat);
+				}
 
-				EnumMap<JointType, StoredJointState> avgJoints = avgElement
-						.getMove().get(movementStartJoint).getAll();
+				JointType saveMotionJoint = saveMotionJoints.get(n);
 
-				for (int j = 0; j < hands.size(); j++) {
+				for (int i = 0; i < maxMotionLength; i++) {
 
-					if (i < hands.get(j).getSavedMovementFlow().size()) {
-						MovementStep current = hands.get(j)
-								.getSavedMovementFlow().get(i);
+					MovementStep avgElement = new MovementStep(
+							new StoredJointState(
+									emptyhand.getJoint(saveMotionJoint)));
+					avgElement.setCount(0);
+					result.add(avgElement);
 
-						EnumMap<JointType, StoredJointState> currentJoints = current
-								.getMove().getAll();
+					EnumMap<JointType, StoredJointState> avgJoints = avgElement
+							.getMove().get(saveMotionJoint).getAll();
 
-						for (Entry<JointType, StoredJointState> entry : avgJoints
-								.entrySet()) {
+					for (int j = 0; j < hands.size(); j++) {
 
-							// sum up
-							Quaternion addedQuat = currentJoints.get(
-									entry.getKey()).getLocalOrientation();
+						LinkedList<MovementStep> currentFlow = hands.get(j)
+								.getRunningMotionAnalysis().get(n)
+								.getSavedMovementFlow();
 
-							StoredJointState avgJoint = entry.getValue();
-							avgJoint.setLocalOrientation(avgJoint
-									.getLocalOrientation().plus(addedQuat));
-							
+						if (i < currentFlow.size()) {
+							MovementStep current = currentFlow.get(i);
+
+							EnumMap<JointType, StoredJointState> currentJoints = current
+									.getMove().getAll();
+
+							for (Entry<JointType, StoredJointState> entry : avgJoints
+									.entrySet()) {
+								// sum up
+								Quaternion addedQuat = currentJoints.get(
+										entry.getKey()).getLocalOrientation();
+
+								StoredJointState avgJoint = entry.getValue();
+								avgJoint.setLocalOrientation(avgJoint
+										.getLocalOrientation().plus(addedQuat));
+
+
+							}
+							avgElement.setCount(avgElement.getCount()
+									+ current.getCount());
 						}
-						avgElement.setCount(avgElement.getCount()+current.getCount());
+
 					}
 
-				}
+					// calculate average
+					for (Entry<JointType, StoredJointState> entry : avgJoints
+							.entrySet()) {
+						StoredJointState avgJoint = entry.getValue();
+						avgJoint.setLocalOrientation(avgJoint
+								.getLocalOrientation().times(
+										1 / (double) (hands.size())));
+						avgJoint.getLocalOrientation().normalizeLocal();
+					}
+					avgElement.setCount(Math.round(avgElement.getCount()
+							/ (float) hands.size()));
 
-				// calculate average
-				for (Entry<JointType, StoredJointState> entry : avgJoints
-						.entrySet()) {
-					StoredJointState avgJoint = entry.getValue();
-					avgJoint.setLocalOrientation(avgJoint.getLocalOrientation()
-							.times(1 / (double)(hands.size())));
-					avgJoint.getLocalOrientation().normalizeLocal();
 				}
-				avgElement.setCount(Math.round(avgElement.getCount()/(float)hands.size()));
 
 			}
-
 		}
+
 	}
 
 	private void calculateMotionSum() {
 		// calculate sum of movements
 		result = new LinkedList<MovementStep>();
+
+		if (hands.size() < 1) {
+			return;
+		}
+
+		ArrayList<LinkedList<MovementStep>> resultPerMotionAnalysis = new ArrayList<LinkedList<MovementStep>>();
+		for (int i = 0; i < saveMotionJoints.size(); i++) {
+			resultPerMotionAnalysis.add(new LinkedList<MovementStep>());
+		}
+
 		for (Hand h : hands) {
 			// improve performance by aggregation
 			// over several hands
-			for (MovementStep newState : h.getSavedMovementFlow()) {
+			for (int i = 0; i < h.getRunningMotionAnalysis().size(); i++) {
 
-				// check if an almost same position is already saved
-				// if yes increase counter
-				boolean exists = false;
-				for (int i = 0; i < result.size(); i++) {
-					MovementStep m = result.get(i);
-					if (m.getMove().equals(newState)) {
-						m.setCount(m.getCount() + newState.getCount());
-						exists = true;
-						// LOGGER.debug("Find existing position - Increase count");
-						break;
+				MotionAnalysis motionAnalysis = h.getRunningMotionAnalysis()
+						.get(i);
+				for (MovementStep newState : motionAnalysis
+						.getSavedMovementFlow()) {
+
+					LinkedList<MovementStep> tmpResult = resultPerMotionAnalysis
+							.get(i);
+
+					// check if an almost same position is already saved
+					// if yes increase counter
+					boolean exists = false;
+					for (int j = 0; j < tmpResult.size(); j++) {
+						MovementStep m = tmpResult.get(j);
+						if (m.getMove().equals(newState)) {
+							m.setCount(m.getCount() + newState.getCount());
+							exists = true;
+							// LOGGER.debug("Find existing position - Increase count");
+							break;
+						}
+					}
+					if (!exists) {
+						result.add(newState);
 					}
 				}
-				if (!exists) {
-					result.add(newState);
-				}
 			}
+		}
+		for (int i = 0; i < resultPerMotionAnalysis.size(); i++) {
+			result.addAll(resultPerMotionAnalysis.get(i));
 		}
 	}
 
@@ -287,11 +327,12 @@ public class Analyses {
 		this.filterType = filterType;
 	}
 
-	public JointType getMovementStartJoint() {
-		return movementStartJoint;
+	public ArrayList<JointType> getSaveMotionJoints() {
+		return saveMotionJoints;
 	}
 
-	public void setMovementStartJoint(JointType movementStartJoint) {
-		this.movementStartJoint = movementStartJoint;
+	public void setSaveMotionJoints(ArrayList<JointType> saveMotionJoints) {
+		this.saveMotionJoints = saveMotionJoints;
 	}
+
 }

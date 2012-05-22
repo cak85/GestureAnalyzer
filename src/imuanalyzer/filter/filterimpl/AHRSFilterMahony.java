@@ -142,11 +142,4 @@ public class AHRSFilterMahony extends Filter {
 	public Quaternion getFilteredQuaternions() {
 		return state_filtered;
 	}
-
-	@Override
-	protected void initCalibration() {
-		// not used/necessary
-
-	}
-
 }

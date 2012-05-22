@@ -11,6 +11,7 @@ import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map.Entry;
@@ -63,7 +64,8 @@ public class MainFrame extends JFrame {
 
 	protected IOrientationSensors sensors;
 
-	protected SensorChart chart;
+	protected OrientationChart chartOrientation;
+	protected AccelerationChart chartsAcceleration;
 
 	protected FingerSensorMapping fingerSensorMapping;
 
@@ -124,22 +126,22 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				visual3d.clearLiveMovement();
+				hand.disableMotionAnalysis();
+				visual3d.clearLiveMovement();				
 			}
 		});
 		menu.add(menuItem);
-		
+
 		// disable movement saving
 		menuItem = new JMenuItem("Disable touch anaylsis");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				hand.setSaveTouchLine(false);
+				hand.disableTouchAnalysis();
 			}
 		});
 		menu.add(menuItem);
-
 
 		// clear analysis
 		menuItem = new JMenuItem("Clear analysis");
@@ -169,11 +171,10 @@ public class MainFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				sensors.calibrate();
-				visual3d.adjustBoneJointMapping();
-
+				visual3d.resetHand();
 			}
 		});
-
+		
 		menu.add(menuItem);
 
 		menuBar.add(menu);
@@ -193,26 +194,56 @@ public class MainFrame extends JFrame {
 			Joint j = entry.getValue();
 			final JointType type = entry.getKey();
 
-			JMenuItem submenuitemAdd = new JMenuItem(j.getName());
-			submenuitemAdd.addActionListener(new ActionListener() {
+			JMenu jointMenuAdd = new JMenu(j.getName());
+
+			JMenuItem submenuitemAddOrientation = new JMenuItem("Orientation");
+			submenuitemAddOrientation.addActionListener(new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					chart.addChart(type);
+					chartOrientation.addChart(type);
 				}
 			});
+			jointMenuAdd.add(submenuitemAddOrientation);
 
-			submenuAdd.add(submenuitemAdd);
-
-			JMenuItem submenuitemRemove = new JMenuItem(j.getName());
-			submenuitemRemove.addActionListener(new ActionListener() {
+			JMenuItem submenuitemAddAccelerartion = new JMenuItem(
+					"Acceleration");
+			submenuitemAddAccelerartion.addActionListener(new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					chart.removeChart(type);
+					chartsAcceleration.addChart(type);
 				}
 			});
-			submenuRemove.add(submenuitemRemove);
+
+			jointMenuAdd.add(submenuitemAddAccelerartion);
+			submenuAdd.add(jointMenuAdd);
+
+			JMenu jointMenuRemove = new JMenu(j.getName());
+
+			JMenuItem submenuitemRemoveOrientation = new JMenuItem(
+					"Orientation");
+			submenuitemRemoveOrientation
+					.addActionListener(new ActionListener() {
+
+						@Override
+						public void actionPerformed(ActionEvent arg0) {
+							chartOrientation.removeChart(type);
+						}
+					});
+			jointMenuRemove.add(submenuitemRemoveOrientation);
+			JMenuItem submenuitemRemoveAcceleration = new JMenuItem(
+					"Acceleration");
+			submenuitemRemoveAcceleration
+					.addActionListener(new ActionListener() {
+
+						@Override
+						public void actionPerformed(ActionEvent arg0) {
+							chartsAcceleration.removeChart(type);
+						}
+					});
+			jointMenuRemove.add(submenuitemRemoveAcceleration);
+			submenuRemove.add(jointMenuRemove);
 		}
 
 		JCheckBoxMenuItem checkMenuItem = new JCheckBoxMenuItem("Show Skeleton");
@@ -225,6 +256,18 @@ public class MainFrame extends JFrame {
 						.getSource();
 				visual3d.getVisualHand().setSkeletonVisible(
 						checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
+
+		checkMenuItem = new JCheckBoxMenuItem("Device dummy visible");
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.setDeviceVisible(checkMenuItem.isSelected());
 			}
 		});
 		menu.add(checkMenuItem);
@@ -295,12 +338,20 @@ public class MainFrame extends JFrame {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 40; // make this component tall
 		c.weightx = 0.0;
-		c.gridwidth = 4;
+		c.gridwidth = 6;
 		c.gridx = 0;
 		c.gridy = 0;
 
-		chart = new SensorChart(hand);
-		mainPanel.add(chart, c);
+		JPanel graphPanel = new JPanel();
+		graphPanel.setLayout(new GridLayout(1, 2));
+
+		chartOrientation = new OrientationChart(hand);
+		graphPanel.add(chartOrientation);
+
+		chartsAcceleration = new AccelerationChart(hand);
+		graphPanel.add(chartsAcceleration);
+
+		mainPanel.add(graphPanel, c);
 	}
 
 	protected void createSettingsTab() {

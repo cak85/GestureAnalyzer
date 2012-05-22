@@ -7,6 +7,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.Joint;
+import imuanalyzer.signalprocessing.MotionAnalysis;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -273,6 +274,16 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void startAnaylses() {
+		if (hand.getRunningMotionAnalysis().size() == 0
+				&& hand.getRunningTouchAnalysis().size() == 0) {
+			JOptionPane
+					.showMessageDialog(
+							myInstance,
+							"You need to specify a analysis on actual model before performing analysis",
+							"Error", JOptionPane.OK_OPTION);
+			return;
+		}
+
 		ArrayList<Marker> markers = db.getAvailableMarkers();
 		if (markers.size() > 0) {
 
@@ -283,9 +294,17 @@ public class MarkerControl extends JPanel {
 			ArrayList<Marker> selectedMarkers = selector.getSelectedMarkers();
 
 			if (selectedMarkers.size() > 0) {
+
+				ArrayList<JointType> currentSavedMotionJoints = new ArrayList<Hand.JointType>();
+
+				for (MotionAnalysis m : hand.getRunningMotionAnalysis()) {
+					currentSavedMotionJoints
+							.add(m.getObservedJoint().getType());
+				}
+
 				newAnalyses.calculate(selector.getSelectedCalculationMode(),
 						selectedMarkers, sensor.getCurrentFilter(),
-						hand.getSavedMovementStartJoint());
+						currentSavedMotionJoints);
 				frame.getVisual3d().setAnalyses(newAnalyses);
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",

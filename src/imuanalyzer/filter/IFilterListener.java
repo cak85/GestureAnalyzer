@@ -1,9 +1,13 @@
 package imuanalyzer.filter;
 
 public interface IFilterListener {
-	Quaternion update(Quaternion quad);
+	Quaternion updateOrientation(Quaternion quad);
+	
+	void updateAcceleration(Quaternion quad);
 	
 	Quaternion getInitialOrientation();
+	
+	void updateMove(Quaternion quad);
 	
 	int getPriority();
 	

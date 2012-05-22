@@ -83,7 +83,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	private Database database = Database.getInstance();
 
-	boolean isRecording = false;
+	private volatile boolean isRecording = false;
 
 	public OrientationSensorManager(FilterTypes filterType, int numberOfImus)
 			throws Exception {
@@ -97,28 +97,8 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 			lastFilterUpdate = System.currentTimeMillis();
 
-			// TODO..?
-			// Pipe filterPipe = new Pipe(numberOfImus);
-			//
-			// filterPipe.addAccelerometerFilter(new ThresholdPreprocessor(5));
-			//
-			// filterPipe.addMagnetometerFilter(new ThresholdPreprocessor(16));
-			//
-			// filterPipe.addGyroscopeFilter(new ThresholdPreprocessor(0.05));
-			// filterPipe.addAccelerometerFilter(new
-			// RunningAvgPreprocessor(10,numberOfImus));
-			//
-			// filterPipe.addMagnetometerFilter(new
-			// RunningAvgPreprocessor(10,numberOfImus));
-			//
-			// filterPipe.addGyroscopeFilter(new
-			// RunningAvgPreprocessor(10,numberOfImus));
-
-			imureader.getEventManager()
-			// .addEventListener(filterPipe);
-			// filterPipe.getEventManager()
-					.addEventListener(new ImuUpdateListener() {
-
+			imureader.getEventManager().addEventListener(
+					new ImuUpdateListener() {
 						@Override
 						public void notifyImuDataUpdate(final ImuEvent event) {
 
@@ -138,18 +118,24 @@ public class OrientationSensorManager implements IOrientationSensors {
 		}
 	}
 
+	/**
+	 * data array must be ordered by id!!
+	 */
 	public void processImuData(final ImuRawData data[],
 			final double samplePeriod) {
+
+		if (isRecording) { // should never be true on
+							// processing recorded data
+			System.out.println("recodring");
+			writeToDb(data, samplePeriod);
+		}
+
 		synchronized (filterEditLock) {
 
-			final Date timestamp = new Date();
-
-			// necessary for alway getting full sets in db
-			final boolean localIsRecording = isRecording;
-
-			//update filters in logical order
+			// update filters in logical order
 			for (FilterMapping fm : filters) {
 				int id = fm.getListener().getSensorID();
+				System.out.println("ID "+id);
 
 				if (id > -1) {
 
@@ -157,27 +143,31 @@ public class OrientationSensorManager implements IOrientationSensors {
 					SensorVector magneto = data[id].getMagnetometer();
 					SensorVector gyro = data[id].getGyroskope();
 
-					if (localIsRecording) { // should never be true on
-											// processing recorded data
-						database.writeImuData(data[id].getId(), accel, gyro,
-								magneto, samplePeriod, timestamp);
-					}
-
 					fm.getFilter().filterStep(samplePeriod,
 							gyro.x * Math.PI / 180, gyro.y * Math.PI / 180,
 							gyro.z * Math.PI / 180, accel.x, accel.y, accel.z,
 							magneto.x, magneto.y, magneto.z);
 				}
-
 			}
+		}
+	}
 
+	private void writeToDb(final ImuRawData[] data, final double samplePeriod) {
+		final Date timestamp = new Date();
+
+		for (int i = 0; i < data.length; i++) {
+			SensorVector accel = data[i].getAccelerometer();
+			SensorVector magneto = data[i].getMagnetometer();
+			SensorVector gyro = data[i].getGyroskope();
+
+			database.writeImuData(data[i].getId(), accel, gyro, magneto,
+					samplePeriod, timestamp);
 		}
 	}
 
 	public void setFilterType(FilterTypes filterType) {
 		currentType = filterType;
 		synchronized (filterEditLock) {
-
 			for (FilterMapping fm : filters) {
 				fm.setFilter(FilterFactory.getFilter(filterType));
 			}
@@ -188,12 +178,13 @@ public class OrientationSensorManager implements IOrientationSensors {
 	public void calibrate() {
 		if (imureader != null) {
 			imureader.calibrate();
-			for (FilterMapping fm : filters) {
-				fm.getFilter().setCalibrationMode(true);
-				fm.getFilter().init();
+			synchronized (filterEditLock) {
+				for (FilterMapping fm : filters) {
+					fm.getFilter().init();
+					fm.getFilter().setCalibrationMode(true);
+				}
 			}
 		}
-
 	}
 
 	@Override
@@ -209,7 +200,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public void disconnect() {
 		imureader.close();
-
 	}
 
 	@Override
@@ -231,25 +221,26 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public void addListener(IFilterListener listener) {
 		FilterMapping fm = new FilterMapping(listener, currentType);
-
-		filters.add(fm);
+		synchronized (filterEditLock) {
+			filters.add(fm);
+		}
 	}
 
 	@Override
 	public void removeListner(IFilterListener listner) {
-		for (FilterMapping fm : filters) {
-			if(fm.getListener().equals(listner)){
-				filters.remove(fm);
-				break;
+		synchronized (filterEditLock) {
+			for (FilterMapping fm : filters) {
+				if (fm.getListener().equals(listner)) {
+					filters.remove(fm);
+					break;
+				}
 			}
-			
 		}
 	}
 
 	@Override
 	public void setRecording(boolean isRecording) {
 		this.isRecording = isRecording;
-
 	}
 
 }

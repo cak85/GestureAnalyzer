@@ -4,11 +4,9 @@ import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.filter.Quaternion;
 
-import java.nio.FloatBuffer;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -38,15 +36,8 @@ public class Hand {
 
 	Database db;
 
-	protected LinkedList<MovementStep> savedMovementFlow = new LinkedList<MovementStep>();
-	protected JointType saveMovementStartJoint = JointType.RD;
-	protected Boolean saveMovement = false;
-	protected double movementMinDifference = 0.12;
-
-	Quaternion lastPos = new Quaternion();
-	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
-	protected JointType saveMovementLineJoint = JointType.RT;
-	protected Boolean saveMovementLine = false;
+	ArrayList<TouchAnalysis> runningTouchAnalysis = new ArrayList<TouchAnalysis>();
+	ArrayList<MotionAnalysis> runningMotionAnalysis = new ArrayList<MotionAnalysis>();
 
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
@@ -144,7 +135,7 @@ public class Hand {
 
 	public void setInitialOrientation(JointType finger, Quaternion quad) {
 		Joint joint = ((Joint) joints.get(finger));
-		joint.setInitialOrientation(quad);
+		joint.setLocalOrientation(quad);
 
 	}
 
@@ -180,142 +171,154 @@ public class Hand {
 		this.currentMarker = currentMarker;
 	}
 
-	public Boolean isSaveMovement() {
-		return saveMovement;
-	}
+	public synchronized void informJointsUpdated(Joint updatedBy) {
 
-	public void setSaveMovement(Boolean saveMovement) {
-		this.saveMovement = saveMovement;
-		if (saveMovement == false) {
-			savedMovementFlow.clear();
-		} else if (savedMovementFlow.size() == 0) {
-			addInitialSavedMove();
+		for (TouchAnalysis touchAnalyis : runningTouchAnalysis) {
+			touchAnalyis.update(updatedBy);
 		}
-	}
-
-	public JointType getSavedMovementStartJoint() {
-		return saveMovementStartJoint;
-	}
-
-	public void setSavedMovementStartJoint(JointType savedMovementStartJoint) {
-		if (this.saveMovementStartJoint != savedMovementStartJoint) {
-			this.saveMovementStartJoint = savedMovementStartJoint;
-			savedMovementFlow.clear();
-			addInitialSavedMove();
+		for (MotionAnalysis motionAnalyis : runningMotionAnalysis) {
+			motionAnalyis.update(updatedBy);
 		}
+
+	}
+
+	// Motion analyses
+
+	public ArrayList<MotionAnalysis> getRunningMotionAnalysis() {
+		return runningMotionAnalysis;
+	}
+
+	public MotionAnalysis getMotionAnalysis(JointType type) {
+		for (MotionAnalysis touch : runningMotionAnalysis) {
+			if (touch.getObservedJoint().getType() == type) {
+				return touch;
+			}
+		}
+		return null;
 	}
 
 	/**
-	 * Add first saved movement
+	 * add new joint for motion analysis
+	 * 
+	 * @param jointType
+	 * @return true if already existing analysises were removed means updating
+	 *         visual is necessary
+	 * @throws Exception 
 	 */
-	private void addInitialSavedMove() {
-		Joint startMovementJoint = joints.get(saveMovementStartJoint);
-		StoredJointState newState = new StoredJointState(startMovementJoint,
-				startMovementJoint.parent, true);
-		savedMovementFlow.addLast(new MovementStep(newState));
-	}
-
-	public synchronized void informJointsUpdated(Joint updatedBy) {
-
-		if (saveMovement) {
-
-			Joint startMovementJoint = joints.get(saveMovementStartJoint);
-
-			for (MovementStep s : savedMovementFlow) {
-				s.getMove().updateWorldOrientation();
-			}
-
-			// check if updateBy is parent of currently observed joint
-			// if yes its not neccessary to update
-			if (startMovementJoint.hasParent(updatedBy)) {
-				return;
-			}
-
-			StoredJointState newState = new StoredJointState(
-					startMovementJoint, startMovementJoint.parent, true);
-
-			if (savedMovementFlow.size() > 0) {
-				StoredJointState lastState = savedMovementFlow.getLast()
-						.getMove();
-				Quaternion diff = lastState.getDifferenceAbs(newState);
-
-				if (diff == null) {
-					return;
-				}
-
-				double[] angles = diff.getAnglesRadFromQuaternion();
-
-				// if difference to low return
-				if ((Math.abs(angles[0]) + Math.abs(angles[1]) + Math
-						.abs(angles[2])) < movementMinDifference) {
-					return;
+	public boolean addSaveMotionJoint(JointType jointType) throws Exception {
+		boolean haveRemovedOldOnes = false;
+		MotionAnalysis current = getMotionAnalysis(jointType);
+		if (current != null) {
+			current.clear();
+			haveRemovedOldOnes = true;
+		} else {
+			Joint newObservedJoint = getJoint(jointType);
+			
+			//check if new joint is already covered by existing one
+			for (MotionAnalysis touch : runningMotionAnalysis) {
+				if (newObservedJoint.hasParent(touch.getObservedJoint())) {					
+					throw new Exception("Analysis is already covered by parent joint analysis");
 				}
 			}
-
-			// check if an almost same position is already saved and its not
-			// the last one (not increasing counter if we move slightly on
-			// position)
-			// if yes increase counter
-			for (int i = 0; i < savedMovementFlow.size() - 1; i++) {
-				MovementStep m = savedMovementFlow.get(i);
-				if (m.getMove().equals(newState)) {
-					m.incCount();
-					// LOGGER.debug("Find existing position - Increase count");
-					return;
+			
+			// remove all child analysis of new one --> obsolete			
+			ArrayList<MotionAnalysis> toRemove = new ArrayList<MotionAnalysis>();
+			for (MotionAnalysis touch : runningMotionAnalysis) {
+				if (touch.getObservedJoint().hasParent(newObservedJoint)) {					
+					toRemove.add(touch);
+					haveRemovedOldOnes = true;
 				}
 			}
-
-			savedMovementFlow.addLast(new MovementStep(newState));
+			//remove obsolete ones if necessary
+			for(MotionAnalysis touch :toRemove){
+				runningMotionAnalysis.remove(touch);
+			}
+			//create new analysis
+			MotionAnalysis newAnalysis = new MotionAnalysis(this,
+					newObservedJoint);
+			runningMotionAnalysis.add(newAnalysis);
 		}
-
-		updatedTouchPosition();
+		return haveRemovedOldOnes;
 	}
 
-	public void updatedTouchPosition() {
-		if (saveMovementLine) {
-			Quaternion newPos = getJoint(saveMovementLineJoint)
-					.getFingertipPosition();
+	public void removeSaveMotionJoint(JointType joint) {
+		MotionAnalysis current = getMotionAnalysis(joint);
+		runningMotionAnalysis.remove(current);
+	}
 
-			if (!lastPos.equals(newPos)) {
-				lastPos = newPos;
-				//conversion to jme representation not sure why it is different from
-				//that one in utils ....?
-				lineBuffer.add(new Vector3f((float) newPos.getX() * -1 ,
-						(float) newPos.getY(), (float) newPos.getZ() * -1));
+	public void disableMotionAnalysis() {
+		runningMotionAnalysis.clear();
+	}
 
+//	// TODO remove
+//	public LinkedList<MovementStep> getMotionFlow() {
+//		LinkedList<MovementStep> storedMovementPositions = new LinkedList<MovementStep>();
+//
+//		for (MotionAnalysis m : getRunningMotionAnalysis()) {
+//			storedMovementPositions.addAll(m.getSavedMovementFlow());
+//		}
+//
+//		return storedMovementPositions;
+//	}
+
+	public int getNumberOfSavedMotionSteps() {
+		int size = 0;
+		for (MotionAnalysis m : getRunningMotionAnalysis()) {
+			size += m.getSavedMovementFlow().size();
+		}
+
+		return size;
+	}
+
+	// touch analysis
+
+	public TouchAnalysis getTouchAnalysis(JointType type) {
+		for (TouchAnalysis touch : runningTouchAnalysis) {
+			if (touch.getObservedJoint().getType() == type) {
+				return touch;
 			}
 		}
+		return null;
 	}
 
-	public ArrayList<Vector3f> getLineBuffer() {
-
-		return lineBuffer;
-	}
-
-	public LinkedList<MovementStep> getSavedMovementFlow() {
-		return savedMovementFlow;
-	}
-
-	public Boolean getSaveTouchLine() {
-		return saveMovementLine;
-	}
-
-	public void setSaveTouchLine(Boolean saveMovementLine) {
-		if (!saveMovementLine) {
-			lineBuffer.clear();
+	public void addSaveTouchLineJoint(JointType saveMovementLineJoint) {
+		TouchAnalysis current = getTouchAnalysis(saveMovementLineJoint);
+		if (current != null) {
+			current.clear();
+		} else {
+			TouchAnalysis newAnalysis = new TouchAnalysis(this,
+					getJoint(saveMovementLineJoint));
+			runningTouchAnalysis.add(newAnalysis);
 		}
-		this.saveMovementLine = saveMovementLine;
 	}
 
-	public JointType getSaveTouchLineJoint() {
-		return saveMovementLineJoint;
+	public void removeSaveTouchLineJoint(JointType saveMovementLineJoint) {
+		TouchAnalysis current = getTouchAnalysis(saveMovementLineJoint);
+		runningTouchAnalysis.remove(current);
 	}
 
-	public void setSaveTouchLineJoint(JointType saveMovementLineJoint) {
-		if (saveMovementLineJoint != this.saveMovementLineJoint) {
-			this.saveMovementLineJoint = saveMovementLineJoint;
-			lineBuffer.clear();
+	public void disableTouchAnalysis() {
+		runningTouchAnalysis.clear();
+	}
+
+	public ArrayList<TouchAnalysis> getRunningTouchAnalysis() {
+		return runningTouchAnalysis;
+	}
+
+	public ArrayList<ArrayList<Vector3f>> getMaxTouchLines() {
+		ArrayList<ArrayList<Vector3f>> maxLines = new ArrayList<ArrayList<Vector3f>>();
+		for (TouchAnalysis touch : runningTouchAnalysis) {
+			maxLines.add(touch.getMaxLineBuffer());
 		}
+		return maxLines;
+	}
+
+	public ArrayList<ArrayList<Vector3f>> getCurrentTouchLines() {
+		ArrayList<ArrayList<Vector3f>> lines = new ArrayList<ArrayList<Vector3f>>();
+		for (TouchAnalysis touch : runningTouchAnalysis) {
+			lines.add(touch.getCurrentLineBuffer());
+		}
+		return lines;
 	}
 
 }

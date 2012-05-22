@@ -13,7 +13,7 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	// TODO Ist verantwortlich für das weiterdriften (original war 0.98 aber
 	// damit drift mit 1 oder 0.99 weniger)
-	private static final double k = 0.99;
+	private static final double k = 1;//0.999;
 
 	public List<Double> aAcc;
 	public List<Double> bAcc;
@@ -45,10 +45,6 @@ public class QuaternionComplementaryFilter extends Filter {
 	Quaternion qGyroFilt;
 	Quaternion qObserv;
 
-	int calibrationStep = 0;
-	Quaternion calibrationAVG;
-
-	public static final int CALIBRATION_AVG_LENGTH = 100;
 
 	public QuaternionComplementaryFilter() {
 		initInteral();
@@ -56,8 +52,6 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	@Override
 	public void initInteral() {
-
-		calibrationAVG = new Quaternion();
 
 		step = 0;
 
@@ -229,39 +223,9 @@ public class QuaternionComplementaryFilter extends Filter {
 						m_y, m_z, qFilt.getQuaternionAsVector()));
 			}
 
-			if (calibrationMode) {
-				if (calibrationStep < CALIBRATION_AVG_LENGTH) {
-					calibrationAVG = calibrationAVG.plus(qFilt);
-					System.out.println("AVG Sum");
-					calibrationAVG.print(6);
-				} else if (calibrationStep == CALIBRATION_AVG_LENGTH) {
-					calibrationAVG = calibrationAVG
-							.times(1 / (double) CALIBRATION_AVG_LENGTH);
-				} else if (calibrationStep > CALIBRATION_AVG_LENGTH * 3) {
-					calibrationMode = false;
-				} else if (calibrationStep > CALIBRATION_AVG_LENGTH) {
-					// System.out.println("AVG:");
-					// calibrationAVG.print(1, 6);
-					// System.out.println("QFILT:");
-					// qFilt.print(1, 6);
-					// System.out.println("Diff:");
-					// calibrationAVG.minus(qFilt).print(1, 6);
-					// System.out.println("Observ:");
-					// qObserv.print(1, 6);, w
-					// System.out.println("Adjust:");
-					Quaternion adjust = qGyroFilt.times(k).plus(
-							qObserv.times(1 - k));
-					// adjust.print(1, 6);
-					System.out.println("Adjust-Qfilt:");
-					Quaternion diff = adjust.minus(qFilt);
-
-					norm = diff.getNorm();
-					System.out.println("" + norm);
-				}
-				calibrationStep++;
-			} else {
-				qFilt = qGyroFilt.times(k).plus(qObserv.times(1 - k));
-			}
+			
+		    qFilt = qGyroFilt.times(k).plus(qObserv.times(1 - k));
+			
 			norm = qFilt.getNorm();
 
 			this.qFilt = updateAndAdjust(qFilt.times(1 / norm));
@@ -278,11 +242,4 @@ public class QuaternionComplementaryFilter extends Filter {
 	public Quaternion getFilteredQuaternions() {
 		return qFilt;
 	}
-
-	@Override
-	protected void initCalibration() {
-		calibrationStep = 0;
-		calibrationAVG = new Quaternion();
-	}
-
 }

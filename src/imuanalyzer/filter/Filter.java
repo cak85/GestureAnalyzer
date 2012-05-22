@@ -1,19 +1,23 @@
 package imuanalyzer.filter;
 
-import Jama.Matrix;
+import org.apache.log4j.Logger;
 
-import com.jme3.math.Vector3f;
+import Jama.Matrix;
 
 public abstract class Filter {
 
-	public final static double ACCELERATION_LOW_PASS = 6;
+	private static final Logger LOGGER = Logger.getLogger(Filter.class
+			.getName());
+
+	protected final static double ACCELERATION_LOW_PASS = 4; // 6
+	protected static final int ACCELERATION_AVG_BUFFER_LENGTH = 25;
 
 	// useful for restriction updating....
-	IFilterListener additionalCorrection = null;
+	protected volatile IFilterListener listener = null;
 
-	protected boolean calibrationMode = false;
+	protected volatile boolean calibrationMode = false;
 
-	protected int obsMethod = 0;
+	protected volatile int obsMethod = 0;
 
 	// sampling period in seconds on host filter updating routine
 	protected double samplePeriod = 0.025;
@@ -25,8 +29,6 @@ public abstract class Filter {
 
 	protected Quaternion currentDynAcceleration;
 
-	protected static final int ACCELERATION_AVG_BUFFER_LENGTH = 25;
-
 	// TODO try longer shorter buffer
 	protected RunningAvg a_x_avg = new RunningAvg(
 			ACCELERATION_AVG_BUFFER_LENGTH);
@@ -37,9 +39,12 @@ public abstract class Filter {
 
 	protected Quaternion gravity_orientation = new Quaternion();
 
-	protected Vector3f currentPosition = new Vector3f(0, 0, 0);
+	// trägheitsfaktor
+	protected static final float velocityScale = 1;// 0.1f;
 
-	protected Vector3f currentVelocity = new Vector3f(0, 0, 0);
+	protected double currentVelocityX = 0;
+	protected double currentVelocityY = 0;
+	protected double currentVelocityZ = 0;
 
 	public void init() {
 		initInteral();
@@ -47,15 +52,17 @@ public abstract class Filter {
 
 	// abstract methods
 
+	protected abstract void initInteral();
+
 	protected abstract Quaternion filterStep(double w_x, double w_y,
 			double w_z, double a_x, double a_y, double a_z, double m_x,
 			double m_y, double m_z);
 
 	public abstract Quaternion getFilteredQuaternions();
 
-	protected abstract void initCalibration();
+	protected void initCalibration() {
 
-	protected abstract void initInteral();
+	}
 
 	protected Matrix GradientDescent(double a_x, double a_y, double a_z,
 			double m_x, double m_y, double m_z, double mu, Matrix qObserv) {
@@ -378,36 +385,50 @@ public abstract class Filter {
 		// TODO möglicherweise besser die gerade berechnete orientierung zu
 		// nutzen, allerdings kann so die beschleunigung direkt für die
 		// bestimmung der Orientierung verwendet werden
-		currentDynAcceleration = calculateDynAcceleration(a_x, a_y, a_z,
-				getFilteredQuaternions());
-		
+		// currentDynAcceleration = calculateDynAcceleration(a_x, a_y, a_z,
+		// getFilteredQuaternions());
+
 		Quaternion currentOrientation = filterStep(w_x, w_y, w_z, a_x, a_y,
 				a_z, m_x, m_y, m_z);
 
-		calculatePositionAndVelocity(currentDynAcceleration, samplePeriod);
+		currentDynAcceleration = calculateDynAcceleration(a_x, a_y, a_z,
+				currentOrientation);
+
+		Quaternion convertedDynAccelration = convertAccelerationToMetersPerSquareSecond(currentDynAcceleration);
+
+		calculateMoveAndVelocity(convertedDynAccelration, samplePeriod);
+
+		listener.updateAcceleration(convertedDynAccelration);
 
 		// System.out.printf("X: %.3f Y: %.3f Z: %.3f\n", currentPosition.x,
 		// currentPosition.y, currentPosition.z);
 
 	}
 
-	// trägheitsfaktor
-	float velocityScale = 0.1f;
+	private static final double GRAVITAION = 9.80665;
 
-	protected void calculatePositionAndVelocity(Quaternion acceleration,
-			double time) {
+	private Quaternion convertAccelerationToMetersPerSquareSecond(
+			Quaternion dynAcceleration) {
+		// 1g=256 sensor resolution; 1g= 9.81m/s^2
+		double x = dynAcceleration.getX() / 256 * GRAVITAION;
+		double y = dynAcceleration.getY() / 256 * GRAVITAION;
+		double z = dynAcceleration.getZ() / 256 * GRAVITAION;
 
-		// acceleration.print(3);
+		return new Quaternion(0, x, y, z);
+	}
 
-		double v_x = currentVelocity.x + acceleration.getX() * time;
-		double v_y = currentVelocity.y + acceleration.getY() * time;
-		double v_z = currentVelocity.z + acceleration.getZ() * time;
+	protected void calculateMoveAndVelocity(Quaternion acceleration, double time) {
 
-		currentVelocity = new Vector3f((float) v_x, (float) v_y, (float) v_z);
+		double v_x = currentVelocityX + acceleration.getX() * time;
+		double v_y = currentVelocityY + acceleration.getY() * time;
+		double v_z = currentVelocityZ + acceleration.getZ() * time;
 
-		currentPosition = currentPosition.add((float) (v_x * time)
-				* velocityScale, (float) (v_y * time) * velocityScale,
-				(float) (v_z * time) * velocityScale);
+		Quaternion move = new Quaternion(0, (v_x * time) * velocityScale,
+				(v_y * time) * velocityScale, (v_z * time) * velocityScale);
+
+		if (move.getNorm() > 0) {
+			listener.updateMove(move);
+		}
 	}
 
 	private Quaternion calculateDynAcceleration(double a_x, double a_y,
@@ -421,22 +442,32 @@ public abstract class Filter {
 		double current_avg_y = a_y_avg.getAvg();
 		double current_avg_z = a_z_avg.getAvg();
 
-		double current_avg_x_diff = a_x_avg.getAvg() - a_x;
-		double current_avg_y_diff = a_y_avg.getAvg() - a_y;
-		double current_avg_z_diff = a_z_avg.getAvg() - a_z;
+		double current_avg_x_diff = current_avg_x - a_x;
+		double current_avg_y_diff = current_avg_y - a_y;
+		double current_avg_z_diff = current_avg_z - a_z;
 
 		// System.out.println("AVG Diff x:"+current_avg_x_diff+" y:"+current_avg_y_diff+" z:"+current_avg_z_diff);
 
+		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
+		// if the difference of current acceleration and the running average of
+		// a period is mininmal
+		// we assume current acceleration is gravity
+		// the requirement for this assumption is that we could not achieve a
+		// static acceleration
 		if (current_avg_x_diff < 1 && current_avg_y_diff < 1
 				&& current_avg_z_diff < 1) {
-			staticGravityAcceleration = new Quaternion(0, current_avg_x,
-					current_avg_y, current_avg_z);
-			staticGravityAcceleration = new Quaternion(0, a_x, a_y, a_z);
+			// staticGravityAcceleration = new Quaternion(0, current_avg_x,
+			// current_avg_y, current_avg_z);
+			staticGravityAcceleration = accelRaw;
+			// LOGGER.debug("Gravity");
+			// staticGravityAcceleration.print(3);
+			// LOGGER.debug("Gravity updated");
 			gravity_orientation = currentOrientation;
-			currentVelocity = new Vector3f();
+			currentVelocityX = 0;
+			currentVelocityY = 0;
+			currentVelocityZ = 0;
 		}
 
-		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
 		// System.out.println("AccelRaw");
 		// accelRaw.print(3);
 		// System.out.println("GQ");
@@ -445,17 +476,24 @@ public abstract class Filter {
 		// System.out.println("CQ");
 		// currentOrientation.print(3);
 
-		Quaternion DQ = currentOrientation.getConjugate().quaternionProduct(
-				gravity_orientation);
+		// get orientation difference between current orientation and
+		// orientation messured during definition of gravity
+		Quaternion DQ = gravity_orientation.getConjugate().quaternionProduct(
+				currentOrientation);
 		// System.out.println("DQ");
 		// DQ.print(3);
 
-		Quaternion rotatedStaticAcceleration = Quaternion.quaternionProduct(DQ,
-				staticGravityAcceleration);
+		// rotate gravity along inverse direction of device
+		DQ = DQ.getConjugate();
+
+		// rotate gravity vector
+		Quaternion rotatedStaticAcceleration = DQ.quaternionProduct(
+				staticGravityAcceleration).quaternionProduct(DQ.getConjugate());
 		// System.out.println("CGQ");
 		// rotatedStaticAcceleration.print(3);
 
-		accelRaw = accelRaw.plus(rotatedStaticAcceleration.times(-1));
+		// substract gravity in bodyframe from current raw acceleration
+		accelRaw = accelRaw.minus(rotatedStaticAcceleration);
 
 		// System.out.println("Norm "+);
 		// This is an acceleration low pass
@@ -469,8 +507,8 @@ public abstract class Filter {
 	}
 
 	public Quaternion updateAndAdjust(Quaternion quad) {
-		if (additionalCorrection != null) {
-			return additionalCorrection.update(quad);
+		if (listener != null) {
+			return listener.updateOrientation(quad);
 		} else {
 			return quad;
 		}
@@ -498,27 +536,16 @@ public abstract class Filter {
 		return obsMethod;
 	}
 
-	public boolean isCalibrationMode() {
-		return calibrationMode;
-	}
-
 	public void setCalibrationMode(boolean calibrationMode) {
 		this.calibrationMode = calibrationMode;
-		if (calibrationMode) {
+		if (this.calibrationMode) {
+			LOGGER.debug("Start calibration mode");
 			initCalibration();
 		}
 	}
 
-	public Vector3f getCurrentPosition() {
-		return currentPosition;
-	}
-
-	public void setCurrentPosition(Vector3f currentPosition) {
-		this.currentPosition = currentPosition;
-	}
-
 	public IFilterListener getListener() {
-		return additionalCorrection;
+		return listener;
 	}
 
 	public void setListener(IFilterListener additionalCorrection) {
@@ -526,6 +553,6 @@ public abstract class Filter {
 			this.initialOrientation = additionalCorrection
 					.getInitialOrientation();
 		}
-		this.additionalCorrection = additionalCorrection;
+		this.listener = additionalCorrection;
 	}
 }

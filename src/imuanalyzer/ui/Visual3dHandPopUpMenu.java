@@ -7,9 +7,10 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
-class Visual3dPopUpMenu extends JPopupMenu {
+class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	/**
 	 * 
@@ -22,7 +23,7 @@ class Visual3dPopUpMenu extends JPopupMenu {
 
 	Visual3d visual3d;
 
-	public Visual3dPopUpMenu(Visual3d visual3d, Hand hand, JointType jointType) {
+	public Visual3dHandPopUpMenu(Visual3d visual3d, Hand hand, JointType jointType) {
 		this.visual3d = visual3d;
 		this.jointType = jointType;
 		this.hand = hand;
@@ -30,8 +31,7 @@ class Visual3dPopUpMenu extends JPopupMenu {
 		JMenuItem anItem;
 
 		// observ motion
-		if (hand.isSaveMovement()
-				&& jointType == hand.getSavedMovementStartJoint()) {
+		if (hand.getMotionAnalysis(jointType)!=null) {
 			anItem = new JMenuItem("Disable analyze movement");
 			anItem.addActionListener(new java.awt.event.ActionListener() {
 				@Override
@@ -52,8 +52,7 @@ class Visual3dPopUpMenu extends JPopupMenu {
 			add(anItem);
 		}
 		// observ touch
-		if (hand.getSaveTouchLine()
-				&& jointType == hand.getSaveTouchLineJoint()) {
+		if (hand.getTouchAnalysis(jointType) !=null) {
 			anItem = new JMenuItem("Disable analyze touch");
 			anItem.addActionListener(new java.awt.event.ActionListener() {
 				@Override
@@ -96,21 +95,28 @@ class Visual3dPopUpMenu extends JPopupMenu {
 	}
 
 	private void disableAnalyzeMovement() {
-		hand.setSaveMovement(false);
+		hand.removeSaveMotionJoint(jointType);
+		visual3d.clearLiveMovement();
 	}
 
 	private void analyzeMovement() {
-		hand.setSaveMovement(true);
-		hand.setSavedMovementStartJoint(jointType);
+		try {
+			if(hand.addSaveMotionJoint(jointType)){
+				visual3d.clearLiveMovement();
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this,
+					e.getMessage(), "Error",
+					JOptionPane.OK_OPTION);
+		}
 	}
 
 	private void disableAnalyzeTouch() {
-		hand.setSaveTouchLine(false);
+		hand.removeSaveTouchLineJoint(jointType);
 	}
 
 	private void analyzeTouch() {
-		hand.setSaveTouchLine(true);
-		hand.setSaveTouchLineJoint(jointType);
+		hand.addSaveTouchLineJoint(jointType);
 	}
 
 	private void switchVisibility() {

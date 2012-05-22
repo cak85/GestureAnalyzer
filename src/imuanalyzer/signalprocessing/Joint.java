@@ -38,6 +38,10 @@ public class Joint implements IFilterListener, IJoint {
 	protected boolean visible = true;
 
 	Quaternion lastActiveChange = new Quaternion();
+	
+	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
+			0.7, 0);
+
 
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors,
 			Restriction restriction) {
@@ -54,7 +58,7 @@ public class Joint implements IFilterListener, IJoint {
 	protected Quaternion lastMeasuredOrientation = new Quaternion();
 
 	@Override
-	public Quaternion update(Quaternion measuredOrientation) {
+	public Quaternion updateOrientation(Quaternion measuredOrientation) {
 
 		return update(measuredOrientation, true);
 	}
@@ -71,7 +75,7 @@ public class Joint implements IFilterListener, IJoint {
 
 		Quaternion oldOrientation = this.localOrientation;
 
-		if (parent != null) { // adjust measured orientation with know
+		if (parent != null) { // adjust measured orientation with known
 								// restrictions
 
 			// measuredOrientation.print(3);
@@ -91,8 +95,8 @@ public class Joint implements IFilterListener, IJoint {
 		if (!oldOrientation.equals(this.localOrientation)) {
 			// store last orientation change,
 			if (storeLastMovement) {
-				lastActiveChange = oldOrientation
-						.quaternionProduct(localOrientation.getConjugate());
+				lastActiveChange = localOrientation
+						.quaternionProduct(oldOrientation.getConjugate());
 			}
 			hand.informJointsUpdated(this);
 		} else {
@@ -245,7 +249,7 @@ public class Joint implements IFilterListener, IJoint {
 		return localOrientation;
 	}
 
-	public void setInitialOrientation(Quaternion orientation) {
+	public void setLocalOrientation(Quaternion orientation) {
 		localOrientation = orientation;
 		if (isActive()) {
 			sensors.removeListner(this);
@@ -256,28 +260,31 @@ public class Joint implements IFilterListener, IJoint {
 
 	public void setLocalPosition(Quaternion pos) {
 		localPosition = pos;
+		lastSensorPos= getSensorPosition();
 	}
 	
-	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0,0,0.7,0);
+	public Quaternion getLocalPosition(){
+		return localPosition;
+	}
 
 	public Quaternion getWorldPosition() {
 		if (parent != null) {
 			Quaternion rotation = parent.getWorldOrientation();
 			return parent.getWorldPosition().plus(
-					rotation.quaternionProduct(
-							localPosition).quaternionProduct(rotation.getConjugate()));
+					rotation.quaternionProduct(localPosition)
+							.quaternionProduct(rotation.getConjugate()));
 		} else {
 			return localPosition;
 		}
 	}
-	
-	public Quaternion getFingertipPosition(){
+
+	public Quaternion getFingertipPosition() {
 		Quaternion bonePos = getWorldPosition();
 		Quaternion rotation = getWorldOrientation();
-		
-		return bonePos.plus(rotation.quaternionProduct(
-				FINGER_TIP_OFFSET).quaternionProduct(rotation.getConjugate()));
-		
+
+		return bonePos.plus(rotation.quaternionProduct(FINGER_TIP_OFFSET)
+				.quaternionProduct(rotation.getConjugate()));
+
 	}
 
 	public void setRestrictions(Restriction restriction) {
@@ -355,6 +362,82 @@ public class Joint implements IFilterListener, IJoint {
 			return lastActiveChange.quaternionProduct(parent
 					.getLastActiveChange());
 		}
+	}
+
+	Quaternion acceleration = new Quaternion();
+
+	public float[] getAcceleration() {
+		float[] ret = { 0, 0, 0 };
+		if (isActive()) {
+			ret[0] = (float) acceleration.getX();
+			ret[1] = (float) acceleration.getY();
+			ret[2] = (float) acceleration.getZ();
+		}
+		return ret;
+	}
+
+	@Override
+	public void updateAcceleration(Quaternion acceleration) {
+		this.acceleration = acceleration;
+	}
+	
+	
+	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0,
+			3, 0);
+
+	Quaternion lastSensorPos;
+	
+	private Quaternion getSensorPosition(){
+		Quaternion bonePos = getWorldPosition();
+		Quaternion rotation = getWorldOrientation();
+		
+		return bonePos.plus(rotation.quaternionProduct(SENSOR_OFFSET)
+				.quaternionProduct(rotation.getConjugate()));
+	}
+
+	@Override
+	public void updateMove(Quaternion move) {
+
+		Quaternion pos = getSensorPosition();
+		
+		if(lastSensorPos==null){
+			lastSensorPos = pos;
+			return;
+		}
+		
+		Quaternion diff = pos.minus(lastSensorPos);
+		
+		lastSensorPos = pos;
+
+//		LOGGER.debug("Pos diff");
+//		
+//		diff.print(3);
+//		
+//		LOGGER.debug("Move update");
+//		move.print(3);	
+//		
+//		LOGGER.debug("Difference move/pos ");
+		
+		Quaternion movePosDiff = diff.minus(move);
+		
+		lastMovePosDiff = lastMovePosDiff.plus(movePosDiff);
+
+//		movePosDiff.print(3);
+		
+		localPosition.plus(movePosDiff);		
+	}
+	
+	Quaternion lastMovePosDiff = new Quaternion();
+	
+	public Quaternion getLastMove(){
+		Quaternion wR = getWorldOrientation();
+		
+		Quaternion ret = wR.quaternionProduct(lastMovePosDiff).quaternionProduct(wR.getConjugate());
+		//Quaternion ret = new Quaternion(lastMovePosDiff);		
+		
+		lastMovePosDiff.clear();
+		
+		return ret;
 	}
 
 }

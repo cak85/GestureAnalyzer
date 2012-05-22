@@ -55,7 +55,14 @@ public class ConnectionPanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				connect();
+				JButton button = (JButton)arg0.getSource();
+				if(button.getText().equals("Connect")){
+					connect();
+					button.setText("Disconnect");
+				}else{
+					button.setText("Connect");
+					disconnect();
+				}
 			}
 		});
 
@@ -92,6 +99,10 @@ public class ConnectionPanel extends JPanel {
 			JOptionPane.showMessageDialog(this, "Could not connect",
 					"Connection", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+	
+	protected void disconnect(){
+		sensor.disconnect();
 	}
 
 	private void refreshAndDisconnect() {

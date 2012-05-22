@@ -1,10 +1,12 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.filter.Quaternion;
+import imuanalyzer.signalprocessing.Hand.JointType;
+
 import java.util.ArrayList;
 import java.util.EnumMap;
 
-import imuanalyzer.filter.Quaternion;
-import imuanalyzer.signalprocessing.Hand.JointType;
+import org.apache.log4j.Logger;
 
 /**
  * lightweight datastructure for saving joint state without overhead of db,
@@ -12,6 +14,10 @@ import imuanalyzer.signalprocessing.Hand.JointType;
  * 
  */
 public class StoredJointState implements IJoint {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(StoredJointState.class.getName());
+
 	protected JointType type;
 
 	protected Quaternion localOrientation;
@@ -45,9 +51,9 @@ public class StoredJointState implements IJoint {
 	public Quaternion getLocalOrientation() {
 		return localOrientation;
 	}
-	
-	public void setLocalOrientation(Quaternion quad){
-		localOrientation=quad;
+
+	public void setLocalOrientation(Quaternion quad) {
+		localOrientation = quad;
 	}
 
 	public JointType getType() {
@@ -70,6 +76,8 @@ public class StoredJointState implements IJoint {
 		}
 	}
 
+	private static final double MAX_ANGLE_DIFFERENCE = 8 * (Math.PI / 180);
+
 	/**
 	 * this is an almost equal implementation
 	 */
@@ -78,15 +86,86 @@ public class StoredJointState implements IJoint {
 		if (!(obj instanceof StoredJointState)) {
 			return false;
 		} else {
+
 			StoredJointState obj_j = (StoredJointState) obj;
-			Quaternion difference = getDifferenceAbs(obj_j);
 
-			double dotProduct = Quaternion.EMPTY.dotProdcut(difference);
-
-			if (dotProduct > 0.998) {
-				return true;
-			} else {
+			if (this.hasAngelurDifferenceGreaterThan(obj_j,
+					MAX_ANGLE_DIFFERENCE)) {
 				return false;
+			} else {
+				return true;
+			}
+			// Quaternion difference = getDifferenceAbs(obj_j);
+			//
+			// double dotProduct = Quaternion.EMPTY.dotProdcut(difference);
+			//
+			// if (dotProduct > 0.998) {
+			// return true;
+			// } else {
+			// return false;
+			// }
+		}
+	}
+
+	public double[] getMaxAngle() {
+		double[] angles = getWorldOrientation().getAnglesRadFromQuaternion();
+
+		if (children.size() == 0) {
+			return angles;
+		} else {
+			double angleSum = 0;
+			double[] childMaxAngles = { 0, 0, 0 };
+
+			for (int i = 0; i < children.size(); i++) {
+				double[] childAngle = children.get(i).getMaxAngle();
+				double childAngleSum = Math.abs(childAngle[0])
+						+ Math.abs(childAngle[1]) + Math.abs(childAngle[2]);
+				if (childAngleSum > angleSum) {
+					angleSum = childAngleSum;
+					childMaxAngles = childAngle;
+				}
+			}
+
+			angles[0] += Math.abs(childMaxAngles[0]);
+			angles[1] += Math.abs(childMaxAngles[1]);
+			angles[2] += Math.abs(childMaxAngles[2]);
+
+			return angles;
+		}
+	}
+
+	public boolean hasAngelurDifferenceGreaterThan(StoredJointState other,
+			double angleRad) {
+		// check if same structure = compareable
+		if (type != other.getType()) {
+			return true;
+		} else if (children.size() != other.children.size()) {
+			return true;
+		} else { // check own angle difference
+			Quaternion diff = worldOrientation.quaternionProduct(other
+					.getWorldOrientation().getConjugate());
+
+			double[] angles = diff.getAnglesRadFromQuaternion();
+
+//			LOGGER.debug("Diff: " + angles[0] + " " + angles[1] + " "
+//					+ angles[2]);
+
+			if (Math.abs(angles[0]) > angleRad
+					|| Math.abs(angles[1]) > angleRad
+					|| Math.abs(angles[2]) > angleRad) {
+				return true;
+			} else { // check children
+				if (children.size() != 0) {
+					for (int i = 0; i < children.size(); i++) {
+						if (children.get(i).hasAngelurDifferenceGreaterThan(
+								other.children.get(i), angleRad)) {
+							return true;
+						}
+					}
+					return false;
+				} else {
+					return false;
+				}
 			}
 		}
 	}

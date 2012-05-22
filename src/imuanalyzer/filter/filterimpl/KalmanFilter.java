@@ -357,9 +357,4 @@ public class KalmanFilter extends Filter {
 		return new Quaternion(state_filtered);
 	}
 
-	@Override
-	protected void initCalibration() {
-		// not used
-
-	}
 }
