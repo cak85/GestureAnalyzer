@@ -305,18 +305,18 @@ public class Hand {
 		return runningTouchAnalysis;
 	}
 
-	public ArrayList<ArrayList<Vector3f>> getMaxTouchLines() {
-		ArrayList<ArrayList<Vector3f>> maxLines = new ArrayList<ArrayList<Vector3f>>();
+	public ArrayList<TouchLine> getMaxTouchLines() {
+		ArrayList<TouchLine> maxLines = new ArrayList<TouchLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
-			maxLines.add(touch.getMaxLineBuffer());
+			maxLines.add(touch.getMaxLine());
 		}
 		return maxLines;
 	}
 
-	public ArrayList<ArrayList<Vector3f>> getCurrentTouchLines() {
-		ArrayList<ArrayList<Vector3f>> lines = new ArrayList<ArrayList<Vector3f>>();
+	public ArrayList<TouchLine> getCurrentTouchLines() {
+		ArrayList<TouchLine> lines = new ArrayList<TouchLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
-			lines.add(touch.getCurrentLineBuffer());
+			lines.add(touch.getCurrentLine());
 		}
 		return lines;
 	}

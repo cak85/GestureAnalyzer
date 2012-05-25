@@ -8,10 +8,12 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
+import imuanalyzer.signalprocessing.TouchLine;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -24,6 +26,7 @@ import javax.swing.JPopupMenu;
 import org.apache.log4j.Logger;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
@@ -42,6 +45,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.debug.Grid;
 import com.jme3.shadow.PssmShadowRenderer;
@@ -114,7 +118,15 @@ public class Visual3d extends SimpleApplication {
 
 	private Visual3d myInstance;
 
-	Geometry motionLine = null;
+	DeviceDummy deviceDummy = null;
+
+	// different lines
+	Geometry currentMotionLine = null;
+	Geometry maxMotionLine = null;
+
+	ScreenshotAppState screenState;
+	
+	VisualTouchLineStatistics touchLineStatistics;
 
 	/**
 	 * Constructor, needs handmodel
@@ -151,6 +163,10 @@ public class Visual3d extends SimpleApplication {
 	@Override
 	public void simpleInitApp() {
 
+		screenState = new ScreenshotAppState();
+		this.stateManager.attach(screenState);
+
+		// background
 		viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
 		attachLight();
@@ -173,10 +189,19 @@ public class Visual3d extends SimpleApplication {
 
 		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 
-		motionLine = Utils.CreateLine(assetManager, lineBuffer, ColorRGBA.Red,
-				false, 2);
+		currentMotionLine = Utils.CreateLine(assetManager, lineBuffer,
+				ColorRGBA.Cyan, false, 2);
 
-		rootNode.attachChild(motionLine);
+		rootNode.attachChild(currentMotionLine);
+
+		maxMotionLine = Utils.CreateLine(assetManager, lineBuffer,
+				ColorRGBA.Blue, false, 4);
+
+		rootNode.attachChild(maxMotionLine);
+
+		touchLineStatistics = new VisualTouchLineStatistics(assetManager);
+
+		rootNode.attachChild(touchLineStatistics);
 
 		deviceDummy = new DeviceDummy(assetManager);
 		deviceDummy.setVisible(false);
@@ -468,8 +493,9 @@ public class Visual3d extends SimpleApplication {
 				MouseInput.BUTTON_MIDDLE));
 		chaseCam.setInvertHorizontalAxis(true);
 		chaseCam.setInvertVerticalAxis(true);
-		chaseCam.setMinDistance(4f);
+		chaseCam.setMinDistance(0f);
 		chaseCam.setMaxDistance(30f);
+		chaseCam.setZoomSensitivity(2);
 		chaseCam.setMinVerticalRotation(0);
 		chaseCam.setMaxVerticalRotation((float) Math.PI * 2);
 		chaseCam.setRotationSensitivity(8);
@@ -574,9 +600,12 @@ public class Visual3d extends SimpleApplication {
 
 				// update line movement
 
-				ArrayList<ArrayList<Vector3f>> motionLineBuffer = hand
+				ArrayList<TouchLine> motionLineBuffer = hand
 						.getCurrentTouchLines();
-				Utils.updateLines(motionLine, motionLineBuffer);
+				Utils.updateLinesTouch(currentMotionLine, motionLineBuffer);
+
+				motionLineBuffer = hand.getMaxTouchLines();
+				Utils.updateLinesTouch(maxMotionLine, motionLineBuffer);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -687,7 +716,7 @@ public class Visual3d extends SimpleApplication {
 		synchronized (simpleUpdateLock) {
 			if (analyses != null) {
 				LinkedList<MovementStep> analysesMovementPositions = analyses
-						.getResult();
+						.getMoveResult();
 
 				// update joint parent if not root node of object
 				// with the goal of moving the analyzed hand in the same frame
@@ -700,12 +729,18 @@ public class Visual3d extends SimpleApplication {
 				}
 				this.analysesMovementPositions = analysesMovementPositions;
 
+				touchLineStatistics.setStatistics(analyses.getTouchStatistics());
+				
+				touchLineStatistics.setCullHint(CullHint.Never);
+
 			} else {
 				for (VisualHand3d hand : analysesMovementSteps) {
 					hand.removeFromParent();
 				}
 				analysesMovementPositions.clear();
 				analysesMovementSteps.clear();
+				
+				touchLineStatistics.setCullHint(CullHint.Always);
 			}
 		}
 	}
@@ -742,7 +777,5 @@ public class Visual3d extends SimpleApplication {
 	public void setDeviceVisible(boolean isVisible) {
 		deviceDummy.setVisible(isVisible);
 	}
-
-	DeviceDummy deviceDummy = null;
 
 }

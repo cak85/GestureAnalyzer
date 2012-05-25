@@ -107,7 +107,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this,
 					e.getMessage(), "Error",
-					JOptionPane.OK_OPTION);
+					JOptionPane.ERROR);
 		}
 	}
 

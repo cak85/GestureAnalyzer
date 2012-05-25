@@ -15,7 +15,9 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map.Entry;
+import java.util.Properties;
 
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -30,6 +32,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
+
+import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
+import com.jtattoo.plaf.smart.SmartLookAndFeel;
 
 public class MainFrame extends JFrame {
 
@@ -50,8 +55,16 @@ public class MainFrame extends JFrame {
 
 	private static void setLookAndFeel() {
 		try {
-			UIManager
-					.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+//useful for removing Logo from jtattoo	if LICENSE KEY is available	
+//			Properties props = new Properties();
+//			props.put("logoString", "my company");
+//			props.put("licenseKey", "INSERT YOUR LICENSE KEY HERE");
+//			SmartLookAndFeel.setCurrentTheme(props);
+			UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
+//			UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+			
+			//UIManager.setLookAndFeel("com.jgoodies.looks.plastic.PlasticXPLookAndFeel");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -86,6 +99,9 @@ public class MainFrame extends JFrame {
 		this.setTitle("IMUAnalyzer");
 		this.setSize(1024, 768);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		ImageIcon icon = new ImageIcon(getClass().getResource(
+		"/Icons/hand.png"));
+		this.setIconImage(icon.getImage());
 
 		JTabbedPane jtp = new JTabbedPane();
 		getContentPane().add(jtp);
@@ -455,12 +471,13 @@ public class MainFrame extends JFrame {
 		toolBarPanel.add(connectionPanel, c);
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.LAST_LINE_END;
+		c.fill = GridBagConstraints.CENTER;
 		c.ipady = 0; // reset to default
 		c.weighty = 1; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 3;
+		c.gridy = 4;
+		c.gridheight=1;
 
 		mainPanel.add(toolBarPanel, c);
 
@@ -468,12 +485,13 @@ public class MainFrame extends JFrame {
 				sensors, hand);
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.LAST_LINE_END;
+		c.fill = GridBagConstraints.CENTER;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 4;
+		c.gridheight=1;
 
 		mainPanel.add(markerControl, c);
 

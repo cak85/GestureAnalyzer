@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import com.jme3.math.Vector3f;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class TouchAnalysis {
 
@@ -19,34 +20,34 @@ public class TouchAnalysis {
 
 	Quaternion currentDirection = new Quaternion();
 
-	ArrayList<ArrayList<Vector3f>> lines = new ArrayList<ArrayList<Vector3f>>();
+	ArrayList<TouchLine> lines = new ArrayList<TouchLine>();
 
-	float currentLengthTouch = 0;
 	float maxLengthTouch = 0;
 
 	int maxIdTouch = 0;
 
 	Quaternion lastPos = new Quaternion();
-	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 
 	private Object clearLock = new Object();
+	
+	TouchLine currentLine;
 
 	public TouchAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
-		lines.add(lineBuffer);
+		lastPos = observedJoint.getFingertipPosition();
+		currentLine = new TouchLine();
+		lines.add(currentLine);
 	}
 
 	public void clear() {
 		synchronized (clearLock) {
-			lines.clear();
-			lineBuffer.clear();
-			lines.add(lineBuffer);
+			currentLine = new TouchLine();
+			lines.add(currentLine);
 			maxIdTouch = 0;
 			currentDirection.set(1, 0, 0, 0);
-			currentLengthTouch = 0;
 			maxLengthTouch = 0;
-			lastPos.set(1, 0, 0, 0);
+			lastPos = observedJoint.getFingertipPosition();
 		}
 	}
 
@@ -94,20 +95,22 @@ public class TouchAnalysis {
 					}
 
 					if (signChangeCounter > 1) {
-						LOGGER.debug("Direction changed!");
-						currentLengthTouch = 0;
-						lineBuffer = new ArrayList<Vector3f>();
-						lines.add(lineBuffer);
+						// LOGGER.debug("Direction changed!");
+						currentLine = new TouchLine();
+						lines.add(currentLine);
 					}
+					currentDirection = newDirection;
 				}
 
-				currentDirection = newDirection;
+				// LOGGER.debug(currentDirection);
 
-				currentLengthTouch += directionLength;
+				currentLine.addLength(directionLength);
 
-				if (currentLengthTouch > maxLengthTouch) {
-					maxLengthTouch = currentLengthTouch;
+				if (currentLine.getLength() > maxLengthTouch) {
+					maxLengthTouch = currentLine.getLength();
 					maxIdTouch = lines.size() - 1;
+					LOGGER.debug("new max line id:" + maxIdTouch);
+					LOGGER.debug("Max Length: " + maxLengthTouch);
 				}
 
 				lastPos = newPos;
@@ -115,32 +118,36 @@ public class TouchAnalysis {
 				// conversion to jme representation not sure why it is different
 				// from
 				// that one in utils ....?
-				lineBuffer.add(new Vector3f((float) newPos.getX() * -1,
+				currentLine.getLineBuffer().add(new Vector3f((float) newPos.getX() * -1,
 						(float) newPos.getY(), (float) newPos.getZ() * -1));
 
 			}
 		}
 	}
 
-	public ArrayList<ArrayList<Vector3f>> getAllLineBuffer() {
+	public ArrayList<TouchLine> getAllLines() {
 		return lines;
 	}
 
-	public ArrayList<Vector3f> getMaxLineBuffer() {
+	public TouchLine getMaxLine() {
 		return lines.get(maxIdTouch);
 	}
 
-	public ArrayList<Vector3f> getCurrentLineBuffer() {
+	public TouchLine getCurrentLine() {
 
-		return lineBuffer;
+		return currentLine;
 	}
 
 	public Joint getObservedJoint() {
 		return observedJoint;
 	}
-	
+
 	public int getMaxIdTouch() {
 		return maxIdTouch;
+	}
+
+	public float getMaxLengthTouch() {
+		return maxLengthTouch;
 	}
 
 }

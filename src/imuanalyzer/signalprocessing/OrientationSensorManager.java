@@ -126,7 +126,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 		if (isRecording) { // should never be true on
 							// processing recorded data
-			System.out.println("recodring");
 			writeToDb(data, samplePeriod);
 		}
 
@@ -135,7 +134,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 			// update filters in logical order
 			for (FilterMapping fm : filters) {
 				int id = fm.getListener().getSensorID();
-				System.out.println("ID "+id);
 
 				if (id > -1) {
 

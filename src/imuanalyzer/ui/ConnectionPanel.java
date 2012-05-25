@@ -94,7 +94,7 @@ public class ConnectionPanel extends JPanel {
 	protected void connect() {
 		if (sensor.connect((String) cbPort.getSelectedItem())) {
 			JOptionPane.showMessageDialog(this, "Connection established",
-					"Connection", JOptionPane.PLAIN_MESSAGE);
+					"Connection", JOptionPane.INFORMATION_MESSAGE);
 		} else {
 			JOptionPane.showMessageDialog(this, "Could not connect",
 					"Connection", JOptionPane.ERROR_MESSAGE);

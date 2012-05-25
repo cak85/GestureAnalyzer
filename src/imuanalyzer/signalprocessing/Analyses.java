@@ -19,6 +19,8 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import com.jme3.math.Vector3f;
+
 public class Analyses {
 
 	private static final Logger LOGGER = Logger.getLogger(Analyses.class
@@ -34,11 +36,27 @@ public class Analyses {
 
 	ArrayList<Hand> hands = new ArrayList<Hand>();
 
-	LinkedList<MovementStep> result;
+	LinkedList<MovementStep> moveResult;
+
+	/**
+	 * all max line(s)
+	 */
+	ArrayList<TouchLine> touchResult;
+
+	/**
+	 * Max of maximums
+	 */
+	ArrayList<TouchLine> touchResultMax;
+
+	/**
+	 * average of maximums
+	 */
+	ArrayList<TouchLine> touchResultAvg;
 
 	Collection<Marker> markers;
 	FilterTypes filterType;
 	ArrayList<JointType> saveMotionJoints;
+	ArrayList<JointType> saveTouchJoints;
 
 	public Analyses() {
 		try {
@@ -46,27 +64,18 @@ public class Analyses {
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
-
-	}
-
-	/**
-	 * return all made movement steps
-	 * 
-	 * @return
-	 */
-	public LinkedList<MovementStep> getResult() {
-		return result;
 	}
 
 	public void recalculate() {
 		if (markers != null && filterType != null && saveMotionJoints != null) {
-			calculate(markers, filterType, saveMotionJoints);
+			prepare(markers, filterType, saveMotionJoints, saveTouchJoints);
 			switch (mode) {
 			case AVG:
 				calculateMotionAvg();
 				break;
 			case SUM:
 				calculateMotionSum();
+				calculateTouchSum();
 				break;
 
 			default:
@@ -78,20 +87,25 @@ public class Analyses {
 	}
 
 	public void calculateAvg(Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
-		calculate(AnalysesMode.AVG, _markers, _filterType, _movementStartJoint);
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
+			ArrayList<JointType> _touchJoint) {
+		calculate(AnalysesMode.AVG, _markers, _filterType, _movementStartJoint,
+				_touchJoint);
 	}
 
 	public void calculateSUM(Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
-		calculate(AnalysesMode.SUM, _markers, _filterType, _movementStartJoint);
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
+			ArrayList<JointType> _touchJoint) {
+		calculate(AnalysesMode.SUM, _markers, _filterType, _movementStartJoint,
+				_touchJoint);
 	}
 
 	public void calculate(AnalysesMode mode, Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint) {
+			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
+			ArrayList<JointType> _touchJoint) {
 
 		this.mode = mode;
-		calculate(_markers, _filterType, _movementStartJoint);
+		prepare(_markers, _filterType, _movementStartJoint, _touchJoint);
 
 		switch (mode) {
 		case AVG:
@@ -99,6 +113,7 @@ public class Analyses {
 			break;
 		case SUM:
 			calculateMotionSum();
+			calculateTouchSum();
 			break;
 
 		default:
@@ -107,12 +122,14 @@ public class Analyses {
 		LOGGER.info("Calculation complete");
 	}
 
-	private void calculate(Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _saveMotionJoints) {
+	private void prepare(Collection<Marker> _markers, FilterTypes _filterType,
+			ArrayList<JointType> _saveMotionJoints,
+			ArrayList<JointType> _touchJoints) {
 
 		this.markers = _markers;
 		this.filterType = _filterType;
 		this.saveMotionJoints = _saveMotionJoints;
+		this.saveTouchJoints = _touchJoints;
 
 		LOGGER.debug("Start calulation with FilterType " + filterType
 				+ " and startJoint: " + saveMotionJoints);
@@ -142,11 +159,18 @@ public class Analyses {
 						// initial orientation
 						joint.setLocalOrientation(db.getInitialOrientation(
 								marker, type));
+						joint.setLocalPosition(db.getInitialPosition(marker,
+								type));
 					}
 
 					// save movement
 					for (JointType type : saveMotionJoints) {
 						hand.addSaveMotionJoint(type);
+					}
+
+					// save touch
+					for (JointType type : saveTouchJoints) {
+						hand.addSaveTouchLineJoint(type);
 					}
 
 					// calculate movement based on recorded raw data
@@ -162,7 +186,7 @@ public class Analyses {
 
 							if (newPeriod.compareTo(currentPeriod) == 0
 									&& newData.getId() < currentSet.length) {
-								//order array by id
+								// order array by id
 								currentSet[newData.getId()] = newData;
 							} else {
 
@@ -186,7 +210,7 @@ public class Analyses {
 		if (hands.size() > 0) {
 
 			// calculate avg
-			result = new LinkedList<MovementStep>();
+			moveResult = new LinkedList<MovementStep>();
 
 			// calculate per motion analysis
 			for (int n = 0; n < saveMotionJoints.size(); n++) {
@@ -202,9 +226,9 @@ public class Analyses {
 				}
 
 				Hand emptyhand = new Hand(null, Marker.getDefaultMarker());
-				Quaternion nullQuat= new Quaternion(0,0,0,0);
-				
-				for(Entry<JointType, Joint> j: emptyhand.getJointSet()){
+				Quaternion nullQuat = new Quaternion(0, 0, 0, 0);
+
+				for (Entry<JointType, Joint> j : emptyhand.getJointSet()) {
 					j.getValue().setLocalOrientation(nullQuat);
 				}
 
@@ -216,7 +240,7 @@ public class Analyses {
 							new StoredJointState(
 									emptyhand.getJoint(saveMotionJoint)));
 					avgElement.setCount(0);
-					result.add(avgElement);
+					moveResult.add(avgElement);
 
 					EnumMap<JointType, StoredJointState> avgJoints = avgElement
 							.getMove().get(saveMotionJoint).getAll();
@@ -242,7 +266,6 @@ public class Analyses {
 								StoredJointState avgJoint = entry.getValue();
 								avgJoint.setLocalOrientation(avgJoint
 										.getLocalOrientation().plus(addedQuat));
-
 
 							}
 							avgElement.setCount(avgElement.getCount()
@@ -270,9 +293,32 @@ public class Analyses {
 
 	}
 
+	ArrayList<TouchLineStatistics> touchStatistics ;
+	
+	private void calculateTouchSum() {
+		touchResult = new ArrayList<TouchLine>();
+		for (Hand h : hands) {
+			touchResult.addAll(h.getMaxTouchLines());
+		}
+
+		touchStatistics = new ArrayList<TouchLineStatistics>();
+
+		// maximum and maximum sum
+		for (int i = 0; i < saveTouchJoints.size(); i++) {
+			ArrayList<TouchLine> linesOfOneJointAnalysis = new ArrayList<TouchLine>();
+			for (Hand h : hands) {
+				TouchAnalysis touchAnalysis = h.getRunningTouchAnalysis()
+						.get(i);
+				linesOfOneJointAnalysis.add(touchAnalysis.getMaxLine());
+			}
+			touchStatistics.add(new TouchLineStatistics(linesOfOneJointAnalysis));
+		}
+
+	}
+
 	private void calculateMotionSum() {
 		// calculate sum of movements
-		result = new LinkedList<MovementStep>();
+		moveResult = new LinkedList<MovementStep>();
 
 		if (hands.size() < 1) {
 			return;
@@ -309,13 +355,13 @@ public class Analyses {
 						}
 					}
 					if (!exists) {
-						result.add(newState);
+						moveResult.add(newState);
 					}
 				}
 			}
 		}
 		for (int i = 0; i < resultPerMotionAnalysis.size(); i++) {
-			result.addAll(resultPerMotionAnalysis.get(i));
+			moveResult.addAll(resultPerMotionAnalysis.get(i));
 		}
 	}
 
@@ -334,5 +380,31 @@ public class Analyses {
 	public void setSaveMotionJoints(ArrayList<JointType> saveMotionJoints) {
 		this.saveMotionJoints = saveMotionJoints;
 	}
+
+	public ArrayList<JointType> getSaveTouchJoints() {
+		return saveTouchJoints;
+	}
+
+	public void setSaveTouchJoints(ArrayList<JointType> saveTouchJoints) {
+		this.saveTouchJoints = saveTouchJoints;
+	}
+
+	/**
+	 * return all made movement steps
+	 * 
+	 * @return
+	 */
+	public LinkedList<MovementStep> getMoveResult() {
+		return moveResult;
+	}
+
+	public ArrayList<TouchLine> getTouchResult() {
+		return touchResult;
+	}
+
+	public ArrayList<TouchLineStatistics> getTouchStatistics() {
+		return touchStatistics;
+	}
+
 
 }

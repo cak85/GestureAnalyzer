@@ -1,6 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.TouchLine;
 
 import java.util.ArrayList;
 
@@ -120,6 +121,54 @@ public class Utils {
 		int iStart = 0;
 		for (int j = 0; j < numberOfLines; j++) {
 			ArrayList<Vector3f> p = points.get(j);
+			int end = iStart + p.size() - 1;
+			for (int i = iStart; i < end; i++) {
+				int vecIdx = i + j;
+				indexes[2 * i] = (short) vecIdx;
+				int secondIdx=2 * i + 1;
+				if (secondIdx<indexes.length) {
+					indexes[secondIdx] = (short) ((vecIdx + 1));
+				}
+			}
+			iStart = end;
+			tmpVertices.addAll(p);
+		}
+		vertices = tmpVertices.toArray(vertices);	
+
+		updateGeometryMesh(line, vertices, indexes);
+	}
+	
+	public static void updateLinesTouch(Geometry line,
+			ArrayList<TouchLine> lines) {
+
+		// calculate size
+		int size = 0;
+		int numberOfLines = 0;
+		for (TouchLine t :lines) {
+			int tmpSize = t.getLineBuffer().size();
+			if (tmpSize > 1) {
+				size += tmpSize;
+				numberOfLines++;
+			}
+		}
+
+		if (size < 2) {
+			return;
+		}
+
+		// Vertex positions in space
+		Vector3f[] vertices = new Vector3f[size];
+
+		// Indexes. We define the order in which mesh should be constructed
+		int numIndexes = 2 * (size) - 2 * numberOfLines;
+
+		short[] indexes = new short[numIndexes];
+
+		ArrayList<Vector3f> tmpVertices = new ArrayList<Vector3f>();
+
+		int iStart = 0;
+		for (int j = 0; j < numberOfLines; j++) {
+			ArrayList<Vector3f> p = lines.get(j).getLineBuffer();
 			int end = iStart + p.size() - 1;
 			for (int i = iStart; i < end; i++) {
 				int vecIdx = i + j;

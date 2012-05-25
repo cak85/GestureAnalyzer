@@ -39,7 +39,7 @@ public class Configuration {
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null,
 					"Could not start application, database is locked by another instance", "Error",
-					JOptionPane.OK_OPTION);
+					JOptionPane.ERROR_MESSAGE);
 			System.exit(-1);
 		}
 

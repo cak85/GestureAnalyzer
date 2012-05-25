@@ -48,13 +48,15 @@ public class Database {
 	final static String IMU_CONFIGURATION_TABLE_ID = "Id";
 	final static String IMU_CONFIGURATION_TABLE_FILTER_ID = "FilterId";
 
+	//OP stands for Orierntation and Position because these tables are quite similar
+	final static String IMU_POSITION_TABLE_NAME = "InitialPosition";
 	final static String IMU_ORIENTATION_TABLE_NAME = "InitialOrientation";
-	final static String IMU_ORIENTATION_TABLE_MARKER_ID = "MarkerId";
-	final static String IMU_ORIENTATION_TABLE_JOINT_ID = "JointId";
-	final static String IMU_ORIENTATION_TABLE_QUAT_W = "QuatW";
-	final static String IMU_ORIENTATION_TABLE_QUAT_X = "QuatX";
-	final static String IMU_ORIENTATION_TABLE_QUAT_Y = "QuatY";
-	final static String IMU_ORIENTATION_TABLE_QUAT_Z = "QuatZ";
+	final static String IMU_OP_TABLE_MARKER_ID = "MarkerId";
+	final static String IMU_OP_TABLE_JOINT_ID = "JointId";
+	final static String IMU_OP_TABLE_QUAT_W = "QuatW";
+	final static String IMU_OP_TABLE_QUAT_X = "QuatX";
+	final static String IMU_OP_TABLE_QUAT_Y = "QuatY";
+	final static String IMU_OP_TABLE_QUAT_Z = "QuatZ";
 
 	private static final Logger LOGGER = Logger.getLogger(Database.class
 			.getName());
@@ -195,12 +197,28 @@ public class Database {
 
 		createString = new StringBuilder("create table ")
 				.append(IMU_ORIENTATION_TABLE_NAME).append(" (")
-				.append(IMU_ORIENTATION_TABLE_MARKER_ID).append(" BIGINT, ")
-				.append(IMU_ORIENTATION_TABLE_JOINT_ID).append(" INT, ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_W).append(" DOUBLE, ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_X).append(" DOUBLE, ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Y).append(" DOUBLE, ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Z).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
+				.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
+				.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
+				.append("FOREIGN KEY(")
+				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
+				.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
+				.append(" (").append(IMU_MARKER_TABLE_ID)
+				.append(") ON DELETE CASCADE").append(");");
+		execute(createString.toString());
+		
+		// create initial position table
+		createString = new StringBuilder("create table ")
+				.append(IMU_POSITION_TABLE_NAME).append(" (")
+				.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
+				.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
+				.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
+				.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
 				.append("FOREIGN KEY(")
 				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
 				.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
@@ -645,28 +663,27 @@ public class Database {
 		}
 	}
 
-	private boolean updateInitialOrientation(Marker marker,
-			JointType jointType, Quaternion orientation) {
+	private boolean updateInitialQuaternion(String tablename, Marker marker,
+			JointType jointType, Quaternion quaternion) {
 
 		boolean ret = false;
 
-		StringBuilder update = new StringBuilder("update ")
-				.append(IMU_ORIENTATION_TABLE_NAME).append(" set ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_W).append("=? ,")
-				.append(IMU_ORIENTATION_TABLE_QUAT_X).append("=? ,")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Y).append("=? ,")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Z).append("=? ")
-				.append(" where ").append(IMU_ORIENTATION_TABLE_MARKER_ID)
-				.append("=? and ").append(IMU_ORIENTATION_TABLE_JOINT_ID)
-				.append("=?");
+		StringBuilder update = new StringBuilder("update ").append(tablename)
+				.append(" set ").append(IMU_OP_TABLE_QUAT_W)
+				.append("=? ,").append(IMU_OP_TABLE_QUAT_X)
+				.append("=? ,").append(IMU_OP_TABLE_QUAT_Y)
+				.append("=? ,").append(IMU_OP_TABLE_QUAT_Z)
+				.append("=? ").append(" where ")
+				.append(IMU_OP_TABLE_MARKER_ID).append("=? and ")
+				.append(IMU_OP_TABLE_JOINT_ID).append("=?");
 
 		PreparedStatement stmt = null;
 		try {
 			stmt = conn.prepareStatement(update.toString());
-			stmt.setDouble(1, orientation.getW());
-			stmt.setDouble(2, orientation.getX());
-			stmt.setDouble(3, orientation.getY());
-			stmt.setDouble(4, orientation.getZ());
+			stmt.setDouble(1, quaternion.getW());
+			stmt.setDouble(2, quaternion.getX());
+			stmt.setDouble(3, quaternion.getY());
+			stmt.setDouble(4, quaternion.getZ());
 			stmt.setLong(5, marker.getId());
 			stmt.setInt(6, jointType.ordinal());
 			ret = stmt.executeUpdate() > 0;
@@ -684,21 +701,33 @@ public class Database {
 		}
 		return ret;
 	}
+	
+	public void setInitialPosition(Marker marker, JointType jointType,
+			Quaternion orientation) {
+		setInitialQuaternion(IMU_POSITION_TABLE_NAME, marker, jointType,
+				orientation);
+	}
 
 	public void setInitialOrientation(Marker marker, JointType jointType,
 			Quaternion orientation) {
-		if (updateInitialOrientation(marker, jointType, orientation)) {
+		setInitialQuaternion(IMU_ORIENTATION_TABLE_NAME, marker, jointType,
+				orientation);
+	}
+
+	public void setInitialQuaternion(String tablename, Marker marker,
+			JointType jointType, Quaternion quaternion) {
+		if (updateInitialQuaternion(tablename, marker, jointType, quaternion)) {
 			return;
 		}
 
 		StringBuilder insert = new StringBuilder("insert into ")
-				.append(IMU_ORIENTATION_TABLE_NAME).append(" (")
-				.append(IMU_ORIENTATION_TABLE_MARKER_ID).append(",")
-				.append(IMU_ORIENTATION_TABLE_JOINT_ID).append(",")
-				.append(IMU_ORIENTATION_TABLE_QUAT_W).append(",")
-				.append(IMU_ORIENTATION_TABLE_QUAT_X).append(",")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Y).append(",")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Z).append(",")
+				.append(tablename).append(" (")
+				.append(IMU_OP_TABLE_MARKER_ID).append(",")
+				.append(IMU_OP_TABLE_JOINT_ID).append(",")
+				.append(IMU_OP_TABLE_QUAT_W).append(",")
+				.append(IMU_OP_TABLE_QUAT_X).append(",")
+				.append(IMU_OP_TABLE_QUAT_Y).append(",")
+				.append(IMU_OP_TABLE_QUAT_Z).append(",")
 				.append(") values (?,?,?,?,?,?)");
 
 		PreparedStatement stmt = null;
@@ -706,10 +735,10 @@ public class Database {
 			stmt = conn.prepareStatement(insert.toString());
 			stmt.setLong(1, marker.getId());
 			stmt.setInt(2, jointType.ordinal());
-			stmt.setDouble(3, orientation.getW());
-			stmt.setDouble(4, orientation.getX());
-			stmt.setDouble(5, orientation.getY());
-			stmt.setDouble(6, orientation.getZ());
+			stmt.setDouble(3, quaternion.getW());
+			stmt.setDouble(4, quaternion.getX());
+			stmt.setDouble(5, quaternion.getY());
+			stmt.setDouble(6, quaternion.getZ());
 			stmt.execute();
 			stmt.close();
 		} catch (SQLException ex) {
@@ -726,17 +755,28 @@ public class Database {
 	}
 
 	public Quaternion getInitialOrientation(Marker marker, JointType jointType) {
+		return getInitialQuaternion(IMU_ORIENTATION_TABLE_NAME, marker,
+				jointType);
+	}
+	
+	public Quaternion getInitialPosition(Marker marker, JointType jointType) {
+		return getInitialQuaternion(IMU_POSITION_TABLE_NAME, marker,
+				jointType);
+	}
+
+	public Quaternion getInitialQuaternion(String tablename, Marker marker,
+			JointType jointType) {
 
 		Quaternion ret = new Quaternion();
 
 		StringBuilder select = new StringBuilder("select ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_W).append(", ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_X).append(", ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Y).append(", ")
-				.append(IMU_ORIENTATION_TABLE_QUAT_Z).append(" from ")
-				.append(IMU_ORIENTATION_TABLE_NAME).append(" where ")
-				.append(IMU_ORIENTATION_TABLE_MARKER_ID).append("=? and ")
-				.append(IMU_ORIENTATION_TABLE_JOINT_ID).append("=?");
+				.append(IMU_OP_TABLE_QUAT_W).append(", ")
+				.append(IMU_OP_TABLE_QUAT_X).append(", ")
+				.append(IMU_OP_TABLE_QUAT_Y).append(", ")
+				.append(IMU_OP_TABLE_QUAT_Z).append(" from ")
+				.append(tablename).append(" where ")
+				.append(IMU_OP_TABLE_MARKER_ID).append("=? and ")
+				.append(IMU_OP_TABLE_JOINT_ID).append("=?");
 
 		PreparedStatement stmt = null;
 		try {

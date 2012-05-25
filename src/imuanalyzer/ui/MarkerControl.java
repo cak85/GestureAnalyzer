@@ -8,6 +8,8 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
+import imuanalyzer.signalprocessing.TouchAnalysis;
+import imuanalyzer.ui.MarkerAnalysesUi.ReturnCode;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -78,12 +80,12 @@ public class MarkerControl extends JPanel {
 		this.setLayout(new FlowLayout());
 
 		ImageIcon icon = new ImageIcon(getClass().getResource(
-				"/Icons/player_back.gif"));
+				"/Icons/sq_br_prev.png"));
 
 		JButton buttonBack = new JButton(icon);
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
-		buttonBack.setBorderPainted(false);
+	//	buttonBack.setBorderPainted(false);
 		buttonBack.setToolTipText("Select previous marker");
 		buttonBack.addActionListener(new ActionListener() {
 
@@ -95,22 +97,22 @@ public class MarkerControl extends JPanel {
 
 		this.add(buttonBack);
 
-		icon = new ImageIcon(getClass().getResource("/Icons/player_rec.gif"));
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec.png"));
 
 		buttonRec = new JButton(icon);
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
 		buttonRec.setToolTipText("Record movement");
-		buttonRec.setBorderPainted(false);
+		//buttonRec.setBorderPainted(false);
 
 		this.add(buttonRec);
 
-		icon = new ImageIcon(getClass().getResource("/Icons/player_stop.gif"));
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_stop.png"));
 
 		buttonStop = new JButton(icon);
 		buttonStop.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonStop.setContentAreaFilled(false);
-		buttonStop.setBorderPainted(false);
+		//buttonStop.setBorderPainted(false);
 		buttonStop.setEnabled(false);
 		buttonStop.setToolTipText("Stop recording");
 		buttonStop.addActionListener(new ActionListener() {
@@ -132,7 +134,7 @@ public class MarkerControl extends JPanel {
 				} else {
 					JOptionPane.showMessageDialog(myInstance,
 							"Please enter a valid marker name", "Information",
-							JOptionPane.OK_OPTION);
+							JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -140,12 +142,12 @@ public class MarkerControl extends JPanel {
 		this.add(buttonStop);
 
 		// forward button
-		icon = new ImageIcon(getClass().getResource("/Icons/player_for.gif"));
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
 
 		JButton buttonForward = new JButton(icon);
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonForward.setContentAreaFilled(false);
-		buttonForward.setBorderPainted(false);
+		//buttonForward.setBorderPainted(false);
 		buttonForward.setToolTipText("Select next marker");
 		buttonForward.addActionListener(new ActionListener() {
 
@@ -158,12 +160,12 @@ public class MarkerControl extends JPanel {
 		this.add(buttonForward);
 
 		// eject button
-		icon = new ImageIcon(getClass().getResource("/Icons/player_eject.gif"));
+		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
 
 		JButton buttonEject = new JButton(icon);
 		buttonEject.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonEject.setContentAreaFilled(false);
-		buttonEject.setBorderPainted(false);
+		//buttonEject.setBorderPainted(false);
 		buttonEject.setToolTipText("Open markers for analyzing");
 		buttonEject.addActionListener(new ActionListener() {
 			@Override
@@ -175,12 +177,12 @@ public class MarkerControl extends JPanel {
 		this.add(buttonEject);
 
 		// eject button
-		icon = new ImageIcon(getClass().getResource("/Icons/player_delete.gif"));
+		icon = new ImageIcon(getClass().getResource("/Icons/trash.png"));
 
 		JButton buttonDelete = new JButton(icon);
 		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonDelete.setContentAreaFilled(false);
-		buttonDelete.setBorderPainted(false);
+		//buttonDelete.setBorderPainted(false);
 		buttonDelete.setToolTipText("Delete current marker and dependent data");
 		buttonDelete.addActionListener(new ActionListener() {
 			@Override
@@ -192,13 +194,13 @@ public class MarkerControl extends JPanel {
 		this.add(buttonDelete);
 
 		// save button
-		icon = new ImageIcon(getClass().getResource("/Icons/Save.png"));
+		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
 
 		JButton buttonSave = new JButton(icon);
-		buttonSave.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		// buttonSave.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonSave.setContentAreaFilled(false);
-		buttonSave.setBorderPainted(false);
-		buttonSave.setToolTipText("Save current marker to csv");
+		// buttonSave.setBorderPainted(false);
+		buttonSave.setToolTipText("Save current marker's raw data to csv");
 		buttonSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -280,7 +282,7 @@ public class MarkerControl extends JPanel {
 					.showMessageDialog(
 							myInstance,
 							"You need to specify a analysis on actual model before performing analysis",
-							"Error", JOptionPane.OK_OPTION);
+							"Error", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
@@ -288,6 +290,11 @@ public class MarkerControl extends JPanel {
 		if (markers.size() > 0) {
 
 			MarkerAnalysesUi selector = new MarkerAnalysesUi(frame, markers);
+
+			if (selector.getReturnCode() == ReturnCode.CANCEL) {
+				updateMarkers();
+				return;
+			}
 
 			Analyses newAnalyses = new Analyses();
 
@@ -302,13 +309,19 @@ public class MarkerControl extends JPanel {
 							.add(m.getObservedJoint().getType());
 				}
 
+				ArrayList<JointType> currentSavedTouchJoints = new ArrayList<Hand.JointType>();
+
+				for (TouchAnalysis t : hand.getRunningTouchAnalysis()) {
+					currentSavedTouchJoints.add(t.getObservedJoint().getType());
+				}
+
 				newAnalyses.calculate(selector.getSelectedCalculationMode(),
 						selectedMarkers, sensor.getCurrentFilter(),
-						currentSavedMotionJoints);
+						currentSavedMotionJoints, currentSavedTouchJoints);
 				frame.getVisual3d().setAnalyses(newAnalyses);
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",
-						JOptionPane.OK_OPTION);
+						JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else {
 			JOptionPane.showMessageDialog(myInstance, "No markers available",
@@ -326,7 +339,7 @@ public class MarkerControl extends JPanel {
 
 	private void decreaseSelectedMarker() {
 		int index = markerComboBox.getSelectedIndex();
-		if (index > 1) {
+		if (index > 0) {
 			index--;
 		}
 		markerComboBox.setSelectedIndex(index);
@@ -365,6 +378,7 @@ public class MarkerControl extends JPanel {
 			Joint joint = entry.getValue();
 			// write to db
 			db.setInitialOrientation(marker, type, joint.getLocalOrientation());
+			db.setInitialPosition(marker, type, joint.getLocalPosition());
 		}
 	}
 }
