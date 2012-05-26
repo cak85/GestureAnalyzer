@@ -476,7 +476,7 @@ public class MainFrame extends JFrame {
 		c.weighty = 1; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 4;
+		c.gridy = 3;
 		c.gridheight=1;
 
 		mainPanel.add(toolBarPanel, c);

@@ -57,7 +57,7 @@ public class Utils {
 		matWireframe.getAdditionalRenderState().setFaceCullMode(
 				FaceCullMode.Off);
 		matWireframe.setColor("Color", color.clone());
-		matWireframe.getAdditionalRenderState().setWireframe(true);
+		//matWireframe.getAdditionalRenderState().setWireframe(true);
 		lineGeom.setMaterial(matWireframe);
 		return lineGeom;
 	}

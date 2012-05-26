@@ -4,11 +4,13 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.Helper;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
 import imuanalyzer.signalprocessing.TouchLine;
+import imuanalyzer.signalprocessing.TouchLineStatistics;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
@@ -19,6 +21,7 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -206,7 +209,12 @@ public class Visual3d extends SimpleApplication {
 		deviceDummy = new DeviceDummy(assetManager);
 		deviceDummy.setVisible(false);
 		visualHand.attachChild(deviceDummy);
-
+		
+		//debug
+//		ArrayList<TouchLineStatistics> stats = new ArrayList<TouchLineStatistics>();
+//		stats.add(new TouchLineStatistics(Helper.getExampleTouchlineEven()));
+//		touchLineStatistics.setStatistics(stats);
+		
 	}
 
 	/** Custom Keybinding: Map named actions to inputs. */
@@ -709,7 +717,14 @@ public class Visual3d extends SimpleApplication {
 
 	public void setAnalyses(Analyses analyses) {
 		this.analyses = analyses;
-		updateAnalysesData();
+		//threadsafe update
+		enqueue(new Callable<Object>(){
+	           public Object call() {
+	                        updateAnalysesData();
+	                        return null;
+	           }
+		});
+		
 	}
 
 	private void updateAnalysesData() {
