@@ -6,6 +6,7 @@ package imuanalyzer.ui;
 import static org.junit.Assert.*;
 
 import imuanalyzer.signalprocessing.Helper;
+import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.TouchLineStatistics;
 
 import java.util.ArrayList;
@@ -37,8 +38,8 @@ public class VisualTouchLineStatisticsTest {
 		AssetManager assetManager  = JmeSystem.newAssetManager(
                 Thread.currentThread().getContextClassLoader()
                 .getResource("com/jme3/asset/Desktop.cfg"));
-		VisualTouchLineStatistics vstat = new VisualTouchLineStatistics(assetManager);
-		ArrayList<TouchLineStatistics> stats = new ArrayList<TouchLineStatistics>();
+		Boxplot3d vstat = new Boxplot3d(assetManager);
+		ArrayList<IBoxplotData> stats = new ArrayList<IBoxplotData>();
 		stats.add(new TouchLineStatistics(Helper.getExampleTouchlineEven()));
 		stats.add(new TouchLineStatistics(Helper.getExampleTouchlineOdd()));
 		vstat.setStatistics(stats);

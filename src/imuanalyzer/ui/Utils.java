@@ -1,7 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.signalprocessing.TouchLine;
+import imuanalyzer.signalprocessing.VectorLine;
 
 import java.util.ArrayList;
 
@@ -139,12 +139,12 @@ public class Utils {
 	}
 	
 	public static void updateLinesTouch(Geometry line,
-			ArrayList<TouchLine> lines) {
+			ArrayList<VectorLine> lines) {
 
 		// calculate size
 		int size = 0;
 		int numberOfLines = 0;
-		for (TouchLine t :lines) {
+		for (VectorLine t :lines) {
 			int tmpSize = t.getLineBuffer().size();
 			if (tmpSize > 1) {
 				size += tmpSize;
@@ -152,17 +152,18 @@ public class Utils {
 			}
 		}
 
-		if (size < 2) {
-			return;
-		}
-
+		Vector3f[] vertices;
+		short[] indexes;
+		
+		if (size > 2) {
+			
 		// Vertex positions in space
-		Vector3f[] vertices = new Vector3f[size];
+		vertices = new Vector3f[size];
 
 		// Indexes. We define the order in which mesh should be constructed
 		int numIndexes = 2 * (size) - 2 * numberOfLines;
 
-		short[] indexes = new short[numIndexes];
+		indexes = new short[numIndexes];
 
 		ArrayList<Vector3f> tmpVertices = new ArrayList<Vector3f>();
 
@@ -182,6 +183,11 @@ public class Utils {
 			tmpVertices.addAll(p);
 		}
 		vertices = tmpVertices.toArray(vertices);	
+		
+		}else{
+			vertices = new Vector3f[0];
+			indexes = new short[0];
+		}
 
 		updateGeometryMesh(line, vertices, indexes);
 	}

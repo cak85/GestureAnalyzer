@@ -4,20 +4,20 @@ import java.util.ArrayList;
 
 import com.jme3.math.Vector3f;
 
-public class TouchLine implements Comparable<TouchLine> {
+public class VectorLine implements Comparable<VectorLine> {
 	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 
 	float length = 0;
 
-	public TouchLine() {
+	public VectorLine() {
 		this(new ArrayList<Vector3f>());
 	}
 
-	public TouchLine(ArrayList<Vector3f> lineBuffer) {
+	public VectorLine(ArrayList<Vector3f> lineBuffer) {
 		this(lineBuffer, 0);
 	}
 
-	public TouchLine(ArrayList<Vector3f> lineBuffer, float length) {
+	public VectorLine(ArrayList<Vector3f> lineBuffer, float length) {
 		this.lineBuffer = lineBuffer;
 		this.length = length;
 	}
@@ -51,7 +51,7 @@ public class TouchLine implements Comparable<TouchLine> {
 	}
 
 	@Override
-	public int compareTo(TouchLine o) {
+	public int compareTo(VectorLine o) {
 		if (this.length > o.length) {
 			return 1;
 		} else if (this.length < o.length) {

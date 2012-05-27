@@ -14,12 +14,14 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -30,6 +32,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
@@ -55,16 +58,17 @@ public class MainFrame extends JFrame {
 
 	private static void setLookAndFeel() {
 		try {
-//useful for removing Logo from jtattoo	if LICENSE KEY is available	
-//			Properties props = new Properties();
-//			props.put("logoString", "my company");
-//			props.put("licenseKey", "INSERT YOUR LICENSE KEY HERE");
-//			SmartLookAndFeel.setCurrentTheme(props);
-			UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
-//			UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
-			
-			//UIManager.setLookAndFeel("com.jgoodies.looks.plastic.PlasticXPLookAndFeel");
-			
+			// useful for removing Logo from jtattoo if LICENSE KEY is available
+			// Properties props = new Properties();
+			// props.put("logoString", "my company");
+			// props.put("licenseKey", "INSERT YOUR LICENSE KEY HERE");
+			// SmartLookAndFeel.setCurrentTheme(props);
+			UIManager
+					.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
+			// UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+
+			// UIManager.setLookAndFeel("com.jgoodies.looks.plastic.PlasticXPLookAndFeel");
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -84,7 +88,10 @@ public class MainFrame extends JFrame {
 
 	protected Hand hand;
 
+	private MainFrame instance;
+
 	public MainFrame() {
+		instance = this;
 
 		try {
 			sensors = OrientationSensorManagerFactory
@@ -99,8 +106,8 @@ public class MainFrame extends JFrame {
 		this.setTitle("IMUAnalyzer");
 		this.setSize(1024, 768);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		ImageIcon icon = new ImageIcon(getClass().getResource(
-		"/Icons/hand.png"));
+		ImageIcon icon = new ImageIcon(getClass()
+				.getResource("/Icons/hand.png"));
 		this.setIconImage(icon.getImage());
 
 		JTabbedPane jtp = new JTabbedPane();
@@ -143,7 +150,7 @@ public class MainFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				hand.disableMotionAnalysis();
-				visual3d.clearLiveMovement();				
+				visual3d.clearLiveMovement();
 			}
 		});
 		menu.add(menuItem);
@@ -190,7 +197,36 @@ public class MainFrame extends JFrame {
 				visual3d.resetHand();
 			}
 		});
-		
+
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Take screenshot");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fileChooser = new JFileChooser(".");
+				FileFilter filterCSV = new ExtensionFileFilter("PNG",
+						new String[] { "png" });
+				fileChooser.setFileFilter(filterCSV);
+				int status = fileChooser.showSaveDialog(instance);
+				if (status == JFileChooser.APPROVE_OPTION) {
+					File selectedFile = fileChooser.getSelectedFile();
+
+					if (!selectedFile.getAbsolutePath().endsWith(".png")) {
+						selectedFile = new File(selectedFile + ".png");
+					}
+
+					System.out.println(selectedFile.getAbsolutePath());
+					visual3d.takeScreenshot(selectedFile.getAbsolutePath());
+
+				} else if (status == JFileChooser.CANCEL_OPTION) {
+					System.out.println(JFileChooser.CANCEL_OPTION);
+				}
+
+			}
+		});
+
 		menu.add(menuItem);
 
 		menuBar.add(menu);
@@ -396,20 +432,6 @@ public class MainFrame extends JFrame {
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 0;
 
-		// JButton buttonCalibration = new JButton("Calibration");
-		// buttonCalibration.addActionListener(new ActionListener() {
-		//
-		// @Override
-		// public void actionPerformed(ActionEvent arg0) {
-		// for (int i = 0; i < sensors.getNumberOfSensors(); i++) {
-		// // sensors.setInitialOrientation(i, spatialView.getHand().)
-		// }
-		// sensors.calibrate();
-		// visual3d.adjustBoneJointMapping();
-		// }
-		// });
-		// toolBarPanel.add(buttonCalibration, c);
-
 		JLabel filterLabel = new JLabel("Filter:");
 
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -477,7 +499,7 @@ public class MainFrame extends JFrame {
 		c.gridx = 3; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 3;
-		c.gridheight=1;
+		c.gridheight = 1;
 
 		mainPanel.add(toolBarPanel, c);
 
@@ -491,7 +513,7 @@ public class MainFrame extends JFrame {
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 4;
-		c.gridheight=1;
+		c.gridheight = 1;
 
 		mainPanel.add(markerControl, c);
 

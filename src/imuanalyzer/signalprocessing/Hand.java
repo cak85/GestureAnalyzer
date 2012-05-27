@@ -113,13 +113,19 @@ public class Hand {
 
 		addAllElementsToMap(elemHR);
 
+		loadJointMappingFromMarker();
+	}
+	
+	/**
+	 * refresh current sensor mapping from marker
+	 */
+	public void loadJointMappingFromMarker(){
 		if (sensors != null) {
 			for (JointType j : JointType.values()) {
 				int id = db.getJointSensorMapping(currentMarker, j);
 				setSensorID(j, id);
 			}
 		}
-
 	}
 
 	public Set<Entry<JointType, Joint>> getJointSet() {
@@ -250,17 +256,6 @@ public class Hand {
 		runningMotionAnalysis.clear();
 	}
 
-//	// TODO remove
-//	public LinkedList<MovementStep> getMotionFlow() {
-//		LinkedList<MovementStep> storedMovementPositions = new LinkedList<MovementStep>();
-//
-//		for (MotionAnalysis m : getRunningMotionAnalysis()) {
-//			storedMovementPositions.addAll(m.getSavedMovementFlow());
-//		}
-//
-//		return storedMovementPositions;
-//	}
-
 	public int getNumberOfSavedMotionSteps() {
 		int size = 0;
 		for (MotionAnalysis m : getRunningMotionAnalysis()) {
@@ -305,16 +300,16 @@ public class Hand {
 		return runningTouchAnalysis;
 	}
 
-	public ArrayList<TouchLine> getMaxTouchLines() {
-		ArrayList<TouchLine> maxLines = new ArrayList<TouchLine>();
+	public ArrayList<VectorLine> getMaxTouchLines() {
+		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
 			maxLines.add(touch.getMaxLine());
 		}
 		return maxLines;
 	}
 
-	public ArrayList<TouchLine> getCurrentTouchLines() {
-		ArrayList<TouchLine> lines = new ArrayList<TouchLine>();
+	public ArrayList<VectorLine> getCurrentTouchLines() {
+		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
 			lines.add(touch.getCurrentLine());
 		}

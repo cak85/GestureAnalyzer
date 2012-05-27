@@ -1,6 +1,7 @@
 package imuanalyzer.ui;
 
-import imuanalyzer.signalprocessing.TouchLine;
+import imuanalyzer.signalprocessing.IBoxplotData;
+import imuanalyzer.signalprocessing.VectorLine;
 import imuanalyzer.signalprocessing.TouchLineStatistics;
 
 import java.util.ArrayList;
@@ -16,16 +17,16 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Cylinder;
 
-public class VisualTouchLineStatistics extends Node {
+public class Boxplot3d extends Node {
 
 	private static final Logger LOGGER = Logger
-			.getLogger(VisualTouchLineStatistics.class.getName());
+			.getLogger(Boxplot3d.class.getName());
 
 	private static final float SEGMENTHEIGTH = 0.05f;
 	private static final float SEGMENTRADIUS = 0.2f;
 	private static final float SEGMENTOFFSET = 0.05f;
 
-	ArrayList<TouchLineStatistics> statistics;
+	ArrayList<IBoxplotData> statistics;
 
 	Geometry line = null;
 
@@ -38,7 +39,7 @@ public class VisualTouchLineStatistics extends Node {
 
 	AssetManager assetManager;
 
-	public VisualTouchLineStatistics(AssetManager assetManager) {
+	public Boxplot3d(AssetManager assetManager) {
 		this.assetManager = assetManager;
 
 		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
@@ -77,18 +78,18 @@ public class VisualTouchLineStatistics extends Node {
 	}
 
 	private void updateData() {
-		ArrayList<TouchLine> lines = new ArrayList<TouchLine>();
+		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
 
 		for (int i = 0; i < statistics.size(); i++) {
-			TouchLineStatistics t = statistics.get(i);
-			TouchLine maxLine = t.getMaxObj();
+			IBoxplotData t = statistics.get(i);
+			VectorLine maxLine = (VectorLine) t.getMaxObj();
 			lines.add(maxLine);
 			LOGGER.debug("Maxline length " + maxLine.getLength());
 			
 			int cylinderIndex = 0;
 
 			ArrayList<Vector3f> maxlineBuffer = maxLine.getLineBuffer();
-			if (maxlineBuffer.size() > 5) { // arbitrary number ....TODO
+			if (maxlineBuffer.size() > 5) { // TODO arbitrary number ....
 
 				Vector3f pos = new Vector3f();
 				Vector3f direction = new Vector3f();
@@ -252,11 +253,11 @@ public class VisualTouchLineStatistics extends Node {
 		return idx;
 	}
 
-	public ArrayList<TouchLineStatistics> getStatistics() {
+	public ArrayList<IBoxplotData> getStatistics() {
 		return statistics;
 	}
 
-	public void setStatistics(ArrayList<TouchLineStatistics> statistics) {
+	public void setStatistics(ArrayList<IBoxplotData> statistics) {
 		this.statistics = statistics;
 		updateData();
 	}

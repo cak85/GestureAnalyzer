@@ -4,18 +4,15 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.signalprocessing.Helper;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
-import imuanalyzer.signalprocessing.TouchLine;
-import imuanalyzer.signalprocessing.TouchLineStatistics;
+import imuanalyzer.signalprocessing.VectorLine;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -29,7 +26,6 @@ import javax.swing.JPopupMenu;
 import org.apache.log4j.Logger;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
@@ -127,9 +123,9 @@ public class Visual3d extends SimpleApplication {
 	Geometry currentMotionLine = null;
 	Geometry maxMotionLine = null;
 
-	ScreenshotAppState screenState;
-	
-	VisualTouchLineStatistics touchLineStatistics;
+	Boxplot3d touchLineStatistics;
+
+	ScreenshotAppState state;
 
 	/**
 	 * Constructor, needs handmodel
@@ -166,9 +162,6 @@ public class Visual3d extends SimpleApplication {
 	@Override
 	public void simpleInitApp() {
 
-		screenState = new ScreenshotAppState();
-		this.stateManager.attach(screenState);
-
 		// background
 		viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
@@ -202,19 +195,23 @@ public class Visual3d extends SimpleApplication {
 
 		rootNode.attachChild(maxMotionLine);
 
-		touchLineStatistics = new VisualTouchLineStatistics(assetManager);
+		touchLineStatistics = new Boxplot3d(assetManager);
 
 		rootNode.attachChild(touchLineStatistics);
 
 		deviceDummy = new DeviceDummy(assetManager);
 		deviceDummy.setVisible(false);
 		visualHand.attachChild(deviceDummy);
-		
-		//debug
-//		ArrayList<TouchLineStatistics> stats = new ArrayList<TouchLineStatistics>();
-//		stats.add(new TouchLineStatistics(Helper.getExampleTouchlineEven()));
-//		touchLineStatistics.setStatistics(stats);
-		
+
+		state = new ScreenshotAppState();
+		this.stateManager.attach(state);
+
+		// debug TODO remove when not longer used
+		// ArrayList<TouchLineStatistics> stats = new
+		// ArrayList<TouchLineStatistics>();
+		// stats.add(new TouchLineStatistics(Helper.getExampleTouchlineEven()));
+		// touchLineStatistics.setStatistics(stats);
+
 	}
 
 	/** Custom Keybinding: Map named actions to inputs. */
@@ -582,9 +579,8 @@ public class Visual3d extends SimpleApplication {
 
 						hand3d.setOpacity(OPACITY_STEP, moveStep.getCount());
 
-						// TODO not effecient to calculate the set every time
 						EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
-								.get(i).getMove().getAll();
+								.get(i).getJointSet();
 
 						// update movement flow with joint from actual hand if
 						// not
@@ -608,7 +604,7 @@ public class Visual3d extends SimpleApplication {
 
 				// update line movement
 
-				ArrayList<TouchLine> motionLineBuffer = hand
+				ArrayList<VectorLine> motionLineBuffer = hand
 						.getCurrentTouchLines();
 				Utils.updateLinesTouch(currentMotionLine, motionLineBuffer);
 
@@ -668,15 +664,17 @@ public class Visual3d extends SimpleApplication {
 	private void attachCoordinateAxes(Vector3f pos) {
 		Arrow arrow = new Arrow(Vector3f.UNIT_X.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(arrow, ColorRGBA.Red).setLocalTranslation(pos);
+		putShape(arrow, ColorRGBA.Orange).setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Y.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(arrow, ColorRGBA.Green).setLocalTranslation(pos);
+		putShape(arrow, ColorRGBA.Cyan).setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Z.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(arrow, ColorRGBA.Blue).setLocalTranslation(pos);
+		// violett
+		putShape(arrow, new ColorRGBA(138 / 255f, 43 / 255f, 226 / 255f, 1))
+				.setLocalTranslation(pos);
 	}
 
 	private void attachGrid(Vector3f pos, int size, ColorRGBA color) {
@@ -717,14 +715,14 @@ public class Visual3d extends SimpleApplication {
 
 	public void setAnalyses(Analyses analyses) {
 		this.analyses = analyses;
-		//threadsafe update
-		enqueue(new Callable<Object>(){
-	           public Object call() {
-	                        updateAnalysesData();
-	                        return null;
-	           }
+		// threadsafe update
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				updateAnalysesData();
+				return null;
+			}
 		});
-		
+
 	}
 
 	private void updateAnalysesData() {
@@ -744,8 +742,9 @@ public class Visual3d extends SimpleApplication {
 				}
 				this.analysesMovementPositions = analysesMovementPositions;
 
-				touchLineStatistics.setStatistics(analyses.getTouchStatistics());
-				
+				touchLineStatistics
+						.setStatistics(analyses.getTouchStatistics());
+
 				touchLineStatistics.setCullHint(CullHint.Never);
 
 			} else {
@@ -754,7 +753,7 @@ public class Visual3d extends SimpleApplication {
 				}
 				analysesMovementPositions.clear();
 				analysesMovementSteps.clear();
-				
+
 				touchLineStatistics.setCullHint(CullHint.Always);
 			}
 		}
@@ -791,6 +790,10 @@ public class Visual3d extends SimpleApplication {
 
 	public void setDeviceVisible(boolean isVisible) {
 		deviceDummy.setVisible(isVisible);
+	}
+
+	public void takeScreenshot(String path) {
+		state.takeScreenShot(path);
 	}
 
 }

@@ -18,7 +18,7 @@ import com.jme3.math.Vector3f;
  */
 public class TouchLineStatisticsTest {
 	
-	ArrayList<TouchLine> touchlines;
+	ArrayList<VectorLine> touchlines;
 
 	/**
 	 * @throws java.lang.Exception

@@ -8,12 +8,17 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
+import imuanalyzer.signalprocessing.Playback;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.MarkerAnalysesUi.ReturnCode;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -64,12 +69,16 @@ public class MarkerControl extends JPanel {
 
 	ArrayList<Marker> markers;
 
+	Playback playback;
+
 	public MarkerControl(MainFrame frame, Visual3d visual3d,
 			IOrientationSensors _sensor, Hand hand) {
 		this.sensor = _sensor;
 		this.hand = hand;
 		this.frame = frame;
 		myInstance = this;
+
+		playback = new Playback(hand, sensor);
 
 		try {
 			db = Database.getInstance();
@@ -85,7 +94,7 @@ public class MarkerControl extends JPanel {
 		JButton buttonBack = new JButton(icon);
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
-	//	buttonBack.setBorderPainted(false);
+		// buttonBack.setBorderPainted(false);
 		buttonBack.setToolTipText("Select previous marker");
 		buttonBack.addActionListener(new ActionListener() {
 
@@ -103,26 +112,7 @@ public class MarkerControl extends JPanel {
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
 		buttonRec.setToolTipText("Record movement");
-		//buttonRec.setBorderPainted(false);
-
-		this.add(buttonRec);
-
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_stop.png"));
-
-		buttonStop = new JButton(icon);
-		buttonStop.setMargin(new java.awt.Insets(0, 0, 0, 0));
-		buttonStop.setContentAreaFilled(false);
-		//buttonStop.setBorderPainted(false);
-		buttonStop.setEnabled(false);
-		buttonStop.setToolTipText("Stop recording");
-		buttonStop.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				stopRecording();
-			}
-		});
-
+		// buttonRec.setBorderPainted(false);
 		buttonRec.addActionListener(new ActionListener() {
 
 			@Override
@@ -139,7 +129,41 @@ public class MarkerControl extends JPanel {
 			}
 		});
 
+		this.add(buttonRec);
+
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_stop.png"));
+
+		buttonStop = new JButton(icon);
+		buttonStop.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonStop.setContentAreaFilled(false);
+		// buttonStop.setBorderPainted(false);
+		buttonStop.setToolTipText("Stop recording or playback");
+		buttonStop.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				stopRecording();
+			}
+		});
+
 		this.add(buttonStop);
+
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_next.png"));
+
+		JButton buttonPlay = new JButton(icon);
+		buttonPlay.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonPlay.setContentAreaFilled(false);
+		// buttonBack.setBorderPainted(false);
+		buttonPlay.setToolTipText("Playback of current marker");
+		buttonPlay.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				playback.play(currentActiveMarker);
+			}
+		});
+
+		this.add(buttonPlay);
 
 		// forward button
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
@@ -147,7 +171,7 @@ public class MarkerControl extends JPanel {
 		JButton buttonForward = new JButton(icon);
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonForward.setContentAreaFilled(false);
-		//buttonForward.setBorderPainted(false);
+		// buttonForward.setBorderPainted(false);
 		buttonForward.setToolTipText("Select next marker");
 		buttonForward.addActionListener(new ActionListener() {
 
@@ -165,7 +189,7 @@ public class MarkerControl extends JPanel {
 		JButton buttonEject = new JButton(icon);
 		buttonEject.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonEject.setContentAreaFilled(false);
-		//buttonEject.setBorderPainted(false);
+		// buttonEject.setBorderPainted(false);
 		buttonEject.setToolTipText("Open markers for analyzing");
 		buttonEject.addActionListener(new ActionListener() {
 			@Override
@@ -182,7 +206,7 @@ public class MarkerControl extends JPanel {
 		JButton buttonDelete = new JButton(icon);
 		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonDelete.setContentAreaFilled(false);
-		//buttonDelete.setBorderPainted(false);
+		// buttonDelete.setBorderPainted(false);
 		buttonDelete.setToolTipText("Delete current marker and dependent data");
 		buttonDelete.addActionListener(new ActionListener() {
 			@Override
@@ -215,6 +239,14 @@ public class MarkerControl extends JPanel {
 		markerComboBox.setEditable(true);
 
 		updateMarkers();
+		markerComboBox.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				currentActiveMarker = markers.get(markerComboBox
+						.getSelectedIndex());
+			}
+		});
 
 		this.add(markerComboBox);
 
@@ -223,12 +255,14 @@ public class MarkerControl extends JPanel {
 	private void saveMarker() {
 		JFileChooser fileChooser = new JFileChooser(".");
 		FileFilter filterCSV = new ExtensionFileFilter("CSV",
-				new String[] { "CSV" });
+				new String[] { "csv" });
 		fileChooser.setFileFilter(filterCSV);
 		int status = fileChooser.showSaveDialog(frame);
 		if (status == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
-			// TODO ensure extension
+			if (!selectedFile.getAbsolutePath().endsWith(".csv")) {
+				selectedFile = new File(selectedFile + ".csv");
+			}
 
 			System.out.println(selectedFile.getAbsolutePath());
 			db.writeImuDataToCsv(getCurrentMarker(),
@@ -256,8 +290,6 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void startRecording(String markerName) {
-		buttonRec.setEnabled(false);
-		buttonStop.setEnabled(true);
 
 		currentActiveMarker = new Marker(markerName, "");
 		db.setMarker(currentActiveMarker);
@@ -269,10 +301,9 @@ public class MarkerControl extends JPanel {
 
 	private void stopRecording() {
 		currentActiveMarker.setEnd(new Date(new java.util.Date().getTime()));
-		buttonRec.setEnabled(true);
-		buttonStop.setEnabled(false);
 		sensor.setRecording(false);
 		db.setMarker(currentActiveMarker);
+		playback.stop();
 	}
 
 	private void startAnaylses() {
@@ -357,6 +388,11 @@ public class MarkerControl extends JPanel {
 			markerComboBox.addItem(markers.get(i).getName());
 		}
 		markerComboBox.setSelectedIndex(i - 1);
+
+		if (markers.size() > markerComboBox.getSelectedIndex()) {
+			currentActiveMarker = markers
+					.get(markerComboBox.getSelectedIndex());
+		}
 	}
 
 	private void storeJointMapping(Marker marker) {

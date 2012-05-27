@@ -20,7 +20,7 @@ public class TouchAnalysis {
 
 	Quaternion currentDirection = new Quaternion();
 
-	ArrayList<TouchLine> lines = new ArrayList<TouchLine>();
+	ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
 
 	float maxLengthTouch = 0;
 
@@ -30,19 +30,19 @@ public class TouchAnalysis {
 
 	private Object clearLock = new Object();
 	
-	TouchLine currentLine;
+	VectorLine currentLine;
 
 	public TouchAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
 		lastPos = observedJoint.getFingertipPosition();
-		currentLine = new TouchLine();
+		currentLine = new VectorLine();
 		lines.add(currentLine);
 	}
 
 	public void clear() {
 		synchronized (clearLock) {
-			currentLine = new TouchLine();
+			currentLine = new VectorLine();
 			lines.add(currentLine);
 			maxIdTouch = 0;
 			currentDirection.set(1, 0, 0, 0);
@@ -96,7 +96,7 @@ public class TouchAnalysis {
 
 					if (signChangeCounter > 1) {
 						// LOGGER.debug("Direction changed!");
-						currentLine = new TouchLine();
+						currentLine = new VectorLine();
 						lines.add(currentLine);
 					}
 					currentDirection = newDirection;
@@ -125,15 +125,15 @@ public class TouchAnalysis {
 		}
 	}
 
-	public ArrayList<TouchLine> getAllLines() {
+	public ArrayList<VectorLine> getAllLines() {
 		return lines;
 	}
 
-	public TouchLine getMaxLine() {
+	public VectorLine getMaxLine() {
 		return lines.get(maxIdTouch);
 	}
 
-	public TouchLine getCurrentLine() {
+	public VectorLine getCurrentLine() {
 
 		return currentLine;
 	}

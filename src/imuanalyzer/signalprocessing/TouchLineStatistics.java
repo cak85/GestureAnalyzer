@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TouchLineStatistics {
+public class TouchLineStatistics implements IBoxplotData {
 
 	private float median = 0;
 	private float max = 0;
@@ -12,11 +12,11 @@ public class TouchLineStatistics {
 	private float upperQuantile = 0;
 	private float lowerQuantile = 0;
 
-	ArrayList<TouchLine> lines;
+	ArrayList<VectorLine> lines;
 
-	public TouchLineStatistics(ArrayList<TouchLine> lines) {
+	public TouchLineStatistics(ArrayList<VectorLine> lines) {
 		this.lines = lines;
-		for(TouchLine l:lines){
+		for(VectorLine l:lines){
 			l.updateLength();
 		}
 		Collections.sort(lines);
@@ -47,7 +47,7 @@ public class TouchLineStatistics {
 		}
 	}
 
-	private float calcMedian(List<TouchLine> calcSet) {
+	private float calcMedian(List<VectorLine> calcSet) {
 		int pos = calcSet.size() / 2;
 
 		float median;
@@ -85,11 +85,11 @@ public class TouchLineStatistics {
 		return lowerQuantile;
 	}
 
-	public TouchLine getMaxObj() {
+	public VectorLine getMaxObj() {
 		return lines.get(lines.size() - 1);
 	}
 
-	public TouchLine getMinObj() {
+	public VectorLine getMinObj() {
 		return lines.get(0);
 	}
 

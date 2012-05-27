@@ -41,22 +41,27 @@ public class Analyses {
 	/**
 	 * all max line(s)
 	 */
-	ArrayList<TouchLine> touchResult;
+	ArrayList<VectorLine> touchResult;
 
 	/**
 	 * Max of maximums
 	 */
-	ArrayList<TouchLine> touchResultMax;
+	ArrayList<VectorLine> touchResultMax;
 
 	/**
 	 * average of maximums
 	 */
-	ArrayList<TouchLine> touchResultAvg;
+	ArrayList<VectorLine> touchResultAvg;
 
 	Collection<Marker> markers;
 	FilterTypes filterType;
 	ArrayList<JointType> saveMotionJoints;
 	ArrayList<JointType> saveTouchJoints;
+	
+	/**
+	 * touch analysis statistics Data
+	 */
+	ArrayList<IBoxplotData> touchStatistics ;
 
 	public Analyses() {
 		try {
@@ -292,20 +297,18 @@ public class Analyses {
 		}
 
 	}
-
-	ArrayList<TouchLineStatistics> touchStatistics ;
 	
 	private void calculateTouchSum() {
-		touchResult = new ArrayList<TouchLine>();
+		touchResult = new ArrayList<VectorLine>();
 		for (Hand h : hands) {
 			touchResult.addAll(h.getMaxTouchLines());
 		}
 
-		touchStatistics = new ArrayList<TouchLineStatistics>();
+		touchStatistics = new ArrayList<IBoxplotData>();
 
 		// maximum and maximum sum
 		for (int i = 0; i < saveTouchJoints.size(); i++) {
-			ArrayList<TouchLine> linesOfOneJointAnalysis = new ArrayList<TouchLine>();
+			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
 			for (Hand h : hands) {
 				TouchAnalysis touchAnalysis = h.getRunningTouchAnalysis()
 						.get(i);
@@ -398,11 +401,11 @@ public class Analyses {
 		return moveResult;
 	}
 
-	public ArrayList<TouchLine> getTouchResult() {
+	public ArrayList<VectorLine> getTouchResult() {
 		return touchResult;
 	}
 
-	public ArrayList<TouchLineStatistics> getTouchStatistics() {
+	public ArrayList<IBoxplotData> getTouchStatistics() {
 		return touchStatistics;
 	}
 
