@@ -508,111 +508,105 @@ public class Visual3d extends SimpleApplication {
 		chaseCam.setLookAtOffset(new Vector3f(0, 3, 0));
 	}
 
-	Object simpleUpdateLock = new Object();
-
 	@Override
 	public void simpleUpdate(float tpf) {
 
-		synchronized (simpleUpdateLock) {
+		try {
+			Set<Entry<JointType, Joint>> handset = hand.getJointSet();
 
-			try {
-				Set<Entry<JointType, Joint>> handset = hand.getJointSet();
+			// handle livemovement
+			// LinkedList<MovementStep> storedMovementPositions =
+			// hand.getMotionFlow();
 
-				// handle livemovement
-				// LinkedList<MovementStep> storedMovementPositions =
-				// hand.getMotionFlow();
+			// don't draw the last state because it is current one
+			int numberOfLiveSteps = hand.getNumberOfSavedMotionSteps();
 
-				// don't draw the last state because it is current one
-				int numberOfLiveSteps = hand.getNumberOfSavedMotionSteps();
-
-				// add additional hand geometries for movement if necessary
-				while (numberOfLiveSteps > liveMovementSteps.size()) {
-					VisualHand3d newHand = new VisualHand3d(assetManager,
-							HandOrientation.LEFT, false);
-					newHand.setOpacity(OPACITY_STEP, 1);
-					liveMovementSteps.add(newHand);
-					rootNode.attachChild(newHand);
-				}
-
-				// handle stored analyses movement
-				// don't draw the last state because it is current one
-				int numberOfStoredSteps = analysesMovementPositions.size() - 1;
-
-				// add additional hand geometries for movement if necessary
-				while (numberOfStoredSteps > analysesMovementSteps.size()) {
-					VisualHand3d newHand = new VisualHand3d(assetManager,
-							HandOrientation.LEFT, false);
-					newHand.setOpacity(OPACITY_STEP, 1);
-					analysesMovementSteps.add(newHand);
-					rootNode.attachChild(newHand);
-				}
-
-				// TODO buggy/wrong remove
-				// visualHand.move(Utils.getPosition(hand.getJoint(JointType.HR).getLastMove()));
-				for (Entry<JointType, Joint> entry : handset) {
-
-					// update actual hand << non transparent one
-					Joint currentJoint = entry.getValue();
-					JointType currentJointType = entry.getKey();
-					Quaternion currentJointOrientation = currentJoint
-							.getWorldOrientation();
-					visualHand.setBoneRotationAbs(currentJointType,
-							Utils.getJMEQuad(currentJointOrientation));
-
-					visualHand.setVisible(currentJointType,
-							currentJoint.isVisible());
-
-					// update live movement
-
-					updateLiveMovement(currentJoint, currentJointType,
-							currentJointOrientation);
-
-					// update stored analyses movement
-					for (int i = 0; i < numberOfStoredSteps; i++) {
-						VisualHand3d hand3d = analysesMovementSteps.get(i);
-
-						MovementStep moveStep = analysesMovementPositions
-								.get(i);
-
-						StoredJointState currentStep = moveStep.getMove();
-						currentStep.updateWorldOrientation();
-
-						hand3d.setOpacity(OPACITY_STEP, moveStep.getCount());
-
-						EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
-								.get(i).getJointSet();
-
-						// update movement flow with joint from actual hand if
-						// not
-						// available in movement.
-						if (storedSet.containsKey(currentJointType)) {
-
-							hand3d.setBoneRotationAbs(currentJointType, Utils
-									.getJMEQuad(storedSet.get(currentJointType)
-											.getWorldOrientation()));
-
-							hand3d.setVisible(currentJointType,
-									currentJoint.isVisible());
-						} else {
-							hand3d.setBoneRotationAbs(currentJointType,
-									Utils.getJMEQuad(currentJointOrientation));
-							hand3d.setVisible(currentJointType, false);
-						}
-					}
-
-				}
-
-				// update line movement
-
-				ArrayList<VectorLine> motionLineBuffer = hand
-						.getCurrentTouchLines();
-				Utils.updateLinesTouch(currentMotionLine, motionLineBuffer);
-
-				motionLineBuffer = hand.getMaxTouchLines();
-				Utils.updateLinesTouch(maxMotionLine, motionLineBuffer);
-			} catch (Exception e) {
-				e.printStackTrace();
+			// add additional hand geometries for movement if necessary
+			while (numberOfLiveSteps > liveMovementSteps.size()) {
+				VisualHand3d newHand = new VisualHand3d(assetManager,
+						HandOrientation.LEFT, false);
+				newHand.setOpacity(OPACITY_STEP, 1);
+				liveMovementSteps.add(newHand);
+				rootNode.attachChild(newHand);
 			}
+
+			// handle stored analyses movement
+			// don't draw the last state because it is current one
+			int numberOfStoredSteps = analysesMovementPositions.size() - 1;
+
+			// add additional hand geometries for movement if necessary
+			while (numberOfStoredSteps > analysesMovementSteps.size()) {
+				VisualHand3d newHand = new VisualHand3d(assetManager,
+						HandOrientation.LEFT, false);
+				newHand.setOpacity(OPACITY_STEP, 1);
+				analysesMovementSteps.add(newHand);
+				rootNode.attachChild(newHand);
+			}
+
+			// TODO buggy/wrong remove
+			// visualHand.move(Utils.getPosition(hand.getJoint(JointType.HR).getLastMove()));
+			for (Entry<JointType, Joint> entry : handset) {
+
+				// update actual hand << non transparent one
+				Joint currentJoint = entry.getValue();
+				JointType currentJointType = entry.getKey();
+				Quaternion currentJointOrientation = currentJoint
+						.getWorldOrientation();
+				visualHand.setBoneRotationAbs(currentJointType,
+						Utils.getJMEQuad(currentJointOrientation));
+
+				visualHand.setVisible(currentJointType,
+						currentJoint.isVisible());
+
+				// update live movement
+
+				updateLiveMovement(currentJoint, currentJointType,
+						currentJointOrientation);
+
+				// update stored analyses movement
+				for (int i = 0; i < numberOfStoredSteps; i++) {
+					VisualHand3d hand3d = analysesMovementSteps.get(i);
+
+					MovementStep moveStep = analysesMovementPositions.get(i);
+
+					StoredJointState currentStep = moveStep.getMove();
+					currentStep.updateWorldOrientation();
+
+					hand3d.setOpacity(OPACITY_STEP, moveStep.getCount());
+
+					EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
+							.get(i).getJointSet();
+
+					// update movement flow with joint from actual hand if
+					// not
+					// available in movement.
+					if (storedSet.containsKey(currentJointType)) {
+
+						hand3d.setBoneRotationAbs(currentJointType, Utils
+								.getJMEQuad(storedSet.get(currentJointType)
+										.getWorldOrientation()));
+
+						hand3d.setVisible(currentJointType,
+								currentJoint.isVisible());
+					} else {
+						hand3d.setBoneRotationAbs(currentJointType,
+								Utils.getJMEQuad(currentJointOrientation));
+						hand3d.setVisible(currentJointType, false);
+					}
+				}
+
+			}
+
+			// update line movement
+
+			ArrayList<VectorLine> motionLineBuffer = hand
+					.getCurrentTouchLines();
+			Utils.updateLinesTouch(currentMotionLine, motionLineBuffer);
+
+			motionLineBuffer = hand.getMaxTouchLines();
+			Utils.updateLinesTouch(maxMotionLine, motionLineBuffer);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -722,11 +716,9 @@ public class Visual3d extends SimpleApplication {
 				return null;
 			}
 		});
-
 	}
 
 	private void updateAnalysesData() {
-		synchronized (simpleUpdateLock) {
 			if (analyses != null) {
 				LinkedList<MovementStep> analysesMovementPositions = analyses
 						.getMoveResult();
@@ -756,7 +748,6 @@ public class Visual3d extends SimpleApplication {
 
 				touchLineStatistics.setCullHint(CullHint.Always);
 			}
-		}
 	}
 
 	public VisualHand3d getVisualHand() {
@@ -768,12 +759,16 @@ public class Visual3d extends SimpleApplication {
 	}
 
 	public void clearLiveMovement() {
-		synchronized (simpleUpdateLock) {
-			for (VisualHand3d hand3d : liveMovementSteps) {
-				hand3d.removeFromParent();
+		// threadsafe update
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				for (VisualHand3d hand3d : liveMovementSteps) {
+					hand3d.removeFromParent();
+				}
+				liveMovementSteps.clear();
+				return null;
 			}
-			liveMovementSteps.clear();
-		}
+		});
 	}
 
 	public void setShowFPS(boolean isShown) {

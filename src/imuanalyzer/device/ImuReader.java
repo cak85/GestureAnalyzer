@@ -162,7 +162,7 @@ public class ImuReader implements SerialPortEventListener {
 										.get(tokenIndex + 8));
 
 							} catch (NumberFormatException e) {
-								e.printStackTrace();
+								LOGGER.error(e);
 								break; // skip current data line
 							}
 						}
@@ -195,27 +195,6 @@ public class ImuReader implements SerialPortEventListener {
 			LOGGER.error(e);
 		}
 	}
-
-	// public SensorVector getAccelerometer(int i) throws Exception {
-	// if (i >= numberOfIMUs || i < 0) {
-	// throw new Exception("Invalid IMU index");
-	// }
-	// return accelerometer[i];
-	// }
-	//
-	// public SensorVector getMagnetometer(int i) throws Exception {
-	// if (i >= numberOfIMUs || i < 0) {
-	// throw new Exception("Invalid IMU index");
-	// }
-	// return magnetometer[i];
-	// }
-	//
-	// public SensorVector getGyroskope(int i) throws Exception {
-	// if (i >= numberOfIMUs || i < 0) {
-	// throw new Exception("Invalid IMU index");
-	// }
-	// return gyroskope[i];
-	// }
 
 	public int getNumberOfIMUs() {
 		return numberOfIMUs;

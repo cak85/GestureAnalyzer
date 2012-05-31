@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
@@ -57,6 +58,10 @@ public class MainFrame extends JFrame {
 	}
 
 	private static void setLookAndFeel() {
+		
+		//reduce JME outputs
+		java.util.logging.Logger.getLogger("").setLevel(Level.WARNING);
+		
 		try {
 			// useful for removing Logo from jtattoo if LICENSE KEY is available
 			// Properties props = new Properties();

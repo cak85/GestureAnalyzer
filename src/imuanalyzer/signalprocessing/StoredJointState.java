@@ -4,6 +4,7 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 
 import org.apache.log4j.Logger;
@@ -13,7 +14,7 @@ import org.apache.log4j.Logger;
  * locks, sensors, update-routines....
  * 
  */
-public class StoredJointState implements IJoint {
+public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(StoredJointState.class.getName());
@@ -89,8 +90,7 @@ public class StoredJointState implements IJoint {
 
 			StoredJointState obj_j = (StoredJointState) obj;
 
-			if (this.hasAngelurDifferenceGreaterThan(obj_j,
-					MAX_ANGLE_DIFFERENCE)) {
+			if (this.hasAngelDifferenceGreaterThan(obj_j, MAX_ANGLE_DIFFERENCE)) {
 				return false;
 			} else {
 				return true;
@@ -108,7 +108,10 @@ public class StoredJointState implements IJoint {
 	}
 
 	public double[] getMaxAngle() {
-		double[] angles = getWorldOrientation().getAnglesRadFromQuaternion();
+		double[] angles = getLocalOrientation().getAnglesRadFromQuaternion();
+		angles[0] = Math.abs(angles[0]);
+		angles[1] = Math.abs(angles[1]);
+		angles[2] = Math.abs(angles[2]);
 
 		if (children.size() == 0) {
 			return angles;
@@ -116,15 +119,19 @@ public class StoredJointState implements IJoint {
 			double angleSum = 0;
 			double[] childMaxAngles = { 0, 0, 0 };
 
+			double childAngleSum = 0;
 			for (int i = 0; i < children.size(); i++) {
 				double[] childAngle = children.get(i).getMaxAngle();
-				double childAngleSum = Math.abs(childAngle[0])
+				childAngleSum = Math.abs(childAngle[0])
 						+ Math.abs(childAngle[1]) + Math.abs(childAngle[2]);
 				if (childAngleSum > angleSum) {
 					angleSum = childAngleSum;
 					childMaxAngles = childAngle;
 				}
 			}
+
+			LOGGER.debug("ChildAngleSum - " + type + ": " + childAngleSum
+					+ " - " + childAngleSum * 180 / Math.PI);
 
 			angles[0] += Math.abs(childMaxAngles[0]);
 			angles[1] += Math.abs(childMaxAngles[1]);
@@ -134,7 +141,7 @@ public class StoredJointState implements IJoint {
 		}
 	}
 
-	public boolean hasAngelurDifferenceGreaterThan(StoredJointState other,
+	public boolean hasAngelDifferenceGreaterThan(StoredJointState other,
 			double angleRad) {
 		// check if same structure = compareable
 		if (type != other.getType()) {
@@ -147,8 +154,8 @@ public class StoredJointState implements IJoint {
 
 			double[] angles = diff.getAnglesRadFromQuaternion();
 
-//			LOGGER.debug("Diff: " + angles[0] + " " + angles[1] + " "
-//					+ angles[2]);
+			// LOGGER.debug("Diff: " + angles[0] + " " + angles[1] + " "
+			// + angles[2]);
 
 			if (Math.abs(angles[0]) > angleRad
 					|| Math.abs(angles[1]) > angleRad
@@ -157,7 +164,7 @@ public class StoredJointState implements IJoint {
 			} else { // check children
 				if (children.size() != 0) {
 					for (int i = 0; i < children.size(); i++) {
-						if (children.get(i).hasAngelurDifferenceGreaterThan(
+						if (children.get(i).hasAngelDifferenceGreaterThan(
 								other.children.get(i), angleRad)) {
 							return true;
 						}
@@ -243,5 +250,34 @@ public class StoredJointState implements IJoint {
 			}
 			return res;
 		}
+	}
+
+	@Override
+	public int compareTo(StoredJointState other) {
+
+		double[] anglesMe = this.getLocalOrientation()
+				.getAnglesRadFromQuaternion();
+
+		double[] anglesOther = other.getLocalOrientation()
+				.getAnglesRadFromQuaternion();
+
+		//we compare just x axis angles!!!
+		//otherwise it would be possibel to compare the sums of all angles
+		if (anglesMe[0] > anglesOther[0]) {
+			return 1;
+		} else if (anglesMe[0] < anglesOther[0]) {
+			return -1;
+		} else {
+			if (children.size() != 0) {				
+				for (int i = 0; i < children.size(); i++) {
+					int comp = children.get(i).compareTo(other.children.get(i));
+					if (comp != 0) {
+						return comp;
+					}
+				}
+			}
+		}
+
+		return 0;
 	}
 }

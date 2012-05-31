@@ -430,13 +430,21 @@ public abstract class Filter {
 			listener.updateMove(move);
 		}
 	}
+	
+	LowPass accelLowPass = new LowPass(0.5f);
 
 	private Quaternion calculateDynAcceleration(double a_x, double a_y,
 			double a_z, Quaternion currentOrientation) {
+		
+		//first low pass
+		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
+		
+		accelRaw= accelLowPass.filter(accelRaw);
 
-		a_x_avg.add(a_x);
-		a_y_avg.add(a_y);
-		a_z_avg.add(a_z);
+		//running average
+		a_x_avg.add(accelRaw.getX());
+		a_y_avg.add(accelRaw.getY());
+		a_z_avg.add(accelRaw.getZ());
 
 		double current_avg_x = a_x_avg.getAvg();
 		double current_avg_y = a_y_avg.getAvg();
@@ -447,8 +455,7 @@ public abstract class Filter {
 		double current_avg_z_diff = current_avg_z - a_z;
 
 		// System.out.println("AVG Diff x:"+current_avg_x_diff+" y:"+current_avg_y_diff+" z:"+current_avg_z_diff);
-
-		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
+		
 		// if the difference of current acceleration and the running average of
 		// a period is mininmal
 		// we assume current acceleration is gravity
