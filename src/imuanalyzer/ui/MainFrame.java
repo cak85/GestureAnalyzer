@@ -9,9 +9,11 @@ import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,7 +30,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -54,10 +61,10 @@ public class MainFrame extends JFrame {
 	}
 
 	private static void setLookAndFeel() {
-		
-		//reduce JME outputs
+
+		// reduce JME outputs
 		java.util.logging.Logger.getLogger("").setLevel(Level.WARNING);
-		
+
 		try {
 			// useful for removing Logo from jtattoo if LICENSE KEY is available
 			// Properties props = new Properties();
@@ -90,6 +97,8 @@ public class MainFrame extends JFrame {
 	protected Hand hand;
 
 	private MainFrame instance;
+
+	protected JSlider comfortSlider;
 
 	public MainFrame() {
 		instance = this;
@@ -348,7 +357,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menu.add(checkMenuItem);
-		
+
 		checkMenuItem = new JCheckBoxMenuItem("Show grid");
 		checkMenuItem.setSelected(true);
 		checkMenuItem.addChangeListener(new ChangeListener() {
@@ -361,7 +370,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menu.add(checkMenuItem);
-		
+
 		checkMenuItem = new JCheckBoxMenuItem("Show coordinate axis");
 		checkMenuItem.setSelected(true);
 		checkMenuItem.addChangeListener(new ChangeListener() {
@@ -449,8 +458,10 @@ public class MainFrame extends JFrame {
 
 	protected void createToolbar() {
 
-		JPanel toolBarPanel = new JPanel(new GridBagLayout());
+		GridBagLayout layout = new GridBagLayout();
+		JPanel toolBarPanel = new JPanel(layout);
 
+		//comfort slider 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
@@ -458,15 +469,90 @@ public class MainFrame extends JFrame {
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 0;
+		c.gridheight = 1;
+		c.insets = new Insets(60,10,0,0);
 
-		JLabel filterLabel = new JLabel("Filter:");
+		toolBarPanel.add(new JLabel("Comfort:"), c);
 
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.VERTICAL;
+		c.ipady = 0; // reset to default
+		c.weighty = 2; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridwidth = 1; // 1 columns wide
+		c.gridy = 1;
+		c.gridheight = 2;
+		c.insets = new Insets(0,10,0,0);
+
+		comfortSlider = new JSlider(SwingConstants.VERTICAL, -5, 5, 0);
+		comfortSlider.setMajorTickSpacing(5);
+		comfortSlider.setMinorTickSpacing(1);
+		comfortSlider.setPaintTicks(true);
+		comfortSlider.setPaintLabels(true);
+		comfortSlider.setSnapToTicks(true);
+		
+		toolBarPanel.add(comfortSlider, c);
+		
+		//slider min/max configuration
+		JPanel sliderConfigPanel = new JPanel();
+		sliderConfigPanel.setLayout(new FlowLayout());
+		
+		sliderConfigPanel.add(new JLabel("Min"));
+		
+		SpinnerModel minSpinnerModel = new SpinnerNumberModel(-5, -100,
+				100, 1);
+		JSpinner minSpinner = new JSpinner(minSpinnerModel);
+		minSpinner.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSpinner s = (JSpinner) e.getSource();
+				comfortSlider.setMinimum(((Integer) s.getValue()) );
+			}
+		});
+
+		sliderConfigPanel.add(minSpinner);
+		
+		sliderConfigPanel.add(new JLabel("Max"));
+		
+		SpinnerModel maxSpinnerModel = new SpinnerNumberModel(5, -100,
+				100, 1);
+		JSpinner maxSpinner = new JSpinner(maxSpinnerModel);
+		maxSpinner.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSpinner s = (JSpinner) e.getSource();
+				comfortSlider.setMaximum(((Integer) s.getValue()) );
+			}
+		});
+
+		sliderConfigPanel.add(maxSpinner);		
+		
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.VERTICAL;
+		c.ipady = 0; // reset to default
+		c.weighty = 2; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridwidth = 1; // 1 columns wide
+		c.gridy = 3;
+		c.gridheight = 1;
+		c.insets = new Insets(0,10,0,0);
+		toolBarPanel.add(sliderConfigPanel,c);
+
+		//Filter selection
+		
+		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 2; // third row
+		c.gridy = 4;
+		c.gridheight = 1;
+		c.insets = new Insets(20,10,0,0);
+
+		JLabel filterLabel = new JLabel("Filter:");
 
 		toolBarPanel.add(filterLabel, c);
 
@@ -493,9 +579,12 @@ public class MainFrame extends JFrame {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 3; // third row
+		c.gridy = 5;
+		c.insets = new Insets(0,10,0,0);
 
 		toolBarPanel.add(filterTypes, c);
+		
+		//Connection
 
 		JLabel connectionLabel = new JLabel("Connection:");
 
@@ -504,7 +593,8 @@ public class MainFrame extends JFrame {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 5;
+		c.gridy = 6;
+		c.insets = new Insets(20,10,0,0);
 
 		toolBarPanel.add(connectionLabel, c);
 
@@ -513,7 +603,8 @@ public class MainFrame extends JFrame {
 		c.weightx = 1; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
-		c.gridy = 6;
+		c.gridy = 7;
+		c.insets = new Insets(0,10,0,0);
 
 		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
 
@@ -523,13 +614,14 @@ public class MainFrame extends JFrame {
 		c.fill = GridBagConstraints.CENTER;
 		c.ipady = 0; // reset to default
 		c.weighty = 1; // request any extra vertical space
-		c.gridx = 3; // aligned with button 2
+		c.gridx = 4; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 3;
-		c.gridheight = 1;
+		c.gridy = 1;
+		c.gridheight = 2;
 
 		mainPanel.add(toolBarPanel, c);
 
+		// marker panel
 		MarkerControl markerControl = new MarkerControl(this, visual3d,
 				sensors, hand);
 
@@ -539,8 +631,9 @@ public class MainFrame extends JFrame {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 4;
+		c.gridy = 6;
 		c.gridheight = 1;
+		c.insets = new Insets(0,40,0,0);
 
 		mainPanel.add(markerControl, c);
 
