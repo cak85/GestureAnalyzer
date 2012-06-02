@@ -1,19 +1,17 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.data.Database;
+import imuanalyzer.data.Marker;
+import imuanalyzer.device.ImuRawData;
+import imuanalyzer.signalprocessing.Hand.JointType;
+
 import java.lang.Thread.State;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
-
-import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
-import imuanalyzer.device.ImuRawData;
-import imuanalyzer.signalprocessing.Hand.JointType;
 
 public class Playback {
 

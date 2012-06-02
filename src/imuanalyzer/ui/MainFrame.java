@@ -16,7 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
@@ -36,9 +35,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
-
-import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-import com.jtattoo.plaf.smart.SmartLookAndFeel;
 
 public class MainFrame extends JFrame {
 
@@ -341,7 +337,7 @@ public class MainFrame extends JFrame {
 		});
 		menu.add(checkMenuItem);
 
-		checkMenuItem = new JCheckBoxMenuItem("Show Statistics");
+		checkMenuItem = new JCheckBoxMenuItem("Show statistics");
 		checkMenuItem.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -349,6 +345,32 @@ public class MainFrame extends JFrame {
 				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
 						.getSource();
 				visual3d.setShowStatistics(checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
+		
+		checkMenuItem = new JCheckBoxMenuItem("Show grid");
+		checkMenuItem.setSelected(true);
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.setGridVisibility(checkMenuItem.isSelected());
+			}
+		});
+		menu.add(checkMenuItem);
+		
+		checkMenuItem = new JCheckBoxMenuItem("Show coordinate axis");
+		checkMenuItem.setSelected(true);
+		checkMenuItem.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBoxMenuItem checkMenuItem = (JCheckBoxMenuItem) arg0
+						.getSource();
+				visual3d.setCoordinateAxisVisibile(checkMenuItem.isSelected());
 			}
 		});
 		menu.add(checkMenuItem);

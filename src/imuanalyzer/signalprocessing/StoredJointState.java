@@ -4,7 +4,6 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumMap;
 
 import org.apache.log4j.Logger;
@@ -18,10 +17,19 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(StoredJointState.class.getName());
+	
+	private static final double MAX_ANGLE_DIFFERENCE = 8 * (Math.PI / 180);
+	
+	private static final Quaternion FINGER_TOP_OFFSET = new Quaternion(0, 0,
+			1.9, 0);
 
 	protected JointType type;
 
 	protected Quaternion localOrientation;
+	
+	protected Quaternion localPosition = new Quaternion();
+	
+	protected Quaternion worldPosition = new Quaternion();
 
 	protected ArrayList<StoredJointState> children = new ArrayList<StoredJointState>();
 
@@ -36,8 +44,10 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 	public StoredJointState(Joint joint, IJoint parent, boolean addChildren) {
 		this.parent = parent;
 		localOrientation = new Quaternion(joint.getLocalOrientation());
+		localPosition = new Quaternion(joint.getLocalPosition());
 		this.type = joint.getType();
 		worldOrientation = joint.getWorldOrientation();
+		worldPosition = getWorldPosition();
 		if (addChildren) {
 			for (Joint j : joint.children) {
 				addChild(new StoredJointState(j, this, true));
@@ -72,13 +82,37 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 		} else {
 			worldOrientation = localOrientation;
 		}
+		
+		worldPosition = getWorldPosition();
+		
 		for (StoredJointState j : children) {
 			j.updateWorldOrientation();
 		}
 	}
+	
+	public Quaternion getLocalPosition(){
+		return localPosition;
+	}
 
-	private static final double MAX_ANGLE_DIFFERENCE = 8 * (Math.PI / 180);
+	public Quaternion getWorldPosition() {
+		if (parent != null) {
+			Quaternion rotation = parent.getWorldOrientation();
+			return parent.getWorldPosition().plus(
+					rotation.quaternionProduct(localPosition)
+							.quaternionProduct(rotation.getConjugate()));
+		} else {
+			return localPosition;
+		}
+	}
 
+	public Quaternion getFingerTopPosition() {
+		Quaternion bonePos = getWorldPosition();
+		Quaternion rotation = getWorldOrientation();
+
+		return bonePos.plus(rotation.quaternionProduct(FINGER_TOP_OFFSET)
+				.quaternionProduct(rotation.getConjugate()));
+
+	}
 	/**
 	 * this is an almost equal implementation
 	 */
@@ -95,15 +129,6 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 			} else {
 				return true;
 			}
-			// Quaternion difference = getDifferenceAbs(obj_j);
-			//
-			// double dotProduct = Quaternion.EMPTY.dotProdcut(difference);
-			//
-			// if (dotProduct > 0.998) {
-			// return true;
-			// } else {
-			// return false;
-			// }
 		}
 	}
 
@@ -235,6 +260,19 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 	public void setParent(IJoint parent) {
 		this.parent = parent;
 		updateWorldOrientation();
+	}
+	
+	/**
+	 * This function return latest child in child subtree
+	 * with just one child per parent!!
+	 * @return
+	 */
+	public StoredJointState getLatestChild(){
+		if(children.size()>0){
+			return children.get(0);
+		}else{
+			return this;
+		}
 	}
 
 	public StoredJointState get(JointType type) {

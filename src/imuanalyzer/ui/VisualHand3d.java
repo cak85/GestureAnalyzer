@@ -48,11 +48,14 @@ public class VisualHand3d extends Node {
 
 	EnumMap<JointType, Bone> bones = new EnumMap<JointType, Bone>(
 			JointType.class);
+	
+	EnumMap<JointType, ArrayList<Geometry>> geometries =   new EnumMap<JointType, ArrayList<Geometry>>(
+			JointType.class);
+	
+	ArrayList<Geometry> geomtryList = new ArrayList<Geometry>();
 
 	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
 			JointType.class);
-
-	ArrayList<Geometry> subgeometries = new ArrayList<Geometry>();
 
 	public VisualHand3d(AssetManager assetManager) {
 		this(assetManager, HandOrientation.RIGHT, false);
@@ -76,6 +79,10 @@ public class VisualHand3d extends Node {
 		}
 
 		this.attachChild(model);
+		
+		for(JointType t: JointType.values()){
+			geometries.put(t,new ArrayList<Geometry>());
+		}
 
 		Future<?> geometryFuture = executor.submit(new Runnable() {
 
@@ -104,7 +111,7 @@ public class VisualHand3d extends Node {
 			skeletonDebug = new SkeletonDebugger("Armature", skeleton);
 			Material mat2 = new Material(assetManager,
 					"Common/MatDefs/Misc/Unshaded.j3md");
-			mat2.setColor("m_Color", ColorRGBA.Green);
+			mat2.setColor("m_Color", ColorRGBA.Green.clone());
 			mat2.getAdditionalRenderState().setDepthTest(false);
 			skeletonDebug.setMaterial(mat2);
 			model.attachChild(skeletonDebug);
@@ -157,7 +164,9 @@ public class VisualHand3d extends Node {
 			if (s instanceof Node) {
 				findGeometries((Node) s);
 			} else if (s instanceof Geometry) {
-				subgeometries.add((Geometry) s);
+				Geometry geom = (Geometry) s;
+				geometries.get(Utils.getJointTypeFromGeometry(geom)).add(geom);
+				geomtryList.add(geom);
 			}
 		}
 	}
@@ -255,6 +264,31 @@ public class VisualHand3d extends Node {
 		setOpacity(ColorRGBA.White,opaStep,count);
 	}
 
+	public void setOpacity(JointType type, ColorRGBA color, float opaStep, int count) {
+
+		ColorRGBA colorAmbient = color.clone();
+
+		ColorRGBA colorDiffuse = colorAmbient.clone();
+
+		colorDiffuse.a = opaStep * count;
+
+		if (colorDiffuse.a > 0.9f) {
+			colorDiffuse.a = 0.9f;
+		}
+
+		for (Geometry geo : geometries.get(type)) {
+			Material mat = geo.getMaterial();
+			mat.setColor("Diffuse", colorDiffuse);
+			mat.setColor("Ambient", colorAmbient);
+			mat.setBoolean("UseMaterialColors", true);
+			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+			mat.setFloat("Shininess", 0.5f);
+			geo.setMaterial(mat);
+			geo.setQueueBucket(Bucket.Transparent);
+
+		}
+	}
+	
 	public void setOpacity(ColorRGBA color, float opaStep, int count) {
 
 		ColorRGBA colorAmbient = color.clone();
@@ -267,10 +301,7 @@ public class VisualHand3d extends Node {
 			colorDiffuse.a = 0.9f;
 		}
 
-		// LOGGER.debug("Count " + count + " Div " + div + " Opacity "
-		// +colorDiffuse.a);
-
-		for (Geometry geo : subgeometries) {
+		for (Geometry geo : geomtryList) {
 			Material mat = geo.getMaterial();
 			mat.setColor("Diffuse", colorDiffuse);
 			mat.setColor("Ambient", colorAmbient);
@@ -284,7 +315,7 @@ public class VisualHand3d extends Node {
 	}
 
 	public void setVisible(JointType type, boolean visible) {
-		for (Geometry geo : subgeometries) {
+		for (Geometry geo : geometries.get(type)) {
 			if (geo.getName().contains(type.toString())) {
 				Utils.setVisible(geo, visible);
 			}
@@ -302,7 +333,7 @@ public class VisualHand3d extends Node {
 	}
 
 	public void updateCollisionData() {
-		for (Geometry geo : subgeometries) {
+		for (Geometry geo : geomtryList) {
 			geo.getMesh().createCollisionData();
 			geo.updateModelBound();
 		}

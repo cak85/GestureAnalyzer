@@ -35,8 +35,6 @@ public class Joint implements IFilterListener, IJoint {
 
 	protected Hand hand;
 
-	protected boolean visible = true;
-
 	Quaternion lastActiveChange = new Quaternion();
 	
 	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
@@ -78,13 +76,9 @@ public class Joint implements IFilterListener, IJoint {
 		if (parent != null) { // adjust measured orientation with known
 								// restrictions
 
-			// measuredOrientation.print(3);
-
 			// substract change of parent/reference for getting the local frame
 			measuredOrientation = measuredOrientation.quaternionProduct(parent
 					.getLastActiveChange());
-
-			// measuredOrientation.print(3);
 
 			this.localOrientation = updateWithRestrictions(measuredOrientation);
 
@@ -320,14 +314,6 @@ public class Joint implements IFilterListener, IJoint {
 	@Override
 	public void setParent(IJoint parent) {
 		throw new NotImplementedException();
-	}
-
-	public boolean isVisible() {
-		return visible;
-	}
-
-	public void setVisible(boolean visible) {
-		this.visible = visible;
 	}
 
 	/**

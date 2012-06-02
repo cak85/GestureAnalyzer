@@ -13,5 +13,7 @@ public interface IJoint {
 	public IJoint getParent();
 
 	public void setParent(IJoint parent);
+
+	public Quaternion getWorldPosition();
 	
 }

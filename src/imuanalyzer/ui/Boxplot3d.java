@@ -2,7 +2,7 @@ package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.VectorLine;
-import imuanalyzer.signalprocessing.TouchLineStatistics;
+import imuanalyzer.signalprocessing.VectorLineStatistics;
 
 import java.util.ArrayList;
 
@@ -150,7 +150,7 @@ public class Boxplot3d extends Node {
 
 		}
 
-		Utils.updateLinesTouch(line, lines);
+		Utils.updateLinesVec(line, lines,mainColor);
 	}
 	
 	private void addCylinderBetweenTwoPoits(int cylinderIndex,Vector3f pos1, Vector3f pos2){

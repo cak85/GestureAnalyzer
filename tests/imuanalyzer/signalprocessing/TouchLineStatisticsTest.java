@@ -3,14 +3,12 @@
  */
 package imuanalyzer.signalprocessing;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.jme3.math.Vector3f;
 
 /**
  * @author "Christopher-Eyk Hrabia"
@@ -29,11 +27,11 @@ public class TouchLineStatisticsTest {
 	}
 
 	/**
-	 * Test method for {@link imuanalyzer.signalprocessing.TouchLineStatistics#TouchLineStatistics(java.util.ArrayList)}.
+	 * Test method for {@link imuanalyzer.signalprocessing.VectorLineStatistics#TouchLineStatistics(java.util.ArrayList)}.
 	 */
 	@Test
 	public void testTouchLineStatistics() {
-		TouchLineStatistics stat = new TouchLineStatistics(touchlines);
+		VectorLineStatistics stat = new VectorLineStatistics(touchlines);
 		assertEquals("Max", 5, stat.getMax(),0);
 		assertEquals("Min", 1, stat.getMin(),0);
 		assertEquals("Median", 3, stat.getMedian(),0);

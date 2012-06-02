@@ -21,6 +21,21 @@ import com.jme3.util.BufferUtils;
 
 public class Utils {
 
+	public static Vector3f quatToVecPos(imuanalyzer.filter.Quaternion quat) {
+		// conversion to jme representation not sure why it is different
+		// from
+		// that one in utils ....?
+		return new Vector3f((float) quat.getX() * -1, (float) quat.getY(),
+				(float) quat.getZ() * -1);
+	}
+
+	public static Geometry CreateLine(AssetManager assetManager,
+			VectorLine vLine, ColorRGBA color, boolean isClosedLoop,
+			float lineWidth) {
+		return CreateLine(assetManager, vLine.getLineBuffer(), color,
+				isClosedLoop, lineWidth);
+	}
+
 	public static Geometry CreateLine(AssetManager assetManager,
 			ArrayList<Vector3f> points, ColorRGBA color, boolean isClosedLoop,
 			float lineWidth) {
@@ -56,14 +71,94 @@ public class Utils {
 				"Common/MatDefs/Misc/Unshaded.j3md");
 		matWireframe.getAdditionalRenderState().setFaceCullMode(
 				FaceCullMode.Off);
-		matWireframe.setColor("Color", color.clone());
-		//matWireframe.getAdditionalRenderState().setWireframe(true);
+		matWireframe.setColor("Color", color);
+		// matWireframe.getAdditionalRenderState().setWireframe(true);
+		lineGeom.setMaterial(matWireframe);
+		return lineGeom;
+	}
+	
+	public static Geometry CreateLinesVec(AssetManager assetManager,
+			ArrayList<VectorLine> lines, ColorRGBA color, boolean isClosedLoop,
+			float lineWidth) {
+		// calculate size
+		int size = 0;
+		int numberOfLines = 0;
+		for (VectorLine t : lines) {
+			int tmpSize = t.getLineBuffer().size();
+			if (tmpSize > 1) {
+				size += tmpSize;
+				numberOfLines++;
+			}
+		}
+
+		Vector3f[] vertices;
+		short[] indexes;
+
+		if (size > 2) {
+
+			// Vertex positions in space
+			vertices = new Vector3f[size];
+
+			// Indexes. We define the order in which mesh should be constructed
+			int numIndexes = 2 * (size) - 2 * numberOfLines;
+
+			indexes = new short[numIndexes];
+
+			ArrayList<Vector3f> tmpVertices = new ArrayList<Vector3f>();
+
+			int iStart = 0;
+			for (int j = 0; j < numberOfLines; j++) {
+				ArrayList<Vector3f> p = lines.get(j).getLineBuffer();
+				int end = iStart + p.size() - 1;
+				for (int i = iStart; i < end; i++) {
+					int vecIdx = i + j;
+					indexes[2 * i] = (short) vecIdx;
+					int secondIdx = 2 * i + 1;
+					if (secondIdx < indexes.length) {
+						indexes[secondIdx] = (short) ((vecIdx + 1));
+					}
+				}
+				iStart = end;
+				tmpVertices.addAll(p);
+			}
+			vertices = tmpVertices.toArray(vertices);
+
+		} else {
+			vertices = new Vector3f[0];
+			indexes = new short[0];
+		}
+
+		// Setting buffers
+		Mesh lineMesh = new Mesh();
+		lineMesh.setMode(Mesh.Mode.Lines);
+		lineMesh.setLineWidth(lineWidth);
+		lineMesh.setBuffer(Type.Position, 3,
+				BufferUtils.createFloatBuffer(vertices));
+		lineMesh.setBuffer(Type.Index, 1,
+				BufferUtils.createShortBuffer(indexes));
+		lineMesh.updateBound();
+
+		Geometry lineGeom = new Geometry("lineMesh", lineMesh);
+		Material matWireframe = new Material(assetManager,
+				"Common/MatDefs/Misc/Unshaded.j3md");
+		matWireframe.getAdditionalRenderState().setFaceCullMode(
+				FaceCullMode.Off);
+		matWireframe.setColor("Color", color);
+		// matWireframe.getAdditionalRenderState().setWireframe(true);
 		lineGeom.setMaterial(matWireframe);
 		return lineGeom;
 	}
 
+	public static void updateLine(Geometry line, VectorLine vLine,
+			boolean isClosedLoop, ColorRGBA color) {
+		updateLine(line, vLine.getLineBuffer(), isClosedLoop, color);
+	}
+
 	public static void updateLine(Geometry line, ArrayList<Vector3f> points,
-			boolean isClosedLoop) {
+			boolean isClosedLoop, ColorRGBA color) {
+
+		line.getMaterial().setColor("Color", color);
+
 		// Vertex positions in space
 		Vector3f[] vertices = new Vector3f[points.size()];
 		vertices = points.toArray(vertices);
@@ -91,7 +186,9 @@ public class Utils {
 	}
 
 	public static void updateLines(Geometry line,
-			ArrayList<ArrayList<Vector3f>> points) {
+			ArrayList<ArrayList<Vector3f>> points, ColorRGBA color) {
+
+		line.getMaterial().setColor("Color", color);
 
 		// calculate size
 		int size = 0;
@@ -125,26 +222,28 @@ public class Utils {
 			for (int i = iStart; i < end; i++) {
 				int vecIdx = i + j;
 				indexes[2 * i] = (short) vecIdx;
-				int secondIdx=2 * i + 1;
-				if (secondIdx<indexes.length) {
+				int secondIdx = 2 * i + 1;
+				if (secondIdx < indexes.length) {
 					indexes[secondIdx] = (short) ((vecIdx + 1));
 				}
 			}
 			iStart = end;
 			tmpVertices.addAll(p);
 		}
-		vertices = tmpVertices.toArray(vertices);	
+		vertices = tmpVertices.toArray(vertices);
 
 		updateGeometryMesh(line, vertices, indexes);
 	}
-	
-	public static void updateLinesTouch(Geometry line,
-			ArrayList<VectorLine> lines) {
+
+	public static void updateLinesVec(Geometry line,
+			ArrayList<VectorLine> lines, ColorRGBA color) {
+
+		line.getMaterial().setColor("Color", color);
 
 		// calculate size
 		int size = 0;
 		int numberOfLines = 0;
-		for (VectorLine t :lines) {
+		for (VectorLine t : lines) {
 			int tmpSize = t.getLineBuffer().size();
 			if (tmpSize > 1) {
 				size += tmpSize;
@@ -154,37 +253,37 @@ public class Utils {
 
 		Vector3f[] vertices;
 		short[] indexes;
-		
+
 		if (size > 2) {
-			
-		// Vertex positions in space
-		vertices = new Vector3f[size];
 
-		// Indexes. We define the order in which mesh should be constructed
-		int numIndexes = 2 * (size) - 2 * numberOfLines;
+			// Vertex positions in space
+			vertices = new Vector3f[size];
 
-		indexes = new short[numIndexes];
+			// Indexes. We define the order in which mesh should be constructed
+			int numIndexes = 2 * (size) - 2 * numberOfLines;
 
-		ArrayList<Vector3f> tmpVertices = new ArrayList<Vector3f>();
+			indexes = new short[numIndexes];
 
-		int iStart = 0;
-		for (int j = 0; j < numberOfLines; j++) {
-			ArrayList<Vector3f> p = lines.get(j).getLineBuffer();
-			int end = iStart + p.size() - 1;
-			for (int i = iStart; i < end; i++) {
-				int vecIdx = i + j;
-				indexes[2 * i] = (short) vecIdx;
-				int secondIdx=2 * i + 1;
-				if (secondIdx<indexes.length) {
-					indexes[secondIdx] = (short) ((vecIdx + 1));
+			ArrayList<Vector3f> tmpVertices = new ArrayList<Vector3f>();
+
+			int iStart = 0;
+			for (int j = 0; j < numberOfLines; j++) {
+				ArrayList<Vector3f> p = lines.get(j).getLineBuffer();
+				int end = iStart + p.size() - 1;
+				for (int i = iStart; i < end; i++) {
+					int vecIdx = i + j;
+					indexes[2 * i] = (short) vecIdx;
+					int secondIdx = 2 * i + 1;
+					if (secondIdx < indexes.length) {
+						indexes[secondIdx] = (short) ((vecIdx + 1));
+					}
 				}
+				iStart = end;
+				tmpVertices.addAll(p);
 			}
-			iStart = end;
-			tmpVertices.addAll(p);
-		}
-		vertices = tmpVertices.toArray(vertices);	
-		
-		}else{
+			vertices = tmpVertices.toArray(vertices);
+
+		} else {
 			vertices = new Vector3f[0];
 			indexes = new short[0];
 		}

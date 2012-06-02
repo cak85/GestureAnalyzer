@@ -12,8 +12,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.jme3.math.Vector3f;
-
 public class Hand {
 
 	/**
@@ -299,7 +297,23 @@ public class Hand {
 	public ArrayList<TouchAnalysis> getRunningTouchAnalysis() {
 		return runningTouchAnalysis;
 	}
-
+	
+//	public ArrayList<VectorLine> getMaxMotionLines() {
+//		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
+//		for (MotionAnalysis m : runningMotionAnalysis) {
+//			maxLines.addAll(m.getMaxLine());
+//		}
+//		return maxLines;
+//	}
+//	
+//	public ArrayList<VectorLine> getMinMotionLines() {
+//		ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
+//		for (MotionAnalysis m : runningMotionAnalysis) {
+//			minLines.addAll(m.getMinLine());
+//		}
+//		return minLines;
+//	}
+//
 	public ArrayList<VectorLine> getMaxTouchLines() {
 		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
@@ -307,13 +321,13 @@ public class Hand {
 		}
 		return maxLines;
 	}
-
-	public ArrayList<VectorLine> getCurrentTouchLines() {
-		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
-		for (TouchAnalysis touch : runningTouchAnalysis) {
-			lines.add(touch.getCurrentLine());
-		}
-		return lines;
-	}
+//
+//	public ArrayList<VectorLine> getCurrentTouchLines() {
+//		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
+//		for (TouchAnalysis touch : runningTouchAnalysis) {
+//			lines.add(touch.getCurrentLine());
+//		}
+//		return lines;
+//	}
 
 }

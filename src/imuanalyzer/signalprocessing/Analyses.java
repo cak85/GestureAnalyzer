@@ -19,8 +19,6 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import com.jme3.math.Vector3f;
-
 public class Analyses {
 
 	private static final Logger LOGGER = Logger.getLogger(Analyses.class
@@ -61,7 +59,7 @@ public class Analyses {
 	/**
 	 * touch analysis statistics Data
 	 */
-	ArrayList<IBoxplotData> touchStatistics ;
+	ArrayList<IBoxplotData> statistics ;
 
 	public Analyses() {
 		try {
@@ -304,9 +302,8 @@ public class Analyses {
 			touchResult.addAll(h.getMaxTouchLines());
 		}
 
-		touchStatistics = new ArrayList<IBoxplotData>();
+		statistics = new ArrayList<IBoxplotData>();
 
-		// maximum and maximum sum
 		for (int i = 0; i < saveTouchJoints.size(); i++) {
 			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
 			for (Hand h : hands) {
@@ -314,7 +311,17 @@ public class Analyses {
 						.get(i);
 				linesOfOneJointAnalysis.add(touchAnalysis.getMaxLine());
 			}
-			touchStatistics.add(new TouchLineStatistics(linesOfOneJointAnalysis));
+			statistics.add(new VectorLineStatistics(linesOfOneJointAnalysis));
+		}
+		
+		for (int i = 0; i < saveMotionJoints.size(); i++) {
+			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
+			for (Hand h : hands) {
+				MotionAnalysis motionAnalysis = h.getRunningMotionAnalysis()
+						.get(i);
+				linesOfOneJointAnalysis.addAll(motionAnalysis.getMaxLine());
+			}
+			statistics.add(new VectorLineStatistics(linesOfOneJointAnalysis));
 		}
 
 	}
@@ -406,7 +413,7 @@ public class Analyses {
 	}
 
 	public ArrayList<IBoxplotData> getTouchStatistics() {
-		return touchStatistics;
+		return statistics;
 	}
 
 

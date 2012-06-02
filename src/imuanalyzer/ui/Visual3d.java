@@ -8,7 +8,7 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
-import imuanalyzer.signalprocessing.VectorLine;
+import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
 import java.awt.Dimension;
@@ -44,6 +44,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.debug.Grid;
@@ -60,7 +61,7 @@ public class Visual3d extends SimpleApplication {
 
 	private static final float MANUAL_ANGLE_CHANGE = 0.5f;
 
-	private static final float OPACITY_STEP = 0.05f;
+	private static final float OPACITY_STEP = 0.005f;
 
 	/**
 	 * JPanel holding the JME3 3d view
@@ -90,7 +91,7 @@ public class Visual3d extends SimpleApplication {
 	/**
 	 * Current Joint for manual manipulation
 	 */
-	JointType currentManipulatedJoint = JointType.HR;
+	private JointType currentManipulatedJoint = JointType.HR;
 
 	/**
 	 * Enum representing an axis selection
@@ -117,15 +118,29 @@ public class Visual3d extends SimpleApplication {
 
 	private Visual3d myInstance;
 
+	/**
+	 * Dummy tablet device
+	 */
 	DeviceDummy deviceDummy = null;
 
-	// different lines
-	Geometry currentMotionLine = null;
-	Geometry maxMotionLine = null;
+	Geometry grid;
+
+	ArrayList<Geometry> linesPool = new ArrayList<Geometry>();
 
 	Boxplot3d touchLineStatistics;
 
+	/**
+	 * State for taking screenshots of 3d window
+	 */
 	ScreenshotAppState state;
+
+	private EnumMap<JointType, JointSetting> visualJointSettings = new EnumMap<JointType, JointSetting>(
+			JointType.class);
+
+	/**
+	 * save device click start postion
+	 */
+	private Vector2f deviceClickStart;
 
 	/**
 	 * Constructor, needs handmodel
@@ -162,8 +177,12 @@ public class Visual3d extends SimpleApplication {
 	@Override
 	public void simpleInitApp() {
 
+		for (JointType t : JointType.values()) {
+			visualJointSettings.put(t, new JointSetting(t));
+		}
+
 		// background
-		viewPort.setBackgroundColor(ColorRGBA.DarkGray);
+		viewPort.setBackgroundColor(ColorRGBA.DarkGray.clone());
 
 		attachLight();
 
@@ -181,27 +200,13 @@ public class Visual3d extends SimpleApplication {
 
 		initKeys();
 
-		attachGrid(new Vector3f(0, -10, 0), 50, ColorRGBA.Black);
-
-		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
-
-		currentMotionLine = Utils.CreateLine(assetManager, lineBuffer,
-				ColorRGBA.Cyan, false, 2);
-
-		rootNode.attachChild(currentMotionLine);
-
-		maxMotionLine = Utils.CreateLine(assetManager, lineBuffer,
-				ColorRGBA.Blue, false, 4);
-
-		rootNode.attachChild(maxMotionLine);
+		grid = attachGrid(new Vector3f(0, -10, 0), 50, ColorRGBA.Black.clone());
 
 		touchLineStatistics = new Boxplot3d(assetManager);
 
 		rootNode.attachChild(touchLineStatistics);
 
 		deviceDummy = new DeviceDummy(assetManager);
-		deviceDummy.setVisible(false);
-		visualHand.attachChild(deviceDummy);
 
 		state = new ScreenshotAppState();
 		this.stateManager.attach(state);
@@ -276,11 +281,11 @@ public class Visual3d extends SimpleApplication {
 
 	private void attachLight() {
 		AmbientLight al = new AmbientLight();
-		al.setColor(ColorRGBA.White.mult(1.3f));
+		al.setColor(ColorRGBA.White.clone().mult(1.3f));
 		rootNode.addLight(al);
 
 		PointLight lamp_light2 = new PointLight();
-		lamp_light2.setColor(ColorRGBA.White);
+		lamp_light2.setColor(ColorRGBA.White.clone());
 		lamp_light2.setRadius(10f);
 		Vector3f lamp_pos_2 = new Vector3f(0, 8, 3);
 		lamp_light2.setPosition(lamp_pos_2);
@@ -368,11 +373,9 @@ public class Visual3d extends SimpleApplication {
 
 					JPopupMenu menu = null;
 					if (targetName.contains("myIpad")) {
-						if (deviceDummy.isVisible()) {
-							// create popUp with further options
-							menu = new Visual3dDevicePopUpMenu(myInstance,
-									deviceDummy);
-						}
+						// create popUp with further options
+						menu = new Visual3dDevicePopUpMenu(myInstance,
+								deviceDummy);
 					} else {
 						// create popUp with further options
 						menu = new Visual3dHandPopUpMenu(myInstance, hand,
@@ -430,8 +433,6 @@ public class Visual3d extends SimpleApplication {
 		}
 
 	};
-
-	Vector2f deviceClickStart;
 
 	private ActionListener deviceClickListener = new ActionListener() {
 		public void onAction(String name, boolean keyPressed, float tpf) {
@@ -514,10 +515,6 @@ public class Visual3d extends SimpleApplication {
 		try {
 			Set<Entry<JointType, Joint>> handset = hand.getJointSet();
 
-			// handle livemovement
-			// LinkedList<MovementStep> storedMovementPositions =
-			// hand.getMotionFlow();
-
 			// don't draw the last state because it is current one
 			int numberOfLiveSteps = hand.getNumberOfSavedMotionSteps();
 
@@ -525,7 +522,7 @@ public class Visual3d extends SimpleApplication {
 			while (numberOfLiveSteps > liveMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
 						HandOrientation.LEFT, false);
-				newHand.setOpacity(OPACITY_STEP, 1);
+				newHand.setOpacity(OPACITY_STEP, 0);
 				liveMovementSteps.add(newHand);
 				rootNode.attachChild(newHand);
 			}
@@ -538,7 +535,7 @@ public class Visual3d extends SimpleApplication {
 			while (numberOfStoredSteps > analysesMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
 						HandOrientation.LEFT, false);
-				newHand.setOpacity(OPACITY_STEP, 1);
+				newHand.setOpacity(OPACITY_STEP, 0);
 				analysesMovementSteps.add(newHand);
 				rootNode.attachChild(newHand);
 			}
@@ -555,13 +552,15 @@ public class Visual3d extends SimpleApplication {
 				visualHand.setBoneRotationAbs(currentJointType,
 						Utils.getJMEQuad(currentJointOrientation));
 
+				JointSetting currentSetting = visualJointSettings
+						.get(currentJointType);
 				visualHand.setVisible(currentJointType,
-						currentJoint.isVisible());
+						currentSetting.isVisible());
 
 				// update live movement
 
 				updateLiveMovement(currentJoint, currentJointType,
-						currentJointOrientation);
+						currentJointOrientation, currentSetting);
 
 				// update stored analyses movement
 				for (int i = 0; i < numberOfStoredSteps; i++) {
@@ -572,14 +571,15 @@ public class Visual3d extends SimpleApplication {
 					StoredJointState currentStep = moveStep.getMove();
 					currentStep.updateWorldOrientation();
 
-					hand3d.setOpacity(OPACITY_STEP, moveStep.getCount());
+					hand3d.setOpacity(currentJointType,
+							currentSetting.getStoredMotionColor(),
+							OPACITY_STEP, moveStep.getCount());
 
 					EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
 							.get(i).getJointSet();
 
 					// update movement flow with joint from actual hand if
-					// not
-					// available in movement.
+					// not available in movement.
 					if (storedSet.containsKey(currentJointType)) {
 
 						hand3d.setBoneRotationAbs(currentJointType, Utils
@@ -587,7 +587,7 @@ public class Visual3d extends SimpleApplication {
 										.getWorldOrientation()));
 
 						hand3d.setVisible(currentJointType,
-								currentJoint.isVisible());
+								currentSetting.isVisible());
 					} else {
 						hand3d.setBoneRotationAbs(currentJointType,
 								Utils.getJMEQuad(currentJointOrientation));
@@ -597,21 +597,76 @@ public class Visual3d extends SimpleApplication {
 
 			}
 
-			// update line movement
+			updateLines();
 
-			ArrayList<VectorLine> motionLineBuffer = hand
-					.getCurrentTouchLines();
-			Utils.updateLinesTouch(currentMotionLine, motionLineBuffer);
-
-			motionLineBuffer = hand.getMaxTouchLines();
-			Utils.updateLinesTouch(maxMotionLine, motionLineBuffer);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	private void updateLines() {
+		// update touch lines
+		ArrayList<TouchAnalysis> touchAnalysises = hand
+				.getRunningTouchAnalysis();
+		for (int i = 0; i < touchAnalysises.size(); i++) {
+			TouchAnalysis t = touchAnalysises.get(i);
+
+			JointSetting setting = visualJointSettings.get(t.getObservedJoint()
+					.getType());
+
+			if (linesPool.size() <= i * 2) {
+				Geometry geom = Utils.CreateLine(assetManager, t.getMaxLine(),
+						setting.getLiveTouchMaxColor(), false, 4);
+				linesPool.add(geom);
+				rootNode.attachChild(geom);
+				Geometry geom2 = Utils.CreateLine(assetManager,
+						t.getCurrentLine(), setting.getLiveTouchCurrentColor(),
+						false, 4);
+				linesPool.add(geom2);
+				rootNode.attachChild(geom2);
+			} else {
+				Utils.updateLine(linesPool.get(i * 2), t.getMaxLine(), false,
+						setting.getLiveTouchMaxColor());
+				Utils.updateLine(linesPool.get(i * 2 + 1), t.getCurrentLine(),
+						false, setting.getLiveTouchCurrentColor());
+			}
+
+		}
+		// update motion lines
+		int start = touchAnalysises.size() * 2;
+		ArrayList<MotionAnalysis> motionAnalysises = hand
+				.getRunningMotionAnalysis();
+		for (int i = 0; i < motionAnalysises.size(); i++) {
+			MotionAnalysis m = motionAnalysises.get(i);
+
+			JointSetting setting = visualJointSettings.get(m.getObservedJoint()
+					.getType());
+
+			if (linesPool.size() <= start) {
+				Geometry geom = Utils.CreateLinesVec(assetManager,
+						m.getMaxLine(), setting.getLiveTouchMaxColor(), false,
+						4);
+				linesPool.add(geom);
+				rootNode.attachChild(geom);
+				Geometry geom2 = Utils.CreateLinesVec(assetManager,
+						m.getMinLine(), setting.getLiveTouchCurrentColor(),
+						false, 4);
+				linesPool.add(geom2);
+				rootNode.attachChild(geom2);
+			} else {
+				Utils.updateLinesVec(linesPool.get(start), m.getMaxLine(),
+						setting.getLiveMotionMaxLineColor());
+				Utils.updateLinesVec(linesPool.get(start + 1), m.getMinLine(),
+						setting.getLiveMotionMinLineColor());
+			}
+			start += 2;
+
+		}
+	}
+
 	private void updateLiveMovement(Joint currentJoint,
-			JointType currentJointType, Quaternion currentJointOrientation) {
+			JointType currentJointType, Quaternion currentJointOrientation,
+			JointSetting currentSetting) {
 		int id_live_hand_modell = 0;
 
 		for (MotionAnalysis motionAnalysis : hand.getRunningMotionAnalysis()) {
@@ -623,14 +678,18 @@ public class Visual3d extends SimpleApplication {
 				MovementStep moveStep = storedMovementPositions.get(i);
 
 				int count = moveStep.getCount();
+				hand3d.setOpacity(currentJointType,
+						currentSetting.getLiveMotionColor(), OPACITY_STEP,
+						count);
 
-				if (i == motionAnalysis.getMaxIdMotion()) {
-					hand3d.setOpacity(ColorRGBA.Red, 1, count);
-				} else if (i == motionAnalysis.getMinIdMotion()) {
-					hand3d.setOpacity(ColorRGBA.Blue, 1, count);
-				} else {
-					hand3d.setOpacity(OPACITY_STEP, count);
-				}
+				// just debug TODO remove sometime
+				// if (i == motionAnalysis.getMaxIdMotion()) {
+				// hand3d.setOpacity(ColorRGBA.Red, 1, count);
+				// } else if (i == motionAnalysis.getMinIdMotion()) {
+				// hand3d.setOpacity(ColorRGBA.Blue, 1, count);
+				// } else {
+				// hand3d.setOpacity(OPACITY_STEP, count);
+				// }
 
 				EnumMap<JointType, StoredJointState> storedSet = moveStep
 						.getJointSet();
@@ -643,7 +702,7 @@ public class Visual3d extends SimpleApplication {
 									.getWorldOrientation()));
 
 					hand3d.setVisible(currentJointType,
-							currentJoint.isVisible());
+							currentSetting.isVisible());
 				} else {
 					hand3d.setBoneRotationAbs(currentJointType,
 							Utils.getJMEQuad(currentJointOrientation));
@@ -655,23 +714,29 @@ public class Visual3d extends SimpleApplication {
 		}
 	}
 
+	Node coordinateAxes = new Node();
+
 	private void attachCoordinateAxes(Vector3f pos) {
 		Arrow arrow = new Arrow(Vector3f.UNIT_X.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(arrow, ColorRGBA.Orange).setLocalTranslation(pos);
+		putShape(coordinateAxes, arrow, ColorRGBA.Orange.clone())
+				.setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Y.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(arrow, ColorRGBA.Cyan).setLocalTranslation(pos);
+		putShape(coordinateAxes, arrow, ColorRGBA.Cyan.clone())
+				.setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Z.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
 		// violett
-		putShape(arrow, new ColorRGBA(138 / 255f, 43 / 255f, 226 / 255f, 1))
+		putShape(coordinateAxes, arrow,
+				new ColorRGBA(138 / 255f, 43 / 255f, 226 / 255f, 1))
 				.setLocalTranslation(pos);
+		rootNode.attachChild(coordinateAxes);
 	}
 
-	private void attachGrid(Vector3f pos, int size, ColorRGBA color) {
+	private Geometry attachGrid(Vector3f pos, int size, ColorRGBA color) {
 		Geometry g = new Geometry("wireframe grid", new Grid(size, size, 2f));
 		Material mat = new Material(assetManager,
 				"Common/MatDefs/Misc/Unshaded.j3md");
@@ -680,16 +745,17 @@ public class Visual3d extends SimpleApplication {
 		g.setMaterial(mat);
 		g.center().move(pos);
 		rootNode.attachChild(g);
+		return g;
 	}
 
-	private Geometry putShape(Mesh shape, ColorRGBA color) {
+	private Geometry putShape(Node node, Mesh shape, ColorRGBA color) {
 		Geometry g = new Geometry("coordinate axis", shape);
 		Material mat = new Material(assetManager,
 				"Common/MatDefs/Misc/Unshaded.j3md");
 		mat.getAdditionalRenderState().setWireframe(true);
 		mat.setColor("Color", color);
 		g.setMaterial(mat);
-		rootNode.attachChild(g);
+		node.attachChild(g);
 		return g;
 	}
 
@@ -719,35 +785,34 @@ public class Visual3d extends SimpleApplication {
 	}
 
 	private void updateAnalysesData() {
-			if (analyses != null) {
-				LinkedList<MovementStep> analysesMovementPositions = analyses
-						.getMoveResult();
+		if (analyses != null) {
+			LinkedList<MovementStep> analysesMovementPositions = analyses
+					.getMoveResult();
 
-				// update joint parent if not root node of object
-				// with the goal of moving the analyzed hand in the same frame
+			// update joint parent if not root node of object
+			// with the goal of moving the analyzed hand in the same frame
 
-				for (MovementStep m : analysesMovementPositions) {
-					StoredJointState observedRoot = m.getMove();
-					JointType currentObservedType = observedRoot.getType();
-					observedRoot.setParent(hand.getJoint(currentObservedType)
-							.getParent());
-				}
-				this.analysesMovementPositions = analysesMovementPositions;
-
-				touchLineStatistics
-						.setStatistics(analyses.getTouchStatistics());
-
-				touchLineStatistics.setCullHint(CullHint.Never);
-
-			} else {
-				for (VisualHand3d hand : analysesMovementSteps) {
-					hand.removeFromParent();
-				}
-				analysesMovementPositions.clear();
-				analysesMovementSteps.clear();
-
-				touchLineStatistics.setCullHint(CullHint.Always);
+			for (MovementStep m : analysesMovementPositions) {
+				StoredJointState observedRoot = m.getMove();
+				JointType currentObservedType = observedRoot.getType();
+				observedRoot.setParent(hand.getJoint(currentObservedType)
+						.getParent());
 			}
+			this.analysesMovementPositions = analysesMovementPositions;
+
+			touchLineStatistics.setStatistics(analyses.getTouchStatistics());
+
+			touchLineStatistics.setCullHint(CullHint.Never);
+
+		} else {
+			for (VisualHand3d hand : analysesMovementSteps) {
+				hand.removeFromParent();
+			}
+			analysesMovementPositions.clear();
+			analysesMovementSteps.clear();
+
+			touchLineStatistics.setCullHint(CullHint.Always);
+		}
 	}
 
 	public VisualHand3d getVisualHand() {
@@ -783,12 +848,42 @@ public class Visual3d extends SimpleApplication {
 		return panel3d;
 	}
 
-	public void setDeviceVisible(boolean isVisible) {
-		deviceDummy.setVisible(isVisible);
+	public void setDeviceVisible(final boolean isVisible) {
+		// threadsafe update
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				if (isVisible && deviceDummy.getParent() == null) {
+					visualHand.attachChild(deviceDummy);
+				} else {
+					visualHand.detachChild(deviceDummy);
+				}
+				return null;
+			}
+		});
 	}
 
 	public void takeScreenshot(String path) {
 		state.takeScreenShot(path);
+	}
+
+	public JointSetting getJointSetting(JointType type) {
+		return visualJointSettings.get(type);
+	}
+
+	public void setGridVisibility(boolean visible) {
+		if (visible) {
+			grid.setCullHint(CullHint.Dynamic);
+		} else {
+			grid.setCullHint(CullHint.Always);
+		}
+	}
+	
+	public void setCoordinateAxisVisibile(boolean visible) {
+		if (visible) {
+			coordinateAxes.setCullHint(CullHint.Dynamic);
+		} else {
+			coordinateAxes.setCullHint(CullHint.Always);
+		}
 	}
 
 }
