@@ -125,7 +125,8 @@ public class Visual3d extends SimpleApplication {
 
 	Geometry grid;
 
-	ArrayList<Geometry> linesPool = new ArrayList<Geometry>();
+	ArrayList<Geometry> linesPoolTouch = new ArrayList<Geometry>();
+	ArrayList<Geometry> linesPoolMotion = new ArrayList<Geometry>();
 
 	Boxplot3d touchLineStatistics;
 
@@ -141,6 +142,8 @@ public class Visual3d extends SimpleApplication {
 	 * save device click start postion
 	 */
 	private Vector2f deviceClickStart;
+
+	private InfoBox infoBox;
 
 	/**
 	 * Constructor, needs handmodel
@@ -188,7 +191,7 @@ public class Visual3d extends SimpleApplication {
 
 		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true);
 
-		visualHand.setShadowMode(ShadowMode.CastAndReceive);
+		visualHand.getModel().setShadowMode(ShadowMode.CastAndReceive);
 
 		rootNode.attachChild(visualHand);
 
@@ -204,7 +207,7 @@ public class Visual3d extends SimpleApplication {
 
 		touchLineStatistics = new Boxplot3d(assetManager);
 
-		rootNode.attachChild(touchLineStatistics);
+		visualHand.attachChild(touchLineStatistics);
 
 		deviceDummy = new DeviceDummy(assetManager);
 
@@ -346,7 +349,7 @@ public class Visual3d extends SimpleApplication {
 		// Collect intersections between ray and all nodes in results
 		// list.
 		visualHand.updateCollisionData();
-		visualHand.collideWith(ray, results);
+		visualHand.getModel().collideWith(ray, results);
 
 		// Use the results
 		if (results.size() > 0) {
@@ -379,7 +382,7 @@ public class Visual3d extends SimpleApplication {
 					} else {
 						// create popUp with further options
 						menu = new Visual3dHandPopUpMenu(myInstance, hand,
-								Utils.getJointTypeFromGeometry(target));
+								Utils.getJointTypeFromGeometry(target), infoBox);
 
 					}
 					if (menu != null) {
@@ -524,7 +527,7 @@ public class Visual3d extends SimpleApplication {
 						HandOrientation.LEFT, false);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				liveMovementSteps.add(newHand);
-				rootNode.attachChild(newHand);
+				visualHand.attachChild(newHand);
 			}
 
 			// handle stored analyses movement
@@ -537,7 +540,7 @@ public class Visual3d extends SimpleApplication {
 						HandOrientation.LEFT, false);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				analysesMovementSteps.add(newHand);
-				rootNode.attachChild(newHand);
+				visualHand.attachChild(newHand);
 			}
 
 			// TODO buggy/wrong remove
@@ -614,26 +617,26 @@ public class Visual3d extends SimpleApplication {
 			JointSetting setting = visualJointSettings.get(t.getObservedJoint()
 					.getType());
 
-			if (linesPool.size() <= i * 2) {
+			if (linesPoolTouch.size() <= i * 2) {
 				Geometry geom = Utils.CreateLine(assetManager, t.getMaxLine(),
 						setting.getLiveTouchMaxColor(), false, 4);
-				linesPool.add(geom);
-				rootNode.attachChild(geom);
+				linesPoolTouch.add(geom);
+				visualHand.attachChild(geom);
 				Geometry geom2 = Utils.CreateLine(assetManager,
 						t.getCurrentLine(), setting.getLiveTouchCurrentColor(),
 						false, 4);
-				linesPool.add(geom2);
-				rootNode.attachChild(geom2);
+				linesPoolTouch.add(geom2);
+				visualHand.attachChild(geom2);
 			} else {
-				Utils.updateLine(linesPool.get(i * 2), t.getMaxLine(), false,
-						setting.getLiveTouchMaxColor());
-				Utils.updateLine(linesPool.get(i * 2 + 1), t.getCurrentLine(),
-						false, setting.getLiveTouchCurrentColor());
+				Utils.updateLine(linesPoolTouch.get(i * 2), t.getMaxLine(),
+						false, setting.getLiveTouchMaxColor());
+				Utils.updateLine(linesPoolTouch.get(i * 2 + 1),
+						t.getCurrentLine(), false,
+						setting.getLiveTouchCurrentColor());
 			}
 
 		}
 		// update motion lines
-		int start = touchAnalysises.size() * 2;
 		ArrayList<MotionAnalysis> motionAnalysises = hand
 				.getRunningMotionAnalysis();
 		for (int i = 0; i < motionAnalysises.size(); i++) {
@@ -642,24 +645,23 @@ public class Visual3d extends SimpleApplication {
 			JointSetting setting = visualJointSettings.get(m.getObservedJoint()
 					.getType());
 
-			if (linesPool.size() <= start) {
+			if (linesPoolMotion.size() <= i * 2) {
 				Geometry geom = Utils.CreateLinesVec(assetManager,
 						m.getMaxLine(), setting.getLiveTouchMaxColor(), false,
 						4);
-				linesPool.add(geom);
-				rootNode.attachChild(geom);
+				linesPoolMotion.add(geom);
+				visualHand.attachChild(geom);
 				Geometry geom2 = Utils.CreateLinesVec(assetManager,
 						m.getMinLine(), setting.getLiveTouchCurrentColor(),
 						false, 4);
-				linesPool.add(geom2);
-				rootNode.attachChild(geom2);
+				linesPoolMotion.add(geom2);
+				visualHand.attachChild(geom2);
 			} else {
-				Utils.updateLinesVec(linesPool.get(start), m.getMaxLine(),
-						setting.getLiveMotionMaxLineColor());
-				Utils.updateLinesVec(linesPool.get(start + 1), m.getMinLine(),
-						setting.getLiveMotionMinLineColor());
+				Utils.updateLinesVec(linesPoolMotion.get(i * 2),
+						m.getMaxLine(), setting.getLiveMotionMaxLineColor());
+				Utils.updateLinesVec(linesPoolMotion.get(i * 2 + 1),
+						m.getMinLine(), setting.getLiveMotionMinLineColor());
 			}
-			start += 2;
 
 		}
 	}
@@ -815,14 +817,6 @@ public class Visual3d extends SimpleApplication {
 		}
 	}
 
-	public VisualHand3d getVisualHand() {
-		return visualHand;
-	}
-
-	public void setVisualHand(VisualHand3d visualHand) {
-		this.visualHand = visualHand;
-	}
-
 	public void clearLiveMovement() {
 		// threadsafe update
 		enqueue(new Callable<Object>() {
@@ -831,6 +825,23 @@ public class Visual3d extends SimpleApplication {
 					hand3d.removeFromParent();
 				}
 				liveMovementSteps.clear();
+				for (Geometry geom : linesPoolMotion) {
+					geom.removeFromParent();
+				}
+				linesPoolMotion.clear();
+				return null;
+			}
+		});
+	}
+
+	public void clearTouchLines() {
+		// threadsafe update
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				for (Geometry geom : linesPoolTouch) {
+					geom.removeFromParent();
+				}
+				linesPoolMotion.clear();
 				return null;
 			}
 		});
@@ -877,13 +888,61 @@ public class Visual3d extends SimpleApplication {
 			grid.setCullHint(CullHint.Always);
 		}
 	}
-	
+
 	public void setCoordinateAxisVisibile(boolean visible) {
 		if (visible) {
 			coordinateAxes.setCullHint(CullHint.Dynamic);
 		} else {
 			coordinateAxes.setCullHint(CullHint.Always);
 		}
+	}
+
+	public void setRightHand(final boolean isRight) {
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				HandOrientation orientation;
+				if (isRight) {
+					orientation = HandOrientation.RIGHT;
+				} else {
+					orientation = HandOrientation.LEFT;
+				}
+
+				visualHand.setOrientation(orientation);
+
+				return null;
+			}
+		});
+	}
+
+	public void setSkeletonVisible(final boolean visible) {
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				visualHand.setSkeletonVisible(visible);
+				return null;
+			}
+		});
+	}
+
+	public void setLiveHandVisible(final boolean visible) {
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				if (visible) {
+					visualHand.setCullHint(CullHint.Dynamic);
+				} else {
+					visualHand.setCullHint(CullHint.Always);
+				}
+				visualHand.setSkeletonVisible(visible);
+				return null;
+			}
+		});
+	}
+
+	public InfoBox getInfoBox() {
+		return infoBox;
+	}
+
+	public void setInfoBox(InfoBox infoBox) {
+		this.infoBox = infoBox;
 	}
 
 }

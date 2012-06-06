@@ -3,6 +3,7 @@ package imuanalyzer.data;
 import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
+import imuanalyzer.signalprocessing.ComfortScale;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.tools.SensorVector;
 
@@ -32,6 +33,12 @@ public class Database {
 	final static String IMU_DATA_TABLE_GYROSCOPE_PRE = "Gyro_";
 	final static String IMU_DATA_TABLE_MAGNETOMETER_PRE = "Magneto_";
 
+	final static String COMFORT_TABLE_NAME = "Comfort";
+	final static String COMFORT_TABLE_TIME = "Time";
+	final static String COMFORT_TABLE_VALUE = "Value";
+	final static String COMFORT_TABLE_MIN = "Min";
+	final static String COMFORT_TABLE_MAX = "Max";
+
 	final static String IMU_MARKER_TABLE_NAME = "Marker";
 	final static String IMU_MARKER_TABLE_ID = "Id";
 	final static String IMU_MARKER_TABLE_START_TIME = "StartTime";
@@ -48,7 +55,8 @@ public class Database {
 	final static String IMU_CONFIGURATION_TABLE_ID = "Id";
 	final static String IMU_CONFIGURATION_TABLE_FILTER_ID = "FilterId";
 
-	//OP stands for Orierntation and Position because these tables are quite similar
+	// OP stands for Orierntation and Position because these tables are quite
+	// similar
 	final static String IMU_POSITION_TABLE_NAME = "InitialPosition";
 	final static String IMU_ORIENTATION_TABLE_NAME = "InitialOrientation";
 	final static String IMU_OP_TABLE_MARKER_ID = "MarkerId";
@@ -88,6 +96,13 @@ public class Database {
 			.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("y,")
 			.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("z,")
 			.append(") values (?,?,?,?,?,?,?,?,?,?,?,?)");
+
+	static final StringBuilder writeComfortData = new StringBuilder(
+			"insert into ").append(COMFORT_TABLE_NAME).append(" (")
+			.append(COMFORT_TABLE_TIME).append(",").append(COMFORT_TABLE_MIN)
+			.append(",").append(COMFORT_TABLE_MAX).append(",")
+			.append(COMFORT_TABLE_VALUE).append(",")
+			.append(") values (?,?,?,?)");
 
 	protected Database() throws SQLException {
 		conn = DriverManager.getConnection("jdbc:h2:" + DATABASE_NAME
@@ -129,6 +144,129 @@ public class Database {
 
 	public void createTables() {
 
+		StringBuilder createString;
+
+		Marker defaultMarker = Marker.getDefaultMarker();
+
+		if (!existsTable(IMU_DATA_TABLE_NAME)) {
+			// create DATATABLE
+			createString = new StringBuilder("create table ")
+					.append(IMU_DATA_TABLE_NAME).append(" (")
+					.append(IMU_DATA_TABLE_TIME).append(" TIMESTAMP, ")
+					.append(IMU_DATA_TABLE_SAMPLEPERIOD).append(" DOUBLE, ")
+					.append(IMU_DATA_TABLE_SENSOR_ID).append(" INT, ")
+					.append(IMU_DATA_TABLE_ACCELEROMETER_PRE)
+					.append("x DOUBLE, ")
+					.append(IMU_DATA_TABLE_ACCELEROMETER_PRE)
+					.append("y DOUBLE, ")
+					.append(IMU_DATA_TABLE_ACCELEROMETER_PRE)
+					.append("z DOUBLE, ").append(IMU_DATA_TABLE_GYROSCOPE_PRE)
+					.append("x DOUBLE, ").append(IMU_DATA_TABLE_GYROSCOPE_PRE)
+					.append("y DOUBLE, ").append(IMU_DATA_TABLE_GYROSCOPE_PRE)
+					.append("z DOUBLE, ")
+					.append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
+					.append("x DOUBLE, ")
+					.append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
+					.append("y DOUBLE, ")
+					.append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
+					.append("z DOUBLE, ").append(");");
+			execute(createString.toString());
+		}
+
+		if (!existsTable(COMFORT_TABLE_NAME)) {
+			// create comfort table
+			createString = new StringBuilder("create table ")
+					.append(COMFORT_TABLE_NAME).append(" (")
+					.append(COMFORT_TABLE_TIME).append(" TIMESTAMP, ")
+					.append(COMFORT_TABLE_MIN).append(" INT, ")
+					.append(COMFORT_TABLE_MAX).append(" INT, ")
+					.append(COMFORT_TABLE_VALUE).append(" INT, ").append(");");
+			execute(createString.toString());
+		}
+
+		if (!existsTable(IMU_MARKER_TABLE_NAME)) {
+			// create marker table
+			createString = new StringBuilder("create table ")
+					.append(IMU_MARKER_TABLE_NAME).append(" (")
+					.append(IMU_MARKER_TABLE_ID)
+					.append(" BIGINT IDENTITY PRIMARY KEY, ")
+					.append(IMU_MARKER_TABLE_START_TIME).append(" TIMESTAMP, ")
+					.append(IMU_MARKER_TABLE_END_TIME).append(" TIMESTAMP, ")
+					.append(IMU_MARKER_TABLE_MARKER_NAME).append(" VARCHAR, ")
+					.append(IMU_MARKER_TABLE_MARKER_DESCRIPTION)
+					.append(" VARCHAR, ").append(");");
+			execute(createString.toString());
+			setMarker(defaultMarker);
+		}
+		if (!existsTable(IMU_JOINTMAPPING_TABLE_NAME)) {
+			// create joint mapping table
+			createString = new StringBuilder("create table ")
+					.append(IMU_JOINTMAPPING_TABLE_NAME).append(" (")
+					.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
+					.append(" BIGINT, ")
+					.append(IMU_JOINTMAPPING_TABLE_SENSOR_ID).append(" INT, ")
+					.append(IMU_JOINTMAPPING_TABLE_JOINT_ID).append(" INT, ")
+					.append("FOREIGN KEY(")
+					.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
+					.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
+					.append(" (").append(IMU_MARKER_TABLE_ID)
+					.append(") ON DELETE CASCADE").append(");");
+			execute(createString.toString());
+			for (JointType j : JointType.values()) {
+				setJointSensorMapping(defaultMarker, j, -1);
+			}
+		}
+
+		if (!existsTable(IMU_ORIENTATION_TABLE_NAME)) {
+			// create initial orientation table
+			createString = new StringBuilder("create table ")
+					.append(IMU_ORIENTATION_TABLE_NAME).append(" (")
+					.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
+					.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
+					.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
+					.append("FOREIGN KEY(")
+					.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
+					.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
+					.append(" (").append(IMU_MARKER_TABLE_ID)
+					.append(") ON DELETE CASCADE").append(");");
+			execute(createString.toString());
+		}
+
+		if (!existsTable(IMU_POSITION_TABLE_NAME)) {
+			// create initial position table
+			createString = new StringBuilder("create table ")
+					.append(IMU_POSITION_TABLE_NAME).append(" (")
+					.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
+					.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
+					.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
+					.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
+					.append("FOREIGN KEY(")
+					.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
+					.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
+					.append(" (").append(IMU_MARKER_TABLE_ID)
+					.append(") ON DELETE CASCADE").append(");");
+			execute(createString.toString());
+		}
+
+		if (!existsTable(IMU_CONFIGURATION_TABLE_NAME)) {
+			// create configuration table
+			createString = new StringBuilder("create table ")
+					.append(IMU_CONFIGURATION_TABLE_NAME).append(" (")
+					.append(IMU_CONFIGURATION_TABLE_ID)
+					.append(" BIGINT IDENTITY PRIMARY KEY, ")
+					.append(IMU_CONFIGURATION_TABLE_FILTER_ID).append(" INT, ")
+					.append(");");
+			execute(createString.toString());
+			setFilterType(FilterTypes.QUATERNION_COMPLEMENTARY);
+		}
+	}
+
+	private boolean existsTable(String tablename) {
 		DatabaseMetaData dmd;
 		try {
 			dmd = conn.getMetaData();
@@ -139,114 +277,113 @@ public class Database {
 			while (results.next()) {
 				String tableName = results.getString("TABLE_NAME");
 				// checking for one table should be enough
-				if (tableName.equals(IMU_DATA_TABLE_NAME.toUpperCase())) {
-					return;
+				if (tableName.equals(tablename.toUpperCase())) {
+					return true;
 				}
 			}
 
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
-
-		StringBuilder createString;
-
-		// create DATATABLE
-		createString = new StringBuilder("create table ")
-				.append(IMU_DATA_TABLE_NAME).append(" (")
-				.append(IMU_DATA_TABLE_TIME).append(" TIMESTAMP, ")
-				.append(IMU_DATA_TABLE_SAMPLEPERIOD).append(" DOUBLE, ")
-				.append(IMU_DATA_TABLE_SENSOR_ID).append(" INT, ")
-				.append(IMU_DATA_TABLE_ACCELEROMETER_PRE).append("x DOUBLE, ")
-				.append(IMU_DATA_TABLE_ACCELEROMETER_PRE).append("y DOUBLE, ")
-				.append(IMU_DATA_TABLE_ACCELEROMETER_PRE).append("z DOUBLE, ")
-				.append(IMU_DATA_TABLE_GYROSCOPE_PRE).append("x DOUBLE, ")
-				.append(IMU_DATA_TABLE_GYROSCOPE_PRE).append("y DOUBLE, ")
-				.append(IMU_DATA_TABLE_GYROSCOPE_PRE).append("z DOUBLE, ")
-				.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("x DOUBLE, ")
-				.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("y DOUBLE, ")
-				.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("z DOUBLE, ")
-				.append(");");
-		execute(createString.toString());
-
-		// create marker table
-		createString = new StringBuilder("create table ")
-				.append(IMU_MARKER_TABLE_NAME).append(" (")
-				.append(IMU_MARKER_TABLE_ID)
-				.append(" BIGINT IDENTITY PRIMARY KEY, ")
-				.append(IMU_MARKER_TABLE_START_TIME).append(" TIMESTAMP, ")
-				.append(IMU_MARKER_TABLE_END_TIME).append(" TIMESTAMP, ")
-				.append(IMU_MARKER_TABLE_MARKER_NAME).append(" VARCHAR, ")
-				.append(IMU_MARKER_TABLE_MARKER_DESCRIPTION)
-				.append(" VARCHAR, ").append(");");
-		execute(createString.toString());
-
-		// create joint mapping table
-		createString = new StringBuilder("create table ")
-				.append(IMU_JOINTMAPPING_TABLE_NAME).append(" (")
-				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID).append(" BIGINT, ")
-				.append(IMU_JOINTMAPPING_TABLE_SENSOR_ID).append(" INT, ")
-				.append(IMU_JOINTMAPPING_TABLE_JOINT_ID).append(" INT, ")
-				.append("FOREIGN KEY(")
-				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
-				.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
-				.append(" (").append(IMU_MARKER_TABLE_ID)
-				.append(") ON DELETE CASCADE").append(");");
-		execute(createString.toString());
-
-		// create initial orientation table
-
-		createString = new StringBuilder("create table ")
-				.append(IMU_ORIENTATION_TABLE_NAME).append(" (")
-				.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
-				.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
-				.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
-				.append("FOREIGN KEY(")
-				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
-				.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
-				.append(" (").append(IMU_MARKER_TABLE_ID)
-				.append(") ON DELETE CASCADE").append(");");
-		execute(createString.toString());
-		
-		// create initial position table
-		createString = new StringBuilder("create table ")
-				.append(IMU_POSITION_TABLE_NAME).append(" (")
-				.append(IMU_OP_TABLE_MARKER_ID).append(" BIGINT, ")
-				.append(IMU_OP_TABLE_JOINT_ID).append(" INT, ")
-				.append(IMU_OP_TABLE_QUAT_W).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_X).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_Y).append(" DOUBLE, ")
-				.append(IMU_OP_TABLE_QUAT_Z).append(" DOUBLE, ")
-				.append("FOREIGN KEY(")
-				.append(IMU_JOINTMAPPING_TABLE_MARKER_ID)
-				.append(") REFERENCES ").append(IMU_MARKER_TABLE_NAME)
-				.append(" (").append(IMU_MARKER_TABLE_ID)
-				.append(") ON DELETE CASCADE").append(");");
-		execute(createString.toString());
-
-		// create configuration table
-		createString = new StringBuilder("create table ")
-				.append(IMU_CONFIGURATION_TABLE_NAME).append(" (")
-				.append(IMU_CONFIGURATION_TABLE_ID)
-				.append(" BIGINT IDENTITY PRIMARY KEY, ")
-				.append(IMU_CONFIGURATION_TABLE_FILTER_ID).append(" INT, ")
-				.append(");");
-		execute(createString.toString());
-
-		initTableData();
-
+		return false;
 	}
 
-	private void initTableData() {
-		Marker defaultMarker = Marker.getDefaultMarker();
-		setMarker(defaultMarker);
-		setFilterType(FilterTypes.QUATERNION_COMPLEMENTARY);
+	public void writeComfortData(ComfortScale comfort, java.util.Date timestamp) {
 
-		for (JointType j : JointType.values()) {
-			setJointSensorMapping(defaultMarker, j, -1);
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(writeComfortData.toString());
+			stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
+			stmt.setDouble(2, comfort.getMin());
+			stmt.setDouble(3, comfort.getMax());
+			stmt.setDouble(4, comfort.getCurrentValue());
+			stmt.execute();
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
 		}
+	}
+
+	public void deleteComfortData(Marker marker) {
+
+		PreparedStatement statement = null;
+
+		StringBuilder getType = new StringBuilder("delete from ")
+				.append(COMFORT_TABLE_NAME).append(" where ")
+				.append(COMFORT_TABLE_TIME).append(" between ? and ?");
+
+		try {
+			statement = conn.prepareStatement(getType.toString());
+			Timestamp t1;
+			if (marker.start != null) {
+				t1 = new Timestamp(marker.start.getTime());
+			} else {
+				t1 = new Timestamp(new Date().getTime());
+			}
+			Timestamp t2;
+			if (marker.start != null) {
+				t2 = new Timestamp(marker.end.getTime());
+			} else {
+				t2 = new Timestamp(new Date().getTime());
+			}
+			statement.setTimestamp(1, t1);
+			statement.setTimestamp(2, t2);
+			statement.executeUpdate();
+
+		} catch (final SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (final SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+	}
+
+	public ComfortScale selectComfortData(java.util.Date timestamp) {
+		ComfortScale result = null;
+
+		StringBuilder select = new StringBuilder("select ")
+				.append(COMFORT_TABLE_MIN).append(",")
+				.append(COMFORT_TABLE_MAX).append(",")
+				.append(COMFORT_TABLE_VALUE).append(",").append(" from ")
+				.append(COMFORT_TABLE_NAME).append(" where ")
+				.append(COMFORT_TABLE_TIME).append("==?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(select.toString());
+			stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
+			ResultSet res = stmt.executeQuery();
+			if (res.next()) {
+				result = new ComfortScale(res.getInt(COMFORT_TABLE_MIN),
+						res.getInt(COMFORT_TABLE_MAX),
+						res.getInt(COMFORT_TABLE_VALUE));
+			}
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return result;
 	}
 
 	public void writeImuData(int id, SensorVector accel, SensorVector gyro,
@@ -669,11 +806,10 @@ public class Database {
 		boolean ret = false;
 
 		StringBuilder update = new StringBuilder("update ").append(tablename)
-				.append(" set ").append(IMU_OP_TABLE_QUAT_W)
-				.append("=? ,").append(IMU_OP_TABLE_QUAT_X)
-				.append("=? ,").append(IMU_OP_TABLE_QUAT_Y)
-				.append("=? ,").append(IMU_OP_TABLE_QUAT_Z)
-				.append("=? ").append(" where ")
+				.append(" set ").append(IMU_OP_TABLE_QUAT_W).append("=? ,")
+				.append(IMU_OP_TABLE_QUAT_X).append("=? ,")
+				.append(IMU_OP_TABLE_QUAT_Y).append("=? ,")
+				.append(IMU_OP_TABLE_QUAT_Z).append("=? ").append(" where ")
 				.append(IMU_OP_TABLE_MARKER_ID).append("=? and ")
 				.append(IMU_OP_TABLE_JOINT_ID).append("=?");
 
@@ -701,11 +837,11 @@ public class Database {
 		}
 		return ret;
 	}
-	
+
 	public void setInitialPosition(Marker marker, JointType jointType,
-			Quaternion orientation) {
+			Quaternion position) {
 		setInitialQuaternion(IMU_POSITION_TABLE_NAME, marker, jointType,
-				orientation);
+				position);
 	}
 
 	public void setInitialOrientation(Marker marker, JointType jointType,
@@ -721,9 +857,8 @@ public class Database {
 		}
 
 		StringBuilder insert = new StringBuilder("insert into ")
-				.append(tablename).append(" (")
-				.append(IMU_OP_TABLE_MARKER_ID).append(",")
-				.append(IMU_OP_TABLE_JOINT_ID).append(",")
+				.append(tablename).append(" (").append(IMU_OP_TABLE_MARKER_ID)
+				.append(",").append(IMU_OP_TABLE_JOINT_ID).append(",")
 				.append(IMU_OP_TABLE_QUAT_W).append(",")
 				.append(IMU_OP_TABLE_QUAT_X).append(",")
 				.append(IMU_OP_TABLE_QUAT_Y).append(",")
@@ -758,10 +893,9 @@ public class Database {
 		return getInitialQuaternion(IMU_ORIENTATION_TABLE_NAME, marker,
 				jointType);
 	}
-	
+
 	public Quaternion getInitialPosition(Marker marker, JointType jointType) {
-		return getInitialQuaternion(IMU_POSITION_TABLE_NAME, marker,
-				jointType);
+		return getInitialQuaternion(IMU_POSITION_TABLE_NAME, marker, jointType);
 	}
 
 	public Quaternion getInitialQuaternion(String tablename, Marker marker,
@@ -773,10 +907,9 @@ public class Database {
 				.append(IMU_OP_TABLE_QUAT_W).append(", ")
 				.append(IMU_OP_TABLE_QUAT_X).append(", ")
 				.append(IMU_OP_TABLE_QUAT_Y).append(", ")
-				.append(IMU_OP_TABLE_QUAT_Z).append(" from ")
-				.append(tablename).append(" where ")
-				.append(IMU_OP_TABLE_MARKER_ID).append("=? and ")
-				.append(IMU_OP_TABLE_JOINT_ID).append("=?");
+				.append(IMU_OP_TABLE_QUAT_Z).append(" from ").append(tablename)
+				.append(" where ").append(IMU_OP_TABLE_MARKER_ID)
+				.append("=? and ").append(IMU_OP_TABLE_JOINT_ID).append("=?");
 
 		PreparedStatement stmt = null;
 		try {

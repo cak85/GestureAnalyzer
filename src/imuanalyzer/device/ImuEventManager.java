@@ -25,29 +25,30 @@ public class ImuEventManager {
 
 	public void fireEvent(ImuEvent event) {
 		for (int i = 0; i < listeners.size(); i++) {
-			eventExecutor
-					.execute(new ImuEventRunnable(listeners.get(i), event));
+//			eventExecutor
+//					.execute(new ImuEventRunnable(listeners.get(i), event));
+			listeners.get(i).notifyImuDataUpdate(event);
 		}
 	}
 
-	/**
-	 * 
-	 * Runnable for IMU events
-	 * 
-	 */
-	class ImuEventRunnable implements Runnable {
-		ImuUpdateListener listener;
-		ImuEvent event;
-
-		ImuEventRunnable(ImuUpdateListener listener, ImuEvent event) {
-			this.listener = listener;
-			this.event = event;
-		}
-
-		@Override
-		public void run() {
-			listener.notifyImuDataUpdate(event);
-		}
-
-	}
+//	/**
+//	 * 
+//	 * Runnable for IMU events
+//	 * 
+//	 */
+//	class ImuEventRunnable implements Runnable {
+//		ImuUpdateListener listener;
+//		ImuEvent event;
+//
+//		ImuEventRunnable(ImuUpdateListener listener, ImuEvent event) {
+//			this.listener = listener;
+//			this.event = event;
+//		}
+//
+//		@Override
+//		public void run() {
+//			listener.notifyImuDataUpdate(event);
+//		}
+//
+//	}
 }

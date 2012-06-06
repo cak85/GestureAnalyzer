@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
-public class ImuReader implements SerialPortEventListener {
+public class ImuReader implements SerialPortEventListener,IIMUDataProvider {
 	
 	private static final Logger LOGGER = Logger
 	.getLogger(ImuReader.class.getName());

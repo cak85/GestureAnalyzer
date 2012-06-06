@@ -17,9 +17,9 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 	 * 
 	 */
 	private static final long serialVersionUID = -4904278609301818369L;
-	
+
 	private static final Logger LOGGER = Logger
-	.getLogger(Visual3dHandPopUpMenu.class.getName());
+			.getLogger(Visual3dHandPopUpMenu.class.getName());
 
 	JointType jointType;
 
@@ -27,11 +27,14 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	Visual3d visual3d;
 
+	InfoBox infoBox;
+
 	public Visual3dHandPopUpMenu(Visual3d visual3d, Hand hand,
-			JointType jointType) {
+			JointType jointType, InfoBox infoBox) {
 		this.visual3d = visual3d;
 		this.jointType = jointType;
 		this.hand = hand;
+		this.infoBox = infoBox;
 
 		JMenuItem anItem;
 
@@ -76,6 +79,30 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			});
 			add(anItem);
 		}
+
+		// infobox
+		if (infoBox.isObserved(jointType)) {
+			anItem = new JMenuItem("Remove info");
+			anItem.addActionListener(new java.awt.event.ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					removeInfo();
+				}
+
+			});
+			add(anItem);
+		} else {
+			anItem = new JMenuItem("Add info");
+			anItem.addActionListener(new java.awt.event.ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					addInfo();
+				}
+
+			});
+			add(anItem);
+		}
+
 		// color settings
 		anItem = new JMenuItem("Color settings");
 		anItem.addActionListener(new java.awt.event.ActionListener() {
@@ -105,12 +132,20 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			}
 		});
 		add(anItem);
+		
+	}
 
+	private void addInfo() {
+		infoBox.addJointAngle(jointType);
+	}
+
+	private void removeInfo() {
+		infoBox.removeJointAngle(jointType);
 	}
 
 	private void startColorSettings() {
-		LOGGER.debug(""+jointType);
-		new ColorSettingsDialog(this,visual3d.getJointSetting(jointType));
+		LOGGER.debug("" + jointType);
+		new ColorSettingsDialog(this, visual3d.getJointSetting(jointType));
 	}
 
 	private void disableAnalyzeMovement() {

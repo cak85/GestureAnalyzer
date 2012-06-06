@@ -19,8 +19,8 @@ import com.jme3.scene.shape.Cylinder;
 
 public class Boxplot3d extends Node {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(Boxplot3d.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(Boxplot3d.class
+			.getName());
 
 	private static final float SEGMENTHEIGTH = 0.05f;
 	private static final float SEGMENTRADIUS = 0.2f;
@@ -44,7 +44,7 @@ public class Boxplot3d extends Node {
 
 		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 
-		line = Utils.CreateLine(assetManager, lineBuffer, mainColor, false, 1);
+		line = Utils.CreateLine(assetManager, lineBuffer, mainColor, false, 4);
 
 		this.attachChild(line);
 	}
@@ -85,7 +85,7 @@ public class Boxplot3d extends Node {
 			VectorLine maxLine = (VectorLine) t.getMaxObj();
 			lines.add(maxLine);
 			LOGGER.debug("Maxline length " + maxLine.getLength());
-			
+
 			int cylinderIndex = 0;
 
 			ArrayList<Vector3f> maxlineBuffer = maxLine.getLineBuffer();
@@ -107,8 +107,8 @@ public class Boxplot3d extends Node {
 				median.setLocalRotation(rotation);
 
 				// Extrema
-				Geometry max = getCylinder(cylinderIndex++, extremaColor, SEGMENTHEIGTH,
-						SEGMENTRADIUS);
+				Geometry max = getCylinder(cylinderIndex++, extremaColor,
+						SEGMENTHEIGTH, SEGMENTRADIUS);
 				LOGGER.debug("Extrema high: " + t.getMax());
 				getPosAndDirectionLength(maxlineBuffer, t.getMax(), pos,
 						direction);
@@ -116,8 +116,8 @@ public class Boxplot3d extends Node {
 				rotation.lookAt(direction, up);
 				max.setLocalRotation(rotation);
 
-				Geometry min = getCylinder(cylinderIndex++, extremaColor, SEGMENTHEIGTH,
-						SEGMENTRADIUS);
+				Geometry min = getCylinder(cylinderIndex++, extremaColor,
+						SEGMENTHEIGTH, SEGMENTRADIUS);
 				LOGGER.debug("Extrema low: " + t.getMin());
 				getPosAndDirectionLength(maxlineBuffer, t.getMin(), pos,
 						direction);
@@ -130,40 +130,44 @@ public class Boxplot3d extends Node {
 				LOGGER.debug("Quantile high: " + t.getUpperQuantile());
 				Vector3f pos1 = new Vector3f();
 				Vector3f pos2 = new Vector3f();
-				int boxBegin = getPosFromLength(maxlineBuffer, t.getLowerQuantile(), pos1);
-				int boxEnd = getPosFromLength(maxlineBuffer, t.getUpperQuantile(), pos2);
+				int boxBegin = getPosFromLength(maxlineBuffer,
+						t.getLowerQuantile(), pos1);
+				int boxEnd = getPosFromLength(maxlineBuffer,
+						t.getUpperQuantile(), pos2);
 
 				ArrayList<Vector3f> boxLine = new ArrayList<Vector3f>();
 				boxLine.add(pos1);
 
-				//create subline of box points
+				// create subline of box points
 				for (int j = boxBegin + 1; j < boxEnd; j++) {
 					boxLine.add(maxlineBuffer.get(j));
 				}
 				boxLine.add(pos2);
-				
+
 				for (int j = 1; j < boxLine.size(); j++) {
-					addCylinderBetweenTwoPoits(cylinderIndex++,boxLine.get(j-1),boxLine.get(j));
+					addCylinderBetweenTwoPoits(cylinderIndex++,
+							boxLine.get(j - 1), boxLine.get(j));
 				}
 
 			}
 
 		}
 
-		Utils.updateLinesVec(line, lines,mainColor);
+		Utils.updateLinesVec(line, lines, mainColor);
 	}
-	
-	private void addCylinderBetweenTwoPoits(int cylinderIndex,Vector3f pos1, Vector3f pos2){
-		
+
+	private void addCylinderBetweenTwoPoits(int cylinderIndex, Vector3f pos1,
+			Vector3f pos2) {
+
 		Quaternion rotation = new Quaternion();
 		Vector3f up = new Vector3f(0, 1, 0);
-		
+
 		Vector3f direction = pos2.subtract(pos1);
-		
+
 		Vector3f pos = pos2.subtract(direction.mult(0.5f)); // get mid position
 
-		Geometry box = getCylinder(cylinderIndex, boxColor,
-				direction.length(), SEGMENTRADIUS);
+		Geometry box = getCylinder(cylinderIndex, boxColor, direction.length(),
+				SEGMENTRADIUS);
 
 		box.setLocalTranslation(pos);
 		rotation.lookAt(direction, up);
@@ -259,7 +263,9 @@ public class Boxplot3d extends Node {
 
 	public void setStatistics(ArrayList<IBoxplotData> statistics) {
 		this.statistics = statistics;
-		updateData();
+		if (statistics != null) {
+			updateData();
+		}
 	}
 
 }

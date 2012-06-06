@@ -1,5 +1,6 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.filter.LowPass;
 import imuanalyzer.filter.Quaternion;
 
 import java.util.ArrayList;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import com.jme3.math.Vector3f;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class TouchAnalysis {
 
@@ -32,6 +32,8 @@ public class TouchAnalysis {
 	
 	VectorLine currentLine;
 
+	LowPass directionLowPass = new LowPass(0.5f);
+	
 	public TouchAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
@@ -62,9 +64,11 @@ public class TouchAnalysis {
 		synchronized (clearLock) {
 			if (!lastPos.equals(newPos)) {
 
-				// TODO does not work like expected
 				Quaternion newDirection = newPos.minus(lastPos);
-
+				
+				//low pass
+				newDirection = directionLowPass.filter(newDirection);
+				
 				// newDirection.print(8);
 
 				float directionLength = (float) newDirection.getNorm();
@@ -75,42 +79,42 @@ public class TouchAnalysis {
 
 					int signChangeCounter = 0;
 					// check direction change
-					if (newDirection.getX() >= 0 && currentDirection.getX() < 0
-							|| currentDirection.getX() >= 0
+					if (newDirection.getX() > 0 && currentDirection.getX() < 0
+							|| currentDirection.getX() > 0
 							&& newDirection.getX() < 0) {
 						signChangeCounter++;
-						// LOGGER.debug("x sign changed");
+						 //LOGGER.debug("x sign changed");
 					}
-					if (newDirection.getY() >= 0 && currentDirection.getY() < 0
-							|| currentDirection.getY() >= 0
+					if (newDirection.getY() > 0 && currentDirection.getY() < 0
+							|| currentDirection.getY() > 0
 							&& newDirection.getY() < 0) {
 						signChangeCounter++;
-						// LOGGER.debug("y sign changed");
+						 //LOGGER.debug("y sign changed");
 					}
-					if (newDirection.getZ() >= 0 && currentDirection.getZ() < 0
-							|| currentDirection.getZ() >= 0
+					if (newDirection.getZ() > 0 && currentDirection.getZ() < 0
+							|| currentDirection.getZ() > 0
 							&& newDirection.getZ() < 0) {
 						signChangeCounter++;
-						// LOGGER.debug("z sign changed");
+						 //LOGGER.debug("z sign changed");
 					}
 
 					if (signChangeCounter > 1) {
-						// LOGGER.debug("Direction changed!");
+						//LOGGER.debug("Direction changed!");
 						currentLine = new VectorLine();
 						lines.add(currentLine);
 					}
 					currentDirection = newDirection;
 				}
 
-				// LOGGER.debug(currentDirection);
+				//LOGGER.debug(currentDirection);
 
 				currentLine.addLength(directionLength);
 
 				if (currentLine.getLength() > maxLengthTouch) {
 					maxLengthTouch = currentLine.getLength();
 					maxIdTouch = lines.size() - 1;
-					LOGGER.debug("new max line id:" + maxIdTouch);
-					LOGGER.debug("Max Length: " + maxLengthTouch);
+					//LOGGER.debug("new max line id:" + maxIdTouch);
+					//LOGGER.debug("Max Length: " + maxLengthTouch);
 				}
 
 				lastPos = newPos;

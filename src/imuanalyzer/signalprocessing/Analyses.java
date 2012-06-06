@@ -193,9 +193,11 @@ public class Analyses {
 								currentSet[newData.getId()] = newData;
 							} else {
 
-								orientationManager.processImuData(currentSet,
+								orientationManager.processImuData(currentSet.clone(),
 										newData.getSamplePeriod());
 								currentPeriod = newData.getTimeStamp();
+								//do not forget to process current item
+								currentSet[newData.getId()] = newData;
 							}
 						}
 					}

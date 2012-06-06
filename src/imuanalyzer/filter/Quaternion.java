@@ -325,7 +325,7 @@ public class Quaternion implements Comparable<Quaternion> {
 
 	@Override
 	public String toString() {
-		String format = "\n \t%." + 3 + "f";
+		String format = "\n \t%.3f";
 
 		String out = String.format(format, this.w);
 		out += String.format(format, this.x);

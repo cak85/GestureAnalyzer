@@ -25,7 +25,9 @@ public interface IOrientationSensors {
 	
 	void setRecording(boolean isRecording);
 	
-	public void processImuData(final ImuRawData data[],
+	void processImuData(final ImuRawData data[],
 			final double samplePeriod);
+	
+	void setRecordDataNotifyListener(IRecordDataNotify listener);
 	
 }

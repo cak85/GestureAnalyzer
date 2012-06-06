@@ -100,19 +100,23 @@ public class Playback {
 					currentSet[newData.getId()] = newData;
 				} else {
 					try {
-						Thread.sleep((long) (newData.getSamplePeriod() * 1000));
+//						LOGGER.debug("Sampleperiod: "
+//								+ (long) (currentSet[0].getSamplePeriod() * 1000));
+						Thread.sleep((long) (currentSet[0].getSamplePeriod() * 1000));
 					} catch (InterruptedException e) {
 						LOGGER.error(e);
 					}
-					orientationManager.processImuData(currentSet,
-							newData.getSamplePeriod());
+					orientationManager.processImuData(currentSet.clone(),
+							currentSet[0].getSamplePeriod());
 					currentPeriod = newData.getTimeStamp();
+					//do not forget to process current item
+					currentSet[newData.getId()] = newData;
 				}
 			}
 		}
 
 		hand.setCurrentMarker(oldMarker);
-
+		hand.loadJointMappingFromMarker();
 	}
 
 	class PlaybackRunnable implements Runnable {

@@ -178,9 +178,9 @@ public class VisualHand3d extends Node {
 	}
 
 	public void setOrientation(HandOrientation orientation) {
+		
 		if (this.orientation != orientation) {
-			model.scale(-1, 1, 1);
-			skeletonDebug.scale(-1, 1, 1);
+			this.scale(-1, 1, 1);
 		}
 
 		this.orientation = orientation;

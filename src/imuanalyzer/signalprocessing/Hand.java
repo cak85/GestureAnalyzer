@@ -23,23 +23,34 @@ public class Hand {
 		HR, DD, ZD, MD, RD, KD, DM, ZM, MM, RM, KM, DT, ZT, MT, RT, KT
 	};
 
-	IOrientationSensors sensors;
+	protected IOrientationSensors sensors;
 
 	private EnumMap<JointType, Joint> joints = new EnumMap<JointType, Joint>(
 			JointType.class);
 
-	Marker currentMarker;
+	protected Marker currentMarker;
 
 	private static final Logger LOGGER = Logger.getLogger(Hand.class.getName());
 
-	Database db;
+	protected Database db;
 
-	ArrayList<TouchAnalysis> runningTouchAnalysis = new ArrayList<TouchAnalysis>();
-	ArrayList<MotionAnalysis> runningMotionAnalysis = new ArrayList<MotionAnalysis>();
+	protected ArrayList<TouchAnalysis> runningTouchAnalysis = new ArrayList<TouchAnalysis>();
+
+	protected ArrayList<MotionAnalysis> runningMotionAnalysis = new ArrayList<MotionAnalysis>();
+
+	/**
+	 * save subjective feelings about gesture
+	 */
+	protected ComfortScale comfortScale = new ComfortScale(-5, +5, 0);
 
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
 		this.currentMarker = marker;
+
+		if (sensors != null) {
+			// register for record notification
+			sensors.setRecordDataNotifyListener(comfortScale);
+		}
 
 		try {
 			db = Database.getInstance();
@@ -113,11 +124,11 @@ public class Hand {
 
 		loadJointMappingFromMarker();
 	}
-	
+
 	/**
 	 * refresh current sensor mapping from marker
 	 */
-	public void loadJointMappingFromMarker(){
+	public void loadJointMappingFromMarker() {
 		if (sensors != null) {
 			for (JointType j : JointType.values()) {
 				int id = db.getJointSensorMapping(currentMarker, j);
@@ -207,7 +218,7 @@ public class Hand {
 	 * @param jointType
 	 * @return true if already existing analysises were removed means updating
 	 *         visual is necessary
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public boolean addSaveMotionJoint(JointType jointType) throws Exception {
 		boolean haveRemovedOldOnes = false;
@@ -217,27 +228,28 @@ public class Hand {
 			haveRemovedOldOnes = true;
 		} else {
 			Joint newObservedJoint = getJoint(jointType);
-			
-			//check if new joint is already covered by existing one
+
+			// check if new joint is already covered by existing one
 			for (MotionAnalysis touch : runningMotionAnalysis) {
-				if (newObservedJoint.hasParent(touch.getObservedJoint())) {					
-					throw new Exception("Analysis is already covered by parent joint analysis");
+				if (newObservedJoint.hasParent(touch.getObservedJoint())) {
+					throw new Exception(
+							"Analysis is already covered by parent joint analysis");
 				}
 			}
-			
-			// remove all child analysis of new one --> obsolete			
+
+			// remove all child analysis of new one --> obsolete
 			ArrayList<MotionAnalysis> toRemove = new ArrayList<MotionAnalysis>();
 			for (MotionAnalysis touch : runningMotionAnalysis) {
-				if (touch.getObservedJoint().hasParent(newObservedJoint)) {					
+				if (touch.getObservedJoint().hasParent(newObservedJoint)) {
 					toRemove.add(touch);
 					haveRemovedOldOnes = true;
 				}
 			}
-			//remove obsolete ones if necessary
-			for(MotionAnalysis touch :toRemove){
+			// remove obsolete ones if necessary
+			for (MotionAnalysis touch : toRemove) {
 				runningMotionAnalysis.remove(touch);
 			}
-			//create new analysis
+			// create new analysis
 			MotionAnalysis newAnalysis = new MotionAnalysis(this,
 					newObservedJoint);
 			runningMotionAnalysis.add(newAnalysis);
@@ -297,23 +309,23 @@ public class Hand {
 	public ArrayList<TouchAnalysis> getRunningTouchAnalysis() {
 		return runningTouchAnalysis;
 	}
-	
-//	public ArrayList<VectorLine> getMaxMotionLines() {
-//		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
-//		for (MotionAnalysis m : runningMotionAnalysis) {
-//			maxLines.addAll(m.getMaxLine());
-//		}
-//		return maxLines;
-//	}
-//	
-//	public ArrayList<VectorLine> getMinMotionLines() {
-//		ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
-//		for (MotionAnalysis m : runningMotionAnalysis) {
-//			minLines.addAll(m.getMinLine());
-//		}
-//		return minLines;
-//	}
-//
+
+	// public ArrayList<VectorLine> getMaxMotionLines() {
+	// ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
+	// for (MotionAnalysis m : runningMotionAnalysis) {
+	// maxLines.addAll(m.getMaxLine());
+	// }
+	// return maxLines;
+	// }
+	//
+	// public ArrayList<VectorLine> getMinMotionLines() {
+	// ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
+	// for (MotionAnalysis m : runningMotionAnalysis) {
+	// minLines.addAll(m.getMinLine());
+	// }
+	// return minLines;
+	// }
+	//
 	public ArrayList<VectorLine> getMaxTouchLines() {
 		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
@@ -321,13 +333,18 @@ public class Hand {
 		}
 		return maxLines;
 	}
-//
-//	public ArrayList<VectorLine> getCurrentTouchLines() {
-//		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
-//		for (TouchAnalysis touch : runningTouchAnalysis) {
-//			lines.add(touch.getCurrentLine());
-//		}
-//		return lines;
-//	}
+
+	//
+	// public ArrayList<VectorLine> getCurrentTouchLines() {
+	// ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
+	// for (TouchAnalysis touch : runningTouchAnalysis) {
+	// lines.add(touch.getCurrentLine());
+	// }
+	// return lines;
+	// }
+
+	public ComfortScale getComfortScale() {
+		return comfortScale;
+	}
 
 }

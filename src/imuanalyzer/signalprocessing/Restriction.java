@@ -19,7 +19,18 @@ public class Restriction {
 	}
 
 	public Restriction() {
+	}
 
+	public boolean isRollAllowed() {
+		return (minRoll != maxRoll);
+	}
+
+	public boolean isPitchAllowed() {
+		return (minPitch != maxPitch);
+	}
+
+	public boolean isYawAllowed() {
+		return (minYaw != maxYaw);
 	}
 
 	public double maxYaw = Double.MAX_VALUE;

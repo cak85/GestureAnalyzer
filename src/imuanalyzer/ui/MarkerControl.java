@@ -69,11 +69,14 @@ public class MarkerControl extends JPanel {
 
 	Playback playback;
 
+	Visual3d visual3d;
+
 	public MarkerControl(MainFrame frame, Visual3d visual3d,
 			IOrientationSensors _sensor, Hand hand) {
 		this.sensor = _sensor;
 		this.hand = hand;
 		this.frame = frame;
+		this.visual3d = visual3d;
 		myInstance = this;
 
 		playback = new Playback(hand, sensor);
@@ -92,7 +95,6 @@ public class MarkerControl extends JPanel {
 		JButton buttonBack = new JButton(icon);
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
-		// buttonBack.setBorderPainted(false);
 		buttonBack.setToolTipText("Select previous marker");
 		buttonBack.addActionListener(new ActionListener() {
 
@@ -110,7 +112,6 @@ public class MarkerControl extends JPanel {
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
 		buttonRec.setToolTipText("Record movement");
-		// buttonRec.setBorderPainted(false);
 		buttonRec.addActionListener(new ActionListener() {
 
 			@Override
@@ -134,7 +135,6 @@ public class MarkerControl extends JPanel {
 		buttonStop = new JButton(icon);
 		buttonStop.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonStop.setContentAreaFilled(false);
-		// buttonStop.setBorderPainted(false);
 		buttonStop.setToolTipText("Stop recording or playback");
 		buttonStop.addActionListener(new ActionListener() {
 
@@ -151,7 +151,6 @@ public class MarkerControl extends JPanel {
 		JButton buttonPlay = new JButton(icon);
 		buttonPlay.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonPlay.setContentAreaFilled(false);
-		// buttonBack.setBorderPainted(false);
 		buttonPlay.setToolTipText("Playback of current marker");
 		buttonPlay.addActionListener(new ActionListener() {
 
@@ -169,7 +168,6 @@ public class MarkerControl extends JPanel {
 		JButton buttonForward = new JButton(icon);
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonForward.setContentAreaFilled(false);
-		// buttonForward.setBorderPainted(false);
 		buttonForward.setToolTipText("Select next marker");
 		buttonForward.addActionListener(new ActionListener() {
 
@@ -187,7 +185,6 @@ public class MarkerControl extends JPanel {
 		JButton buttonEject = new JButton(icon);
 		buttonEject.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonEject.setContentAreaFilled(false);
-		// buttonEject.setBorderPainted(false);
 		buttonEject.setToolTipText("Open markers for analyzing");
 		buttonEject.addActionListener(new ActionListener() {
 			@Override
@@ -204,7 +201,6 @@ public class MarkerControl extends JPanel {
 		JButton buttonDelete = new JButton(icon);
 		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonDelete.setContentAreaFilled(false);
-		// buttonDelete.setBorderPainted(false);
 		buttonDelete.setToolTipText("Delete current marker and dependent data");
 		buttonDelete.addActionListener(new ActionListener() {
 			@Override
@@ -219,9 +215,7 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
 
 		JButton buttonSave = new JButton(icon);
-		// buttonSave.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonSave.setContentAreaFilled(false);
-		// buttonSave.setBorderPainted(false);
 		buttonSave.setToolTipText("Save current marker's raw data to csv");
 		buttonSave.addActionListener(new ActionListener() {
 			@Override
@@ -237,12 +231,14 @@ public class MarkerControl extends JPanel {
 		markerComboBox.setEditable(true);
 
 		updateMarkers();
+		markerComboBox.setSelectedIndex(markerComboBox.getItemCount() - 1);
 		markerComboBox.addItemListener(new ItemListener() {
-			
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
-				currentActiveMarker = markers.get(markerComboBox
-						.getSelectedIndex());
+				int index = markerComboBox.getSelectedIndex();
+				if (index > -1) {
+					currentActiveMarker = markers.get(index);
+				}
 			}
 		});
 
@@ -347,7 +343,7 @@ public class MarkerControl extends JPanel {
 				newAnalyses.calculate(selector.getSelectedCalculationMode(),
 						selectedMarkers, sensor.getCurrentFilter(),
 						currentSavedMotionJoints, currentSavedTouchJoints);
-				frame.getVisual3d().setAnalyses(newAnalyses);
+				visual3d.setAnalyses(newAnalyses);
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",
 						JOptionPane.INFORMATION_MESSAGE);
@@ -387,7 +383,8 @@ public class MarkerControl extends JPanel {
 		}
 		markerComboBox.setSelectedIndex(i - 1);
 
-		if (markers.size() > markerComboBox.getSelectedIndex()) {
+		if (markers.size() > markerComboBox.getSelectedIndex()
+				&& markers.size() > 0) {
 			currentActiveMarker = markers
 					.get(markerComboBox.getSelectedIndex());
 		}
