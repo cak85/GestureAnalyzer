@@ -156,7 +156,7 @@ public class MarkerControl extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				playback.play(currentActiveMarker);
+				startPlayback();
 			}
 		});
 
@@ -246,6 +246,16 @@ public class MarkerControl extends JPanel {
 
 	}
 
+	private void startPlayback() {
+		if (sensor.isConnected()) {
+			JOptionPane.showMessageDialog(myInstance,
+					"Please disconnect device before starting playback",
+					"Information", JOptionPane.WARNING_MESSAGE);
+		} else {
+			playback.play(currentActiveMarker);
+		}
+	}
+
 	private void saveMarker() {
 		JFileChooser fileChooser = new JFileChooser(".");
 		FileFilter filterCSV = new ExtensionFileFilter("CSV",
@@ -258,11 +268,11 @@ public class MarkerControl extends JPanel {
 				selectedFile = new File(selectedFile + ".csv");
 			}
 
-			System.out.println(selectedFile.getAbsolutePath());
+			LOGGER.info(selectedFile.getAbsolutePath());
 			db.writeImuDataToCsv(getCurrentMarker(),
 					selectedFile.getAbsolutePath());
 		} else if (status == JFileChooser.CANCEL_OPTION) {
-			System.out.println(JFileChooser.CANCEL_OPTION);
+			LOGGER.info(JFileChooser.CANCEL_OPTION);
 		}
 
 	}

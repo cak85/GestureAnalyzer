@@ -44,12 +44,6 @@
 	<classpathentry kind="lib" path="/home/toffer/Dropbox/workspace/jME3/lib/nifty-style-black.jar"/>
 	<classpathentry kind="lib" path="/home/toffer/Dropbox/workspace/jME3/lib/stack-alloc.jar"/>
 	<classpathentry kind="lib" path="/home/toffer/Dropbox/workspace/jME3/lib/xmlpull-xpp3.jar"/>
-	<classpathentry kind="lib" path="lib/com-sun-tools-visualvm-charts.jar"/>
-	<classpathentry kind="lib" path="lib/com-sun-tools-visualvm-uisupport.jar"/>
-	<classpathentry kind="lib" path="lib/org-netbeans-lib-profiler-charts.jar"/>
-	<classpathentry kind="lib" path="lib/org-netbeans-lib-profiler-ui.jar"/>
-	<classpathentry kind="lib" path="lib/org-openide-util.jar"/>
-	<classpathentry kind="lib" path="lib/org-openide-util-lookup.jar"/>
 	<classpathentry kind="lib" path="lib/seaglasslookandfeel-0.1.7.3.jar"/>
 	<classpathentry kind="lib" path="/home/toffer/Dropbox/workspace/jME3/lib/vecmath.jar"/>
 	<classpathentry kind="lib" path="lib/h2-1.3.166.jar"/>

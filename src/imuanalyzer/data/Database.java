@@ -3,7 +3,7 @@ package imuanalyzer.data;
 import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
-import imuanalyzer.signalprocessing.ComfortScale;
+import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.tools.SensorVector;
 
@@ -286,7 +286,7 @@ public class Database {
 		return false;
 	}
 
-	public void writeComfortData(ComfortScale comfort, java.util.Date timestamp) {
+	public void writeFeelingData(FeelingScale comfort, java.util.Date timestamp) {
 
 		for (int i = 0; i < comfort.getCurrentValues().size(); i++) {
 			PreparedStatement stmt = null;
@@ -311,7 +311,7 @@ public class Database {
 		}
 	}
 
-	public void deleteComfortData(Marker marker) {
+	public void deleteFeelingData(Marker marker) {
 
 		PreparedStatement statement = null;
 
@@ -350,21 +350,23 @@ public class Database {
 		}
 	}
 
-	public ComfortScale selectComfortData(java.util.Date timestamp,
-			ComfortScale comfortScale) {
-		ComfortScale result = null;
+	public FeelingScale selectFeelingData(java.util.Date timestamp,
+			FeelingScale comfortScale) {
+		FeelingScale result = null;
 
 		StringBuilder select = new StringBuilder("select ")
 				.append(COMFORT_TABLE_NUMBER).append(" , ")
 				.append(COMFORT_TABLE_VALUE).append(" from ")
 				.append(COMFORT_TABLE_NAME).append(" where ")
-				.append(COMFORT_TABLE_TIME).append("==? ORDER BY")
+				.append(COMFORT_TABLE_TIME)
+				.append(" between ? and ? ORDER BY ")
 				.append(COMFORT_TABLE_NUMBER);
 
 		PreparedStatement stmt = null;
 		try {
 			stmt = conn.prepareStatement(select.toString());
 			stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
+			stmt.setTimestamp(2, new Timestamp(timestamp.getTime()));
 			ResultSet res = stmt.executeQuery();
 			while (res.next()) {
 				comfortScale.setValueInPercent(

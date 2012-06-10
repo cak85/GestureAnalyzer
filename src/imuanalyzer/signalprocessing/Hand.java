@@ -41,27 +41,27 @@ public class Hand {
 	/**
 	 * save subjective feelings about gesture
 	 */
-	protected ComfortScale comfortScale;
+	protected volatile FeelingScale feelingScale;
 
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
 		this.currentMarker = marker;
-
-		if (sensors != null) {
-			// register for record notification
-			sensors.setRecordDataNotifyListener(comfortScale);
-		}
-
+		
 		try {
 			db = Database.getInstance();
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
-
+		
 		ArrayList<Integer> values = new ArrayList<Integer>();
 		values.add(0);
-		comfortScale = new ComfortScale(-5, +5, values);
+		feelingScale = new FeelingScale(-5, +5, values);
 
+		if (sensors != null) {
+			// register for record notification
+			sensors.setRecordDataNotifyListener(feelingScale);
+		}
+		
 		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
 
 		Joint elemKT = new Joint(this, JointType.KT, sensors,
@@ -322,8 +322,8 @@ public class Hand {
 		return maxLines;
 	}
 
-	public ComfortScale getComfortScale() {
-		return comfortScale;
+	public FeelingScale getComfortScale() {
+		return feelingScale;
 	}
 
 }

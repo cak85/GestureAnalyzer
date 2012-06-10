@@ -106,7 +106,7 @@ public class Playback {
 					} catch (InterruptedException e) {
 						LOGGER.error(e);
 					}
-					db.selectComfortData(currentPeriod, hand.getComfortScale());
+					db.selectFeelingData(currentPeriod, hand.getComfortScale());
 					orientationManager.processImuData(currentSet.clone(),
 							currentSet[0].getSamplePeriod());
 					currentPeriod = newData.getTimeStamp();

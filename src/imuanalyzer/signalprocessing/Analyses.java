@@ -192,7 +192,7 @@ public class Analyses {
 								// order array by id
 								currentSet[newData.getId()] = newData;
 							} else {
-								db.selectComfortData(currentPeriod, hand.getComfortScale());
+								db.selectFeelingData(currentPeriod, hand.getComfortScale());
 								orientationManager.processImuData(currentSet.clone(),
 										newData.getSamplePeriod());
 								currentPeriod = newData.getTimeStamp();

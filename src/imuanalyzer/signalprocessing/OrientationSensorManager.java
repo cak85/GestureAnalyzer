@@ -4,7 +4,6 @@ import imuanalyzer.data.Database;
 import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuEvent;
 import imuanalyzer.device.ImuRawData;
-import imuanalyzer.device.ImuReader;
 import imuanalyzer.device.ImuUpdateListener;
 import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.FilterFactory;
@@ -109,10 +108,10 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 							final double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
 									/ (double) 1000;
-							//LOGGER.debug("SamplePeriod: " + samplePeriod);
+							// LOGGER.debug("SamplePeriod: " + samplePeriod);
 
 							lastFilterUpdate = newFilterUpdate;
-							
+
 							synchronized (filterEditLock) {
 								if (isRecording) { // should never be true on
 									// processing recorded data
@@ -139,7 +138,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 	public void processImuData(final ImuRawData data[],
 			final double samplePeriod) {
 
-		//LOGGER.debug("Process IMU Sampleperiod " + samplePeriod);
+		// LOGGER.debug("Process IMU Sampleperiod " + samplePeriod);
 
 		// update filters in logical order
 		for (FilterMapping fm : filters) {
@@ -168,7 +167,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 			SensorVector magneto = data[i].getMagnetometer();
 			SensorVector gyro = data[i].getGyroskope();
 			if (i > data[i].getId()) {
-				System.out.println("ERRRRRRRRRRROOOOOOOR");
+				LOGGER.error("ERRRRRRRRRRROOOOOOOR");
 			}
 			database.writeImuData(data[i].getId(), accel, gyro, magneto,
 					samplePeriod, timestamp);
@@ -204,7 +203,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public boolean connect(String port) {
 		try {
-			imureader.setPortName(port);
+			imureader.connectToPort(port);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -260,6 +259,11 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public void setRecordDataNotifyListener(IRecordDataNotify listener) {
 		recordListener = listener;
+	}
+
+	@Override
+	public boolean isConnected() {
+		return imureader.isConnected();
 	}
 
 }

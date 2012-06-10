@@ -8,9 +8,9 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-public class ComfortScale implements IRecordDataNotify {
+public class FeelingScale implements IRecordDataNotify {
 
-	private static final Logger LOGGER = Logger.getLogger(ComfortScale.class
+	private static final Logger LOGGER = Logger.getLogger(FeelingScale.class
 			.getName());
 
 	int min;
@@ -19,7 +19,7 @@ public class ComfortScale implements IRecordDataNotify {
 
 	Database db;
 
-	public ComfortScale(int min, int max, ArrayList<Integer> currentValues) {
+	public FeelingScale(int min, int max, ArrayList<Integer> currentValues) {
 		this.min = min;
 		this.max = max;
 		this.currentValues = currentValues;
@@ -46,14 +46,14 @@ public class ComfortScale implements IRecordDataNotify {
 	public void setMax(int max) {
 		this.max = max;
 	}
-	
-	public double getPercentValue(int value){
-		return (double)(value-min)/(double)(max-min);
+
+	public double getPercentValue(int index) {
+		return (double) (currentValues.get(index) - min) / (double) (max - min);
 	}
 
 	@Override
 	public synchronized void notifyRecordNewData(Date timestamp) {
-		db.writeComfortData(this, timestamp);
+		db.writeFeelingData(this, timestamp);
 	}
 
 	public ArrayList<Integer> getCurrentValues() {
@@ -63,23 +63,23 @@ public class ComfortScale implements IRecordDataNotify {
 	public void setCurrentValues(ArrayList<Integer> currentValues) {
 		this.currentValues = currentValues;
 	}
-	
-	public void addValue(int value){
+
+	public void addValue(int value) {
 		currentValues.add(value);
 	}
-	
-	public void addValueInPercent(double value){
+
+	public void addValueInPercent(double value) {
 		addValue(percentToValue(value));
 	}
-	
-	private int percentToValue(double value){
-		return (int)(min+(max-min)*value);
+
+	private int percentToValue(double value) {
+		return (int) (min + (max - min) * value);
 	}
-	
-	public void setValueInPercent(int i,double value){
-		if(currentValues.size()>=i){
+
+	public void setValueInPercent(int i, double value) {
+		if (currentValues.size() <= i) {
 			currentValues.add(percentToValue(value));
-		}else{
+		} else {
 			currentValues.set(i, percentToValue(value));
 		}
 	}

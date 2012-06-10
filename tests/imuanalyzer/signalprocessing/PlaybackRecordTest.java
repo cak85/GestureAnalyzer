@@ -280,11 +280,16 @@ public class PlaybackRecordTest {
 		}
 
 		@Override
-		public void setPortName(String portName) throws Exception {
+		public void connectToPort(String portName) throws Exception {
 		}
 
 		@Override
 		public void close() {
+		}
+
+		@Override
+		public boolean isConnected() {
+			return true;
 		}
 
 	}

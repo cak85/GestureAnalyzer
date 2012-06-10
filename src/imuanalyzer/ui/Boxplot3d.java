@@ -14,6 +14,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 
 public class Boxplot3d extends Node {
@@ -32,6 +33,7 @@ public class Boxplot3d extends Node {
 	Geometry line = null;
 
 	ArrayList<Geometry> cylinders = new ArrayList<Geometry>();
+	ArrayList<Geometry> boxes = new ArrayList<Geometry>();
 
 	ColorRGBA mainColor = ColorRGBA.Red;
 	ColorRGBA medianColor = ColorRGBA.Black;
@@ -78,6 +80,33 @@ public class Boxplot3d extends Node {
 
 		return cylinder;
 	}
+	
+	private Geometry getBox(int index, ColorRGBA color, float height,
+			float radius) {
+		Geometry box = null;
+
+		if (index < boxes.size()) {
+			box = boxes.get(index);
+			box.getMaterial().setColor("Color", color);
+			Box mesh = (Box) box.getMesh();
+			mesh.updateGeometry(new Vector3f(), radius, radius, height);
+			box.updateModelBound();
+		} else { // add newone
+			box = new Geometry("cylinder", new Box(radius, radius, height));
+
+			Material mat = new Material(assetManager,
+					"Common/MatDefs/Misc/Unshaded.j3md");
+			// mat.getAdditionalRenderState().setFaceCullMode(
+			// FaceCullMode.Off);
+			mat.setColor("Color", color);
+			box.setMaterial(mat);
+
+			boxes.add(box);
+			this.attachChild(box);
+		}
+
+		return box;
+	}
 
 	private void updateData() {
 		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
@@ -89,6 +118,7 @@ public class Boxplot3d extends Node {
 			LOGGER.debug("Maxline length " + maxLine.getLength());
 
 			int cylinderIndex = 0;
+			int boxIndex = 0;
 
 			ArrayList<Vector3f> maxlineBuffer = maxLine.getLineBuffer();
 			if (maxlineBuffer.size() > 5) { // TODO arbitrary number ....
@@ -130,8 +160,8 @@ public class Boxplot3d extends Node {
 				// Outliner
 				for (Object o : t.getOutliners()) {
 					VectorLine outLiner = (VectorLine) o;
-					Geometry gOut = getCylinder(cylinderIndex++, outlinerColor,
-							SEGMENTHEIGTH, OUTLINERRADIUS,true);
+					Geometry gOut = getBox(boxIndex++, outlinerColor,
+							SEGMENTHEIGTH, OUTLINERRADIUS);
 					LOGGER.debug("Outliner: " + outLiner.getLength());
 					getPosAndDirectionLength(maxlineBuffer,
 							outLiner.getLength(), pos, direction);

@@ -14,10 +14,10 @@ import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
-public class ImuReader implements SerialPortEventListener,IIMUDataProvider {
-	
-	private static final Logger LOGGER = Logger
-	.getLogger(ImuReader.class.getName());
+public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
+
+	private static final Logger LOGGER = Logger.getLogger(ImuReader.class
+			.getName());
 
 	private static final int BAUDRATE = 115200;
 	private static final int TIMEOUT = 2000;
@@ -45,7 +45,7 @@ public class ImuReader implements SerialPortEventListener,IIMUDataProvider {
 			throws Exception {
 		this.numberOfIMUs = numberOfIMUs;
 		this.continousMode = continousMode;
-		
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -216,7 +216,7 @@ public class ImuReader implements SerialPortEventListener,IIMUDataProvider {
 		return eventManager;
 	}
 
-	public void setPortName(String portName) throws Exception {
+	public void connectToPort(String portName) throws Exception {
 		close();
 		this.portName = portName;
 
@@ -225,6 +225,11 @@ public class ImuReader implements SerialPortEventListener,IIMUDataProvider {
 
 	public String getPortName() {
 		return portName;
+	}
+
+	@Override
+	public boolean isConnected() {
+		return (portName != null);
 	}
 
 }

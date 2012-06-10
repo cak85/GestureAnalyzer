@@ -5,7 +5,9 @@ public interface IIMUDataProvider {
 
 	void calibrate();
 
-	void setPortName(String portName) throws Exception;
+	void connectToPort(String portName) throws Exception;
 
 	void close();
+	
+	boolean isConnected();
 }

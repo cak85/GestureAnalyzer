@@ -14,8 +14,10 @@ public interface IOrientationSensors {
 	void calibrate();
 
 	boolean connect(String port);
-
+	
 	void disconnect();
+	
+	boolean isConnected();
 
 	void setFilterType(FilterTypes filterType);
 	
