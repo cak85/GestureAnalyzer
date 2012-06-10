@@ -17,6 +17,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
@@ -35,7 +36,16 @@ public class MainFrame extends JFrame {
 
 		setLookAndFeel();
 
-		new MainFrame();
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				new MainFrame();
+
+			}
+
+		});
+
 	}
 
 	private static void setLookAndFeel() {
@@ -68,8 +78,9 @@ public class MainFrame extends JFrame {
 	protected Visual3d visual3d;
 	protected IOrientationSensors sensors;
 
-	protected OrientationChart chartOrientation;
-	protected AccelerationChart chartsAcceleration;
+	protected OrientationChartManager chartOrientation;
+	protected AccelerationChartManager chartsAcceleration;
+	protected FeelingChartManager chartsFeeling;
 
 	protected Hand hand;
 
@@ -91,7 +102,7 @@ public class MainFrame extends JFrame {
 
 		create3dPanel();
 
-		createGraphPanel();
+		createChartManager();
 
 		createMenu();
 
@@ -100,6 +111,8 @@ public class MainFrame extends JFrame {
 		createSettingsTab();
 
 		this.setVisible(true);
+
+		pack();
 	}
 
 	private void createTabs() {
@@ -116,7 +129,7 @@ public class MainFrame extends JFrame {
 
 	private void configureFrame() {
 		this.setTitle("IMUAnalyzer");
-		this.setSize(1024, 768);
+		this.setSize(1280, 768);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
@@ -125,7 +138,7 @@ public class MainFrame extends JFrame {
 
 	protected void createMenu() {
 		JMenuBar menuBar = new MainMenuBar(hand, visual3d, sensors,
-				chartOrientation, chartsAcceleration);
+				chartOrientation, chartsAcceleration, chartsFeeling);
 
 		this.setJMenuBar(menuBar);
 	}
@@ -144,26 +157,14 @@ public class MainFrame extends JFrame {
 		mainPanel.add(visual3d.get3dPanel(), c);
 	}
 
-	protected void createGraphPanel() {
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		// c.ipady = 40; // make this component tall
-		c.weightx = 0.0;
-		c.gridwidth = 5;
-		c.gridheight = 2;
-		c.gridx = 0;
-		c.gridy = 0;
+	protected void createChartManager() {
 
-		JPanel graphPanel = new JPanel();
-		graphPanel.setLayout(new GridLayout(1, 2));
+		chartOrientation = new OrientationChartManager(hand);
 
-		chartOrientation = new OrientationChart(hand);
-		graphPanel.add(chartOrientation);
+		chartsAcceleration = new AccelerationChartManager(hand);
 
-		chartsAcceleration = new AccelerationChart(hand);
-		graphPanel.add(chartsAcceleration);
+		chartsFeeling = new FeelingChartManager(hand);
 
-		mainPanel.add(graphPanel, c);
 	}
 
 	protected void createSettingsTab() {
@@ -182,7 +183,7 @@ public class MainFrame extends JFrame {
 
 	protected void createToolbars() {
 
-		infoBox = new InfoBox(hand);
+		infoBox = new InfoBox(this);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.CENTER;
@@ -197,7 +198,7 @@ public class MainFrame extends JFrame {
 		mainPanel.add(infoBox, c);
 		visual3d.setInfoBox(infoBox);
 
-		JPanel toolBarPanel = new ToolbarPanel(hand, sensors);
+		JPanel toolBarPanel = new ToolbarPanel(hand, sensors, this);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.CENTER;
@@ -226,5 +227,12 @@ public class MainFrame extends JFrame {
 
 		mainPanel.add(markerControl, c);
 
+	}
+
+	public void refresh() {
+		System.out.println("Refresh");
+//		 pack(); //would also work! but would destroy user settings
+		visual3d.get3dPanel().setVisible(false);
+		visual3d.get3dPanel().setVisible(true);
 	}
 }

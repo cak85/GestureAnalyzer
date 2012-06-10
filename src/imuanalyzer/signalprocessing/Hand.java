@@ -41,7 +41,7 @@ public class Hand {
 	/**
 	 * save subjective feelings about gesture
 	 */
-	protected ComfortScale comfortScale = new ComfortScale(-5, +5, 0);
+	protected ComfortScale comfortScale;
 
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
@@ -57,6 +57,10 @@ public class Hand {
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
+
+		ArrayList<Integer> values = new ArrayList<Integer>();
+		values.add(0);
+		comfortScale = new ComfortScale(-5, +5, values);
 
 		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
 
@@ -310,22 +314,6 @@ public class Hand {
 		return runningTouchAnalysis;
 	}
 
-	// public ArrayList<VectorLine> getMaxMotionLines() {
-	// ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
-	// for (MotionAnalysis m : runningMotionAnalysis) {
-	// maxLines.addAll(m.getMaxLine());
-	// }
-	// return maxLines;
-	// }
-	//
-	// public ArrayList<VectorLine> getMinMotionLines() {
-	// ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
-	// for (MotionAnalysis m : runningMotionAnalysis) {
-	// minLines.addAll(m.getMinLine());
-	// }
-	// return minLines;
-	// }
-	//
 	public ArrayList<VectorLine> getMaxTouchLines() {
 		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
@@ -333,15 +321,6 @@ public class Hand {
 		}
 		return maxLines;
 	}
-
-	//
-	// public ArrayList<VectorLine> getCurrentTouchLines() {
-	// ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
-	// for (TouchAnalysis touch : runningTouchAnalysis) {
-	// lines.add(touch.getCurrentLine());
-	// }
-	// return lines;
-	// }
 
 	public ComfortScale getComfortScale() {
 		return comfortScale;

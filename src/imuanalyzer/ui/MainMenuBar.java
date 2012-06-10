@@ -29,22 +29,24 @@ public class MainMenuBar extends JMenuBar {
 	protected Visual3d visual3d;
 	protected IOrientationSensors sensors;
 
-	protected OrientationChart chartOrientation;
-	protected AccelerationChart chartsAcceleration;
+	protected OrientationChartManager chartOrientation;
+	protected AccelerationChartManager chartsAcceleration;
+	protected FeelingChartManager feelingChart;
 
 	protected Hand hand;
 
-	JMenuBar instance;
+	private JMenuBar instance;
 
 	public MainMenuBar(Hand _hand, Visual3d _visual3d,
-			IOrientationSensors _sensors, OrientationChart _chartOrientation,
-			AccelerationChart _chartsAcceleration) {
+			IOrientationSensors _sensors, OrientationChartManager _chartOrientation,
+			AccelerationChartManager _chartsAcceleration, FeelingChartManager _feelingChart) {
 		instance = this;
 		hand = _hand;
 		visual3d = _visual3d;
 		sensors = _sensors;
 		chartOrientation = _chartOrientation;
 		chartsAcceleration = _chartsAcceleration;
+		feelingChart = _feelingChart;
 
 		JMenu menu;
 		JMenuItem menuItem;
@@ -145,18 +147,27 @@ public class MainMenuBar extends JMenuBar {
 
 		menu = new JMenu("View");
 
-		JMenu submenuAdd = new JMenu("Add chart");
-		JMenu submenuRemove = new JMenu("Remove chart");
+		JMenu submenuChart = new JMenu("Show chart");
 
-		menu.add(submenuAdd);
-		menu.add(submenuRemove);
+		menu.add(submenuChart);
+		
+
+		JMenuItem menuitemFeeling = new JMenuItem("Feeling chart");
+		menuitemFeeling.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				feelingChart.enable();
+			}
+		});
+		submenuChart.add(menuitemFeeling);
 
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 
 			Joint j = entry.getValue();
 			final JointType type = entry.getKey();
 
-			JMenu jointMenuAdd = new JMenu(j.getName());
+			JMenu jointMenuAdd = new JMenu(j.getInfoName());
 
 			JMenuItem submenuitemAddOrientation = new JMenuItem("Orientation");
 			submenuitemAddOrientation.addActionListener(new ActionListener() {
@@ -179,33 +190,7 @@ public class MainMenuBar extends JMenuBar {
 			});
 
 			jointMenuAdd.add(submenuitemAddAccelerartion);
-			submenuAdd.add(jointMenuAdd);
-
-			JMenu jointMenuRemove = new JMenu(j.getName());
-
-			JMenuItem submenuitemRemoveOrientation = new JMenuItem(
-					"Orientation");
-			submenuitemRemoveOrientation
-					.addActionListener(new ActionListener() {
-
-						@Override
-						public void actionPerformed(ActionEvent arg0) {
-							chartOrientation.removeChart(type);
-						}
-					});
-			jointMenuRemove.add(submenuitemRemoveOrientation);
-			JMenuItem submenuitemRemoveAcceleration = new JMenuItem(
-					"Acceleration");
-			submenuitemRemoveAcceleration
-					.addActionListener(new ActionListener() {
-
-						@Override
-						public void actionPerformed(ActionEvent arg0) {
-							chartsAcceleration.removeChart(type);
-						}
-					});
-			jointMenuRemove.add(submenuitemRemoveAcceleration);
-			submenuRemove.add(jointMenuRemove);
+			submenuChart.add(jointMenuAdd);
 		}
 
 		JCheckBoxMenuItem checkMenuItem = new JCheckBoxMenuItem("Right Hand");
@@ -219,7 +204,7 @@ public class MainMenuBar extends JMenuBar {
 			}
 		});
 		menu.add(checkMenuItem);
-		
+
 		checkMenuItem = new JCheckBoxMenuItem("Show live hand");
 		checkMenuItem.setSelected(true);
 		checkMenuItem.addChangeListener(new ChangeListener() {

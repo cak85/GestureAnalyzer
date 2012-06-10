@@ -1,15 +1,23 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.ui.Boxplot3d;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 /**
  * Generate all statistic data over VectorLines which are necessary for boxplots
+ * 
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class VectorLineStatistics implements IBoxplotData {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(VectorLineStatistics.class.getName());
 
 	private float median = 0;
 	private float max = 0;
@@ -19,9 +27,11 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	ArrayList<VectorLine> lines;
 
+	ArrayList<Object> outliners = new ArrayList<Object>();
+
 	public VectorLineStatistics(ArrayList<VectorLine> lines) {
 		this.lines = lines;
-		for(VectorLine l:lines){
+		for (VectorLine l : lines) {
 			l.updateLength();
 		}
 		Collections.sort(lines);
@@ -29,8 +39,7 @@ public class VectorLineStatistics implements IBoxplotData {
 		// now we have a ordered collection of touch lines
 
 		if (linesSize > 1) {
-			max = lines.get(lines.size() - 1).getLength();
-			min = lines.get(0).getLength();
+
 			median = calcMedian(lines);
 			if (lines.size() % 2 == 0) {
 				lowerQuantile = calcMedian(lines.subList(0,
@@ -43,6 +52,12 @@ public class VectorLineStatistics implements IBoxplotData {
 				upperQuantile = calcMedian(lines.subList(
 						(int) (lines.size() / 2f), lines.size()));
 			}
+
+			lines = eliminateOutliners(lines, lowerQuantile, upperQuantile);
+
+			max = lines.get(lines.size() - 1).getLength();
+			min = lines.get(0).getLength();
+
 		} else if (linesSize == 1) {
 			median = lines.get(0).getLength();
 			max = median;
@@ -52,6 +67,34 @@ public class VectorLineStatistics implements IBoxplotData {
 		}
 	}
 
+	private ArrayList<VectorLine> eliminateOutliners(
+			ArrayList<VectorLine> calcSet, float lowerQuantile,
+			float upperQuantile) {
+
+		double IQR = upperQuantile - lowerQuantile;
+
+		double lowOutlinersBorder = lowerQuantile - 1.5 * IQR;
+
+		double highOutlinersBorder = upperQuantile + 1.5 * IQR;
+
+		LOGGER.debug("IQR: " + IQR + " Border low: " + lowOutlinersBorder
+				+ " Border high: " + highOutlinersBorder);
+
+		ArrayList<VectorLine> cleanedLines = new ArrayList<VectorLine>();
+
+		for (VectorLine v : calcSet) {
+			if (v.length > lowOutlinersBorder && v.length < highOutlinersBorder) {
+				cleanedLines.add(v);
+			} else {
+				outliners.add(v);
+				LOGGER.debug("Outliner detected: " + v.length);
+			}
+		}
+
+		return cleanedLines;
+
+	}
+
 	private float calcMedian(List<VectorLine> calcSet) {
 		int pos = calcSet.size() / 2;
 
@@ -59,7 +102,7 @@ public class VectorLineStatistics implements IBoxplotData {
 		// if gerade
 		if (calcSet.size() % 2 == 0) {
 			// calculating average
-			float len1 = calcSet.get(pos-1).getLength();
+			float len1 = calcSet.get(pos - 1).getLength();
 			float len2 = calcSet.get(pos).getLength();
 
 			median = (len1 + len2) / 2;
@@ -96,6 +139,11 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	public VectorLine getMinObj() {
 		return lines.get(0);
+	}
+
+	@Override
+	public ArrayList<Object> getOutliners() {
+		return outliners;
 	}
 
 }

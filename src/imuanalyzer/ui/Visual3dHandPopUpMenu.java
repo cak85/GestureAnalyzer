@@ -136,11 +136,11 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 	}
 
 	private void addInfo() {
-		infoBox.addJointAngle(jointType);
+		infoBox.addInfo(hand.getJoint(jointType));
 	}
 
 	private void removeInfo() {
-		infoBox.removeJointAngle(jointType);
+		infoBox.removeInfo(hand.getJoint(jointType));
 	}
 
 	private void startColorSettings() {

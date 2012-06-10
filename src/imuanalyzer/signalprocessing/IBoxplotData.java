@@ -1,5 +1,7 @@
 package imuanalyzer.signalprocessing;
 
+import java.util.ArrayList;
+
 public interface IBoxplotData {
 	public float getMedian() ;
 
@@ -14,4 +16,6 @@ public interface IBoxplotData {
 	public Object getMaxObj() ;
 
 	public Object getMinObj() ;
+	
+	public ArrayList<Object> getOutliners();
 }

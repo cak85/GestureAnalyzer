@@ -2,7 +2,6 @@ package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.VectorLine;
-import imuanalyzer.signalprocessing.VectorLineStatistics;
 
 import java.util.ArrayList;
 
@@ -23,7 +22,9 @@ public class Boxplot3d extends Node {
 			.getName());
 
 	private static final float SEGMENTHEIGTH = 0.05f;
-	private static final float SEGMENTRADIUS = 0.2f;
+	private static final float WHISKERRADIUS = 0.2f;
+	private static final float MEDIANRADIUS = WHISKERRADIUS;
+	private static final float OUTLINERRADIUS = WHISKERRADIUS / 2;
 	private static final float SEGMENTOFFSET = 0.05f;
 
 	ArrayList<IBoxplotData> statistics;
@@ -36,6 +37,7 @@ public class Boxplot3d extends Node {
 	ColorRGBA medianColor = ColorRGBA.Black;
 	ColorRGBA boxColor = ColorRGBA.Orange;
 	ColorRGBA extremaColor = ColorRGBA.Pink;
+	ColorRGBA outlinerColor = ColorRGBA.Pink;
 
 	AssetManager assetManager;
 
@@ -50,18 +52,18 @@ public class Boxplot3d extends Node {
 	}
 
 	private Geometry getCylinder(int index, ColorRGBA color, float height,
-			float radius) {
+			float radius, boolean closed) {
 		Geometry cylinder = null;
 
 		if (index < cylinders.size()) {
 			cylinder = cylinders.get(index);
 			cylinder.getMaterial().setColor("Color", color);
 			Cylinder mesh = (Cylinder) cylinder.getMesh();
-			mesh.updateGeometry(10, 10, radius, radius, height, true, false);
+			mesh.updateGeometry(10, 10, radius, radius, height, closed, false);
 			cylinder.updateModelBound();
 		} else { // add newone
 			cylinder = new Geometry("cylinder", new Cylinder(10, 10, radius,
-					height, true));
+					height, closed));
 
 			Material mat = new Material(assetManager,
 					"Common/MatDefs/Misc/Unshaded.j3md");
@@ -98,7 +100,7 @@ public class Boxplot3d extends Node {
 
 				// /MEDIAN
 				Geometry median = getCylinder(cylinderIndex++, medianColor,
-						SEGMENTHEIGTH, SEGMENTRADIUS + SEGMENTOFFSET);
+						SEGMENTHEIGTH, MEDIANRADIUS + SEGMENTOFFSET,true);
 				LOGGER.debug("Median: " + t.getMedian());
 				getPosAndDirectionLength(maxlineBuffer, t.getMedian(), pos,
 						direction);
@@ -106,10 +108,10 @@ public class Boxplot3d extends Node {
 				rotation.lookAt(direction, up);
 				median.setLocalRotation(rotation);
 
-				// Extrema
+				// whisker
 				Geometry max = getCylinder(cylinderIndex++, extremaColor,
-						SEGMENTHEIGTH, SEGMENTRADIUS);
-				LOGGER.debug("Extrema high: " + t.getMax());
+						SEGMENTHEIGTH, WHISKERRADIUS,true);
+				LOGGER.debug("Whisker high: " + t.getMax());
 				getPosAndDirectionLength(maxlineBuffer, t.getMax(), pos,
 						direction);
 				max.setLocalTranslation(pos);
@@ -117,13 +119,26 @@ public class Boxplot3d extends Node {
 				max.setLocalRotation(rotation);
 
 				Geometry min = getCylinder(cylinderIndex++, extremaColor,
-						SEGMENTHEIGTH, SEGMENTRADIUS);
-				LOGGER.debug("Extrema low: " + t.getMin());
+						SEGMENTHEIGTH, WHISKERRADIUS,true);
+				LOGGER.debug("Whisker low: " + t.getMin());
 				getPosAndDirectionLength(maxlineBuffer, t.getMin(), pos,
 						direction);
 				min.setLocalTranslation(pos);
 				rotation.lookAt(direction, up);
 				min.setLocalRotation(rotation);
+
+				// Outliner
+				for (Object o : t.getOutliners()) {
+					VectorLine outLiner = (VectorLine) o;
+					Geometry gOut = getCylinder(cylinderIndex++, outlinerColor,
+							SEGMENTHEIGTH, OUTLINERRADIUS,true);
+					LOGGER.debug("Outliner: " + outLiner.getLength());
+					getPosAndDirectionLength(maxlineBuffer,
+							outLiner.getLength(), pos, direction);
+					gOut.setLocalTranslation(pos);
+					rotation.lookAt(direction, up);
+					gOut.setLocalRotation(rotation);
+				}
 
 				// / BOX
 				LOGGER.debug("Quantile low: " + t.getLowerQuantile());
@@ -167,7 +182,7 @@ public class Boxplot3d extends Node {
 		Vector3f pos = pos2.subtract(direction.mult(0.5f)); // get mid position
 
 		Geometry box = getCylinder(cylinderIndex, boxColor, direction.length(),
-				SEGMENTRADIUS);
+				WHISKERRADIUS,true);
 
 		box.setLocalTranslation(pos);
 		rotation.lookAt(direction, up);

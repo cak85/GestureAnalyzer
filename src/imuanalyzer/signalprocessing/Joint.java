@@ -3,6 +3,7 @@ package imuanalyzer.signalprocessing;
 import imuanalyzer.filter.IFilterListener;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.IInfoContent;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class Joint implements IFilterListener, IJoint {
+public class Joint implements IFilterListener, IJoint,IInfoContent {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(Joint.class.getName());
@@ -290,7 +291,7 @@ public class Joint implements IFilterListener, IJoint {
 		return localOrientation;
 	}
 
-	public String getName() {
+	public String getInfoName() {
 		return type.toString();
 	}
 
@@ -424,6 +425,46 @@ public class Joint implements IFilterListener, IJoint {
 		lastMovePosDiff.clear();
 		
 		return ret;
+	}
+
+	@Override
+	public String getInfoValue() {
+		Joint joint = this;
+		IJoint parent = joint.getParent();
+
+		Quaternion quat = null;
+		if (parent != null) {
+			quat = joint
+					.getWorldOrientation()
+					.quaternionProduct(
+							parent.getWorldOrientation()
+									.getConjugate());
+		} else {
+			quat = joint.getLocalOrientation();
+		}
+		double[] angles = quat
+				.getAnglesRadFromQuaternion();
+		Restriction restriction = joint
+				.getRestriction();
+
+		StringBuffer values = new StringBuffer("");
+		if (restriction.isRollAllowed()) {
+			values.append("x:");
+			values.append(String.format("%.1f",
+					angles[0] * 180 / Math.PI));
+		}
+		if (restriction.isPitchAllowed()) {
+			values.append("y:");
+			values.append(String.format("%.1f",
+					angles[1] * 180 / Math.PI));
+		}
+		if (restriction.isYawAllowed()) {
+			values.append("z:");
+			values.append(String.format("%.1f",
+					angles[2] * 180 / Math.PI));
+		}
+		
+		return values.toString();
 	}
 
 }

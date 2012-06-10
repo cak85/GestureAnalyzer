@@ -721,19 +721,19 @@ public class Visual3d extends SimpleApplication {
 	private void attachCoordinateAxes(Vector3f pos) {
 		Arrow arrow = new Arrow(Vector3f.UNIT_X.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(coordinateAxes, arrow, ColorRGBA.Orange.clone())
+		putShape(coordinateAxes, arrow, ColorRGBA.Red.clone())
 				.setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Y.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
-		putShape(coordinateAxes, arrow, ColorRGBA.Cyan.clone())
+		putShape(coordinateAxes, arrow, ColorRGBA.Green.clone())
 				.setLocalTranslation(pos);
 
 		arrow = new Arrow(Vector3f.UNIT_Z.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
 		// violett
 		putShape(coordinateAxes, arrow,
-				new ColorRGBA(138 / 255f, 43 / 255f, 226 / 255f, 1))
+				ColorRGBA.Blue)
 				.setLocalTranslation(pos);
 		rootNode.attachChild(coordinateAxes);
 	}

@@ -36,8 +36,7 @@ public class Database {
 	final static String COMFORT_TABLE_NAME = "Comfort";
 	final static String COMFORT_TABLE_TIME = "Time";
 	final static String COMFORT_TABLE_VALUE = "Value";
-	final static String COMFORT_TABLE_MIN = "Min";
-	final static String COMFORT_TABLE_MAX = "Max";
+	final static String COMFORT_TABLE_NUMBER = "Number";
 
 	final static String IMU_MARKER_TABLE_NAME = "Marker";
 	final static String IMU_MARKER_TABLE_ID = "Id";
@@ -99,10 +98,9 @@ public class Database {
 
 	static final StringBuilder writeComfortData = new StringBuilder(
 			"insert into ").append(COMFORT_TABLE_NAME).append(" (")
-			.append(COMFORT_TABLE_TIME).append(",").append(COMFORT_TABLE_MIN)
-			.append(",").append(COMFORT_TABLE_MAX).append(",")
-			.append(COMFORT_TABLE_VALUE).append(",")
-			.append(") values (?,?,?,?)");
+			.append(COMFORT_TABLE_TIME).append(",")
+			.append(COMFORT_TABLE_NUMBER).append(",")
+			.append(COMFORT_TABLE_VALUE).append(",").append(") values (?,?,?)");
 
 	protected Database() throws SQLException {
 		conn = DriverManager.getConnection("jdbc:h2:" + DATABASE_NAME
@@ -178,9 +176,9 @@ public class Database {
 			createString = new StringBuilder("create table ")
 					.append(COMFORT_TABLE_NAME).append(" (")
 					.append(COMFORT_TABLE_TIME).append(" TIMESTAMP, ")
-					.append(COMFORT_TABLE_MIN).append(" INT, ")
-					.append(COMFORT_TABLE_MAX).append(" INT, ")
-					.append(COMFORT_TABLE_VALUE).append(" INT, ").append(");");
+					.append(COMFORT_TABLE_NUMBER).append(" INT, ")
+					.append(COMFORT_TABLE_VALUE).append(" DOUBLE, ")
+					.append(");");
 			execute(createString.toString());
 		}
 
@@ -290,23 +288,24 @@ public class Database {
 
 	public void writeComfortData(ComfortScale comfort, java.util.Date timestamp) {
 
-		PreparedStatement stmt = null;
-		try {
-			stmt = conn.prepareStatement(writeComfortData.toString());
-			stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
-			stmt.setDouble(2, comfort.getMin());
-			stmt.setDouble(3, comfort.getMax());
-			stmt.setDouble(4, comfort.getCurrentValue());
-			stmt.execute();
-			stmt.close();
-		} catch (SQLException ex) {
-			LOGGER.error(ex);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					LOGGER.error(e);
+		for (int i = 0; i < comfort.getCurrentValues().size(); i++) {
+			PreparedStatement stmt = null;
+			try {
+				stmt = conn.prepareStatement(writeComfortData.toString());
+				stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
+				stmt.setInt(2, i);
+				stmt.setDouble(3, comfort.getPercentValue(i));
+				stmt.execute();
+				stmt.close();
+			} catch (SQLException ex) {
+				LOGGER.error(ex);
+			} finally {
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException e) {
+						LOGGER.error(e);
+					}
 				}
 			}
 		}
@@ -351,25 +350,26 @@ public class Database {
 		}
 	}
 
-	public ComfortScale selectComfortData(java.util.Date timestamp) {
+	public ComfortScale selectComfortData(java.util.Date timestamp,
+			ComfortScale comfortScale) {
 		ComfortScale result = null;
 
 		StringBuilder select = new StringBuilder("select ")
-				.append(COMFORT_TABLE_MIN).append(",")
-				.append(COMFORT_TABLE_MAX).append(",")
-				.append(COMFORT_TABLE_VALUE).append(",").append(" from ")
+				.append(COMFORT_TABLE_NUMBER).append(" , ")
+				.append(COMFORT_TABLE_VALUE).append(" from ")
 				.append(COMFORT_TABLE_NAME).append(" where ")
-				.append(COMFORT_TABLE_TIME).append("==?");
+				.append(COMFORT_TABLE_TIME).append("==? ORDER BY")
+				.append(COMFORT_TABLE_NUMBER);
 
 		PreparedStatement stmt = null;
 		try {
 			stmt = conn.prepareStatement(select.toString());
 			stmt.setTimestamp(1, new Timestamp(timestamp.getTime()));
 			ResultSet res = stmt.executeQuery();
-			if (res.next()) {
-				result = new ComfortScale(res.getInt(COMFORT_TABLE_MIN),
-						res.getInt(COMFORT_TABLE_MAX),
-						res.getInt(COMFORT_TABLE_VALUE));
+			while (res.next()) {
+				comfortScale.setValueInPercent(
+						res.getInt(COMFORT_TABLE_NUMBER),
+						res.getDouble(COMFORT_TABLE_VALUE));
 			}
 			stmt.close();
 		} catch (SQLException ex) {

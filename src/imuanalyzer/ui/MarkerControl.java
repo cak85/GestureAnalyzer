@@ -294,9 +294,12 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void stopRecording() {
-		currentActiveMarker.setEnd(new Date(new java.util.Date().getTime()));
+		if (currentActiveMarker != null) {
+			currentActiveMarker
+					.setEnd(new Date(new java.util.Date().getTime()));
+			db.setMarker(currentActiveMarker);
+		}
 		sensor.setRecording(false);
-		db.setMarker(currentActiveMarker);
 		playback.stop();
 	}
 

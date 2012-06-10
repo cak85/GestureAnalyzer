@@ -100,16 +100,17 @@ public class Playback {
 					currentSet[newData.getId()] = newData;
 				} else {
 					try {
-//						LOGGER.debug("Sampleperiod: "
-//								+ (long) (currentSet[0].getSamplePeriod() * 1000));
+						// LOGGER.debug("Sampleperiod: "
+						// + (long) (currentSet[0].getSamplePeriod() * 1000));
 						Thread.sleep((long) (currentSet[0].getSamplePeriod() * 1000));
 					} catch (InterruptedException e) {
 						LOGGER.error(e);
 					}
+					db.selectComfortData(currentPeriod, hand.getComfortScale());
 					orientationManager.processImuData(currentSet.clone(),
 							currentSet[0].getSamplePeriod());
 					currentPeriod = newData.getTimeStamp();
-					//do not forget to process current item
+					// do not forget to process current item
 					currentSet[newData.getId()] = newData;
 				}
 			}

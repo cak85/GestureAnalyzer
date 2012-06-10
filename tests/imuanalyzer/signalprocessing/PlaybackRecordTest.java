@@ -4,23 +4,20 @@
 package imuanalyzer.signalprocessing;
 
 import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map.Entry;
-
-import imuanalyzer.configuration.Configuration;
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuEvent;
 import imuanalyzer.device.ImuEventManager;
 import imuanalyzer.device.ImuRawData;
-import imuanalyzer.device.ImuReader;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.tools.SensorVector;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -280,17 +277,14 @@ public class PlaybackRecordTest {
 
 		@Override
 		public void calibrate() {
-			// TODO Auto-generated method stub
 		}
 
 		@Override
 		public void setPortName(String portName) throws Exception {
-			// TODO Auto-generated method stub
 		}
 
 		@Override
 		public void close() {
-			// TODO Auto-generated method stub
 		}
 
 	}
