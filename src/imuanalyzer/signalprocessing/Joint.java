@@ -66,7 +66,6 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 			boolean storeLastMovement) {
 		if (lastMeasuredOrientation.equals(measuredOrientation)) {
 			lastActiveChange.set(1, 0, 0, 0);
-			;
 			return localOrientation;
 		} else {
 			lastMeasuredOrientation = measuredOrientation;
