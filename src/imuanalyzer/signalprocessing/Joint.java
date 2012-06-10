@@ -78,7 +78,7 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 
 			// substract change of parent/reference for getting the local frame
 			measuredOrientation = measuredOrientation.quaternionProduct(parent
-					.getLastActiveChange());
+					.getLastActiveChange().getConjugate());
 
 			this.localOrientation = updateWithRestrictions(measuredOrientation);
 
