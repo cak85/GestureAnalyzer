@@ -20,21 +20,28 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -121,54 +128,63 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec.png"));
 
 		buttonRec = new JToggleButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_stop_red.png"));
+		icon = new ImageIcon(getClass()
+				.getResource("/Icons/sq_br_stop_red.png"));
 		buttonRec.setSelectedIcon(icon);
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
 		buttonRec.setToolTipText("Record movement");
-		buttonRec.addActionListener(new ActionListener() {
-
+		buttonRec.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				KeyStroke.getKeyStroke("F8"), "Record");
+		buttonRec.getActionMap().put("Record", new ActionAdapter() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public boolean isEnabled() {
 				if (buttonRec.isSelected()) {
+					buttonRec.setSelected(false);
+					stopRecording();
+				} else {					
 					Object selectedItem = markerComboBox.getSelectedItem();
 
 					if (selectedItem != null) {
+						buttonRec.setSelected(true);
 						startRecording(selectedItem.toString());
 					} else {
 						JOptionPane.showMessageDialog(myInstance,
 								"Please enter a valid dataset name",
 								"Information", JOptionPane.WARNING_MESSAGE);
 					}
-				} else {
-					stopRecording();
 				}
+				return false;
 			}
 		});
-
 		this.add(buttonRec);
 
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_next.png"));
 
 		buttonPlay = new JToggleButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_stop_green.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_stop_green.png"));
 		buttonPlay.setSelectedIcon(icon);
 		buttonPlay.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonPlay.setContentAreaFilled(false);
 		buttonPlay.setToolTipText("Play current dataset");
-		buttonPlay.addActionListener(new ActionListener() {
-
+		buttonPlay.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				KeyStroke.getKeyStroke("F6"), "Play");
+		buttonPlay.getActionMap().put("Play", new ActionAdapter() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public boolean isEnabled() {
 				if (buttonPlay.isSelected()) {
-					startPlayback();
-				} else {
+					buttonPlay.setSelected(false);
 					stopPlayback();
+				} else {
+					buttonPlay.setSelected(true);
+					startPlayback();
 				}
+				return false;
 			}
 		});
-
 		this.add(buttonPlay);
+
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/playback_reloaded_button.png"));
 		buttonRepeat = new JToggleButton(icon);
