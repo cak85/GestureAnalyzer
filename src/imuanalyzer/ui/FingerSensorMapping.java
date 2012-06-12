@@ -64,37 +64,37 @@ public class FingerSensorMapping extends JPanel {
 
 		this.add(infoText, BorderLayout.NORTH);
 
-		addHandSpinner(JointType.HR, 245, 350);
+		addHandSpinner(JointType.HAND_ROOT, 245, 350);
 
-		addHandSpinner(JointType.DT, 30, 275);
+		addHandSpinner(JointType.THUMB_TOP, 30, 275);
 
-		addHandSpinner(JointType.DM, 76, 318);
+		addHandSpinner(JointType.THUMB_MID, 76, 318);
 
-		addHandSpinner(JointType.DD, 120, 370);
+		addHandSpinner(JointType.THUMB_BOTTOM, 120, 370);
 
-		addHandSpinner(JointType.ZT, 120, 75);
+		addHandSpinner(JointType.INDEX_TOP, 120, 75);
 
-		addHandSpinner(JointType.ZM, 127, 135);
+		addHandSpinner(JointType.INDEX_MID, 127, 135);
 
-		addHandSpinner(JointType.ZD, 160, 195);
+		addHandSpinner(JointType.INDEX_BOTTOM, 160, 195);
 
-		addHandSpinner(JointType.MT, 235, 40);
+		addHandSpinner(JointType.MIDDLE_TOP, 235, 40);
 
-		addHandSpinner(JointType.MM, 232, 110);
+		addHandSpinner(JointType.MIDDLE_MID, 232, 110);
 
-		addHandSpinner(JointType.MD, 230, 170);
+		addHandSpinner(JointType.MIDDLE_BOTTOM, 230, 170);
 
-		addHandSpinner(JointType.RT, 327, 58);
+		addHandSpinner(JointType.RING_TOP, 327, 58);
 
-		addHandSpinner(JointType.RM, 312, 120);
+		addHandSpinner(JointType.RING_MID, 312, 120);
 
-		addHandSpinner(JointType.RD, 300, 190);
+		addHandSpinner(JointType.RING_BOTTOM, 300, 190);
 
-		addHandSpinner(JointType.KT, 400, 150);
+		addHandSpinner(JointType.LITTLE_TOP, 400, 150);
 
-		addHandSpinner(JointType.KM, 380, 190);
+		addHandSpinner(JointType.LITTLE_MID, 380, 190);
 
-		addHandSpinner(JointType.KD, 360, 230);
+		addHandSpinner(JointType.LITTLE_BOTTOM, 360, 230);
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());

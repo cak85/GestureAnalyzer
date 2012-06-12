@@ -25,7 +25,7 @@ public class Boxplot3d extends Node {
 	private static final float SEGMENTHEIGTH = 0.05f;
 	private static final float WHISKERRADIUS = 0.2f;
 	private static final float MEDIANRADIUS = WHISKERRADIUS;
-	private static final float OUTLINERRADIUS = WHISKERRADIUS / 2;
+	private static final float OUTLINERSIDELENGTH = WHISKERRADIUS / 3;
 	private static final float SEGMENTOFFSET = 0.05f;
 
 	ArrayList<IBoxplotData> statistics;
@@ -161,7 +161,7 @@ public class Boxplot3d extends Node {
 				for (Object o : t.getOutliners()) {
 					VectorLine outLiner = (VectorLine) o;
 					Geometry gOut = getBox(boxIndex++, outlinerColor,
-							SEGMENTHEIGTH, OUTLINERRADIUS);
+							SEGMENTHEIGTH, OUTLINERSIDELENGTH);
 					LOGGER.debug("Outliner: " + outLiner.getLength());
 					getPosAndDirectionLength(maxlineBuffer,
 							outLiner.getLength(), pos, direction);
@@ -170,7 +170,7 @@ public class Boxplot3d extends Node {
 					gOut.setLocalRotation(rotation);
 				}
 
-				// / BOX
+				// BOX
 				LOGGER.debug("Quantile low: " + t.getLowerQuantile());
 				LOGGER.debug("Quantile high: " + t.getUpperQuantile());
 				Vector3f pos1 = new Vector3f();
@@ -193,9 +193,7 @@ public class Boxplot3d extends Node {
 					addCylinderBetweenTwoPoits(cylinderIndex++,
 							boxLine.get(j - 1), boxLine.get(j));
 				}
-
 			}
-
 		}
 
 		Utils.updateLinesVec(line, lines, mainColor);

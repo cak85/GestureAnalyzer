@@ -91,7 +91,7 @@ public class Visual3d extends SimpleApplication {
 	/**
 	 * Current Joint for manual manipulation
 	 */
-	private JointType currentManipulatedJoint = JointType.HR;
+	private JointType currentManipulatedJoint = JointType.HAND_ROOT;
 
 	/**
 	 * Enum representing an axis selection
@@ -841,7 +841,7 @@ public class Visual3d extends SimpleApplication {
 				for (Geometry geom : linesPoolTouch) {
 					geom.removeFromParent();
 				}
-				linesPoolMotion.clear();
+				linesPoolTouch.clear();
 				return null;
 			}
 		});

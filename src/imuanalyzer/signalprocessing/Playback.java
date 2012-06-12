@@ -28,6 +28,8 @@ public class Playback {
 
 	volatile boolean stop = false;
 
+	IPlaybackNotify notifier = null;
+
 	public Playback(Hand hand, IOrientationSensors orientationManager) {
 		this.hand = hand;
 		this.orientationManager = orientationManager;
@@ -38,7 +40,7 @@ public class Playback {
 		}
 	}
 
-	public void play(Marker marker) {
+	public void play(Marker marker, boolean loop) {
 		if (currentThread != null
 				&& (currentThread.getState() == State.RUNNABLE || currentThread
 						.getState() == State.TIMED_WAITING)) {
@@ -53,7 +55,7 @@ public class Playback {
 		if (currentThread == null
 				|| currentThread.getState() == State.TERMINATED) {
 			stop = false;
-			currentThread = new Thread(new PlaybackRunnable(this, marker));
+			currentThread = new Thread(new PlaybackRunnable(this, marker, loop));
 			currentThread.start();
 		}
 		LOGGER.debug(currentThread.getState());
@@ -63,76 +65,93 @@ public class Playback {
 		stop = true;
 	}
 
-	protected void internalPlay(Marker marker) {
+	protected void internalPlay(Marker marker, boolean loop) {
 		ArrayList<ImuRawData> rawData = db.getImuData(marker);
 
 		Marker oldMarker = hand.getCurrentMarker();
 		hand.setCurrentMarker(marker);
 		hand.loadJointMappingFromMarker();
 
-		// set initial orientation
-		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
-			JointType type = entry.getKey();
-			Joint joint = entry.getValue();
-			// initial orientation
-			joint.setLocalOrientation(db.getInitialOrientation(marker, type));
-			joint.setLocalPosition(db.getInitialPosition(marker, type));
-		}
+		do {
 
-		// calculate movement based on recorded raw data
-		if (rawData.size() > 0) {
+			// set initial orientation and position
+			for (Entry<JointType, Joint> entry : hand.getJointSet()) {
+				JointType type = entry.getKey();
+				Joint joint = entry.getValue();
+				joint.setLocalOrientation(db
+						.getInitialOrientation(marker, type));
+				joint.setLocalPosition(db.getInitialPosition(marker, type));
+			}
 
-			Date currentPeriod = rawData.get(0).getTimeStamp();
-			ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
+			// calculate movement based on recorded raw data
+			if (rawData.size() > 0) {
 
-			for (int i = 0; i < rawData.size(); i++) {
+				Date currentPeriod = rawData.get(0).getTimeStamp();
+				ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
 
-				if (stop) {
-					break;
-				}
+				for (int i = 0; i < rawData.size(); i++) {
 
-				ImuRawData newData = rawData.get(i);
-				Date newPeriod = newData.getTimeStamp();
-
-				if (newPeriod.compareTo(currentPeriod) == 0
-						&& newData.getId() < currentSet.length) {
-					// order array by id
-					currentSet[newData.getId()] = newData;
-				} else {
-					try {
-						// LOGGER.debug("Sampleperiod: "
-						// + (long) (currentSet[0].getSamplePeriod() * 1000));
-						Thread.sleep((long) (currentSet[0].getSamplePeriod() * 1000));
-					} catch (InterruptedException e) {
-						LOGGER.error(e);
+					if (stop) {
+						loop = false;
+						break;
 					}
-					db.selectFeelingData(currentPeriod, hand.getComfortScale());
-					orientationManager.processImuData(currentSet.clone(),
-							currentSet[0].getSamplePeriod());
-					currentPeriod = newData.getTimeStamp();
-					// do not forget to process current item
-					currentSet[newData.getId()] = newData;
+
+					ImuRawData newData = rawData.get(i);
+					Date newPeriod = newData.getTimeStamp();
+
+					if (newPeriod.compareTo(currentPeriod) == 0
+							&& newData.getId() < currentSet.length) {
+						// order array by id
+						currentSet[newData.getId()] = newData;
+					} else {
+						try {
+							// LOGGER.debug("Sampleperiod: "
+							// + (long) (currentSet[0].getSamplePeriod() *
+							// 1000));
+							Thread.sleep((long) (currentSet[0]
+									.getSamplePeriod() * 1000));
+						} catch (InterruptedException e) {
+							LOGGER.error(e);
+						}
+						db.selectFeelingData(currentPeriod,
+								hand.getComfortScale());
+						orientationManager.processImuData(currentSet.clone(),
+								currentSet[0].getSamplePeriod());
+						currentPeriod = newData.getTimeStamp();
+						// do not forget to process current item
+						currentSet[newData.getId()] = newData;
+					}
 				}
 			}
-		}
+		} while (loop);
 
 		hand.setCurrentMarker(oldMarker);
 		hand.loadJointMappingFromMarker();
+
+		if (notifier != null) {
+			notifier.playbackStopped();
+		}
+	}
+
+	public void setNotifyer(IPlaybackNotify notifier) {
+		this.notifier = notifier;
 	}
 
 	class PlaybackRunnable implements Runnable {
 
 		Marker marker;
 		Playback player;
+		boolean loop;
 
-		public PlaybackRunnable(Playback player, Marker marker) {
+		public PlaybackRunnable(Playback player, Marker marker, boolean loop) {
 			this.player = player;
 			this.marker = marker;
+			this.loop = loop;
 		}
 
 		@Override
 		public void run() {
-			player.internalPlay(marker);
+			player.internalPlay(marker, loop);
 
 		}
 

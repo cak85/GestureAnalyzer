@@ -183,9 +183,19 @@ public class MainFrame extends JFrame {
 
 	protected void createToolbars() {
 
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0.0;
+		c.gridwidth = 5;
+		c.gridheight = 2;
+		c.gridx = 0;
+		c.gridy = 0;
+		TopToolbar topBar = new TopToolbar(visual3d);
+		mainPanel.add(topBar,c);
+
 		infoBox = new InfoBox(this);
 
-		GridBagConstraints c = new GridBagConstraints();
+		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.CENTER;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
@@ -231,7 +241,7 @@ public class MainFrame extends JFrame {
 
 	public void refresh() {
 		System.out.println("Refresh");
-//		 pack(); //would also work! but would destroy user settings
+		// pack(); //would also work! but would destroy user settings
 		visual3d.get3dPanel().setVisible(false);
 		visual3d.get3dPanel().setVisible(true);
 	}

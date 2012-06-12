@@ -60,7 +60,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridheight = 1;
 		c.insets = new Insets(20, 10, 0, 0);
 
-		JLabel filterLabel = new JLabel("Filter:");
+		JLabel filterLabel = new JLabel("Sensor-Fusion-Algorithm:");
 
 		this.add(filterLabel, c);
 

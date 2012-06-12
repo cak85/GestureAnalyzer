@@ -15,6 +15,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -38,8 +39,10 @@ public class MainMenuBar extends JMenuBar {
 	private JMenuBar instance;
 
 	public MainMenuBar(Hand _hand, Visual3d _visual3d,
-			IOrientationSensors _sensors, OrientationChartManager _chartOrientation,
-			AccelerationChartManager _chartsAcceleration, FeelingChartManager _feelingChart) {
+			IOrientationSensors _sensors,
+			OrientationChartManager _chartOrientation,
+			AccelerationChartManager _chartsAcceleration,
+			FeelingChartManager _feelingChart) {
 		instance = this;
 		hand = _hand;
 		visual3d = _visual3d;
@@ -105,6 +108,11 @@ public class MainMenuBar extends JMenuBar {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				JOptionPane
+						.showMessageDialog(
+								instance,
+								"Please position all sensor boards in stable position with bottom flat on ground\nCalibration is finished when the orange LED on the device lights up",
+								"Information", JOptionPane.INFORMATION_MESSAGE);
 				sensors.calibrate();
 				visual3d.resetHand();
 			}
@@ -150,7 +158,6 @@ public class MainMenuBar extends JMenuBar {
 		JMenu submenuChart = new JMenu("Show chart");
 
 		menu.add(submenuChart);
-		
 
 		JMenuItem menuitemFeeling = new JMenuItem("Feeling chart");
 		menuitemFeeling.addActionListener(new ActionListener() {

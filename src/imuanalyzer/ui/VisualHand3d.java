@@ -36,6 +36,8 @@ public class VisualHand3d extends Node {
 	private static final Logger LOGGER = Logger.getLogger(VisualHand3d.class
 			.getName());
 
+	public static final ColorRGBA SKELETON_COLOR = ColorRGBA.White;
+	
 	public enum HandOrientation {
 		LEFT, RIGHT
 	};
@@ -111,28 +113,28 @@ public class VisualHand3d extends Node {
 			skeletonDebug = new SkeletonDebugger("Armature", skeleton);
 			Material mat2 = new Material(assetManager,
 					"Common/MatDefs/Misc/Unshaded.j3md");
-			mat2.setColor("m_Color", ColorRGBA.Green.clone());
+			mat2.setColor("m_Color", SKELETON_COLOR.clone());
 			mat2.getAdditionalRenderState().setDepthTest(false);
 			skeletonDebug.setMaterial(mat2);
 			model.attachChild(skeletonDebug);
 		}
 
-		bones.put(JointType.KT, skeleton.getBone("Bone.KT"));
-		bones.put(JointType.KM, skeleton.getBone("Bone.KM"));
-		bones.put(JointType.KD, skeleton.getBone("Bone.KD"));
-		bones.put(JointType.RT, skeleton.getBone("Bone.RT"));
-		bones.put(JointType.RM, skeleton.getBone("Bone.RM"));
-		bones.put(JointType.RD, skeleton.getBone("Bone.RD"));
-		bones.put(JointType.MT, skeleton.getBone("Bone.MT"));
-		bones.put(JointType.MM, skeleton.getBone("Bone.MM"));
-		bones.put(JointType.MD, skeleton.getBone("Bone.MD"));
-		bones.put(JointType.ZT, skeleton.getBone("Bone.ZT"));
-		bones.put(JointType.ZM, skeleton.getBone("Bone.ZM"));
-		bones.put(JointType.ZD, skeleton.getBone("Bone.ZD"));
-		bones.put(JointType.DT, skeleton.getBone("Bone.DT"));
-		bones.put(JointType.DM, skeleton.getBone("Bone.DM"));
-		bones.put(JointType.DD, skeleton.getBone("Bone.DD"));
-		bones.put(JointType.HR, skeleton.getBone("Bone"));
+		bones.put(JointType.LITTLE_TOP, skeleton.getBone("Bone.KT"));
+		bones.put(JointType.LITTLE_MID, skeleton.getBone("Bone.KM"));
+		bones.put(JointType.LITTLE_BOTTOM, skeleton.getBone("Bone.KD"));
+		bones.put(JointType.RING_TOP, skeleton.getBone("Bone.RT"));
+		bones.put(JointType.RING_MID, skeleton.getBone("Bone.RM"));
+		bones.put(JointType.RING_BOTTOM, skeleton.getBone("Bone.RD"));
+		bones.put(JointType.MIDDLE_TOP, skeleton.getBone("Bone.MT"));
+		bones.put(JointType.MIDDLE_MID, skeleton.getBone("Bone.MM"));
+		bones.put(JointType.MIDDLE_BOTTOM, skeleton.getBone("Bone.MD"));
+		bones.put(JointType.INDEX_TOP, skeleton.getBone("Bone.ZT"));
+		bones.put(JointType.INDEX_MID, skeleton.getBone("Bone.ZM"));
+		bones.put(JointType.INDEX_BOTTOM, skeleton.getBone("Bone.ZD"));
+		bones.put(JointType.THUMB_TOP, skeleton.getBone("Bone.DT"));
+		bones.put(JointType.THUMB_MID, skeleton.getBone("Bone.DM"));
+		bones.put(JointType.THUMB_BOTTOM, skeleton.getBone("Bone.DD"));
+		bones.put(JointType.HAND_ROOT, skeleton.getBone("Bone"));
 
 		// save initial bone rotations
 		for (Entry<JointType, Bone> entry : bones.entrySet()) {

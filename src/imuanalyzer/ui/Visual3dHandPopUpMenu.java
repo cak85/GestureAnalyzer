@@ -166,6 +166,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	private void disableAnalyzeTouch() {
 		hand.removeSaveTouchLineJoint(jointType);
+		visual3d.clearTouchLines();
 	}
 
 	private void analyzeTouch() {

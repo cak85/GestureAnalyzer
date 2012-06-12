@@ -13,10 +13,13 @@ import org.apache.log4j.Logger;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class Joint implements IFilterListener, IJoint,IInfoContent {
+public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(Joint.class.getName());
+
+	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
+			0.7, 0);
 
 	protected final Lock id_lock = new ReentrantLock();
 
@@ -36,11 +39,11 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 
 	protected Hand hand;
 
-	Quaternion lastActiveChange = new Quaternion();
-	
-	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
-			0.7, 0);
+	protected Quaternion lastActiveChange = new Quaternion();
 
+	protected Quaternion lastMeasuredOrientation = new Quaternion();
+
+	protected String name;
 
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors,
 			Restriction restriction) {
@@ -48,13 +51,14 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 		this.type = f;
 		this.sensors = sensors;
 		this.restriction = restriction;
+		name = type.toString().replaceAll("_", " ").toLowerCase();
+		name = name.substring(0, 1).toUpperCase()
+				+ name.substring(1, name.length());
 	}
 
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors) {
 		this(hand, f, sensors, new Restriction());
 	}
-
-	protected Quaternion lastMeasuredOrientation = new Quaternion();
 
 	@Override
 	public Quaternion updateOrientation(Quaternion measuredOrientation) {
@@ -254,10 +258,10 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 
 	public void setLocalPosition(Quaternion pos) {
 		localPosition = pos;
-		lastSensorPos= getSensorPosition();
+		lastSensorPos = getSensorPosition();
 	}
-	
-	public Quaternion getLocalPosition(){
+
+	public Quaternion getLocalPosition() {
 		return localPosition;
 	}
 
@@ -291,7 +295,7 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 	}
 
 	public String getInfoName() {
-		return type.toString();
+		return this.toString();
 	}
 
 	public Restriction getRestriction() {
@@ -366,17 +370,15 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 	public void updateAcceleration(Quaternion acceleration) {
 		this.acceleration = acceleration;
 	}
-	
-	
-	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0,
-			3, 0);
+
+	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0, 3, 0);
 
 	Quaternion lastSensorPos;
-	
-	private Quaternion getSensorPosition(){
+
+	private Quaternion getSensorPosition() {
 		Quaternion bonePos = getWorldPosition();
 		Quaternion rotation = getWorldOrientation();
-		
+
 		return bonePos.plus(rotation.quaternionProduct(SENSOR_OFFSET)
 				.quaternionProduct(rotation.getConjugate()));
 	}
@@ -385,44 +387,45 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 	public void updateMove(Quaternion move) {
 
 		Quaternion pos = getSensorPosition();
-		
-		if(lastSensorPos==null){
+
+		if (lastSensorPos == null) {
 			lastSensorPos = pos;
 			return;
 		}
-		
+
 		Quaternion diff = pos.minus(lastSensorPos);
-		
+
 		lastSensorPos = pos;
 
-//		LOGGER.debug("Pos diff");
-//		
-//		diff.print(3);
-//		
-//		LOGGER.debug("Move update");
-//		move.print(3);	
-//		
-//		LOGGER.debug("Difference move/pos ");
-		
+		// LOGGER.debug("Pos diff");
+		//
+		// diff.print(3);
+		//
+		// LOGGER.debug("Move update");
+		// move.print(3);
+		//
+		// LOGGER.debug("Difference move/pos ");
+
 		Quaternion movePosDiff = diff.minus(move);
-		
+
 		lastMovePosDiff = lastMovePosDiff.plus(movePosDiff);
 
-//		movePosDiff.print(3);
-		
-		localPosition.plus(movePosDiff);		
+		// movePosDiff.print(3);
+
+		localPosition.plus(movePosDiff);
 	}
-	
+
 	Quaternion lastMovePosDiff = new Quaternion();
-	
-	public Quaternion getLastMove(){
+
+	public Quaternion getLastMove() {
 		Quaternion wR = getWorldOrientation();
-		
-		Quaternion ret = wR.quaternionProduct(lastMovePosDiff).quaternionProduct(wR.getConjugate());
-		//Quaternion ret = new Quaternion(lastMovePosDiff);		
-		
+
+		Quaternion ret = wR.quaternionProduct(lastMovePosDiff)
+				.quaternionProduct(wR.getConjugate());
+		// Quaternion ret = new Quaternion(lastMovePosDiff);
+
 		lastMovePosDiff.clear();
-		
+
 		return ret;
 	}
 
@@ -433,37 +436,34 @@ public class Joint implements IFilterListener, IJoint,IInfoContent {
 
 		Quaternion quat = null;
 		if (parent != null) {
-			quat = joint
-					.getWorldOrientation()
-					.quaternionProduct(
-							parent.getWorldOrientation()
-									.getConjugate());
+			quat = joint.getWorldOrientation().quaternionProduct(
+					parent.getWorldOrientation().getConjugate());
 		} else {
 			quat = joint.getLocalOrientation();
 		}
-		double[] angles = quat
-				.getAnglesRadFromQuaternion();
-		Restriction restriction = joint
-				.getRestriction();
+		double[] angles = quat.getAnglesRadFromQuaternion();
+		Restriction restriction = joint.getRestriction();
 
 		StringBuffer values = new StringBuffer("");
 		if (restriction.isRollAllowed()) {
 			values.append("x:");
-			values.append(String.format("%.1f",
-					angles[0] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[0] * 180 / Math.PI));
 		}
 		if (restriction.isPitchAllowed()) {
 			values.append("y:");
-			values.append(String.format("%.1f",
-					angles[1] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[1] * 180 / Math.PI));
 		}
 		if (restriction.isYawAllowed()) {
 			values.append("z:");
-			values.append(String.format("%.1f",
-					angles[2] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[2] * 180 / Math.PI));
 		}
-		
+
 		return values.toString();
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 
 }

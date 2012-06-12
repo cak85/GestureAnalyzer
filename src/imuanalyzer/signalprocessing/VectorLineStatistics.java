@@ -54,9 +54,10 @@ public class VectorLineStatistics implements IBoxplotData {
 			}
 
 			lines = eliminateOutliners(lines, lowerQuantile, upperQuantile);
-
-			max = lines.get(lines.size() - 1).getLength();
-			min = lines.get(0).getLength();
+			if (lines.size() > 0) {
+				max = lines.get(lines.size() - 1).getLength();
+				min = lines.get(0).getLength();
+			}
 
 		} else if (linesSize == 1) {
 			median = lines.get(0).getLength();

@@ -22,7 +22,7 @@ public class MotionAnalysis {
 	Joint observedJoint;
 
 	protected LinkedList<MovementStep> savedMovementFlow = new LinkedList<MovementStep>();
-	protected JointType saveMovementStartJoint = JointType.RD;
+	protected JointType saveMovementStartJoint = JointType.RING_BOTTOM;
 	protected Boolean saveMovement = false;
 	protected double movementMinDifference = 0.12;
 
@@ -46,6 +46,8 @@ public class MotionAnalysis {
 		savedMovementFlow.clear();
 		addInitialSavedMove();
 	}
+	
+	MovementStep lastChanged;
 
 	public void update(Joint updatedBy) {
 
@@ -63,9 +65,10 @@ public class MotionAnalysis {
 
 		StoredJointState newState = new StoredJointState(observedJoint,
 				observedJoint.parent, true);
+		
 
-		if (savedMovementFlow.size() > 0) {
-			StoredJointState lastState = savedMovementFlow.getLast().getMove();
+		if(lastChanged!=null){
+			StoredJointState lastState = lastChanged.getMove();
 
 			if (!newState.hasAngelDifferenceGreaterThan(lastState,
 					MIN_ANGLE_DIFFERENCE)) {
@@ -80,7 +83,7 @@ public class MotionAnalysis {
 		// if yes increase counter
 		for (int i = 0; i < savedMovementFlow.size() - 1; i++) {
 			MovementStep m = savedMovementFlow.get(i);
-			if (m.getMove().equals(newState)) {
+			if (m!=lastChanged && m.getMove().equals(newState)) {
 				m.incCount();
 				LOGGER.debug("Find existing position - Increase count");
 				return;
@@ -92,7 +95,8 @@ public class MotionAnalysis {
 		checkExtrema(newState);
 
 		// LOGGER.debug("Created new one");
-		savedMovementFlow.addLast(new MovementStep(newState));
+		lastChanged=new MovementStep(newState);
+		savedMovementFlow.addLast(lastChanged);
 	}
 
 	private void checkExtrema(StoredJointState newState) {

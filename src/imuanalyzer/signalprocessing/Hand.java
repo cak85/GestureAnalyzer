@@ -20,7 +20,7 @@ public class Hand {
 	 * Second letter T = Top M = Middle D = Down R = Root
 	 */
 	public enum JointType { // order is important!!
-		HR, DD, ZD, MD, RD, KD, DM, ZM, MM, RM, KM, DT, ZT, MT, RT, KT
+		HAND_ROOT, THUMB_BOTTOM, INDEX_BOTTOM, MIDDLE_BOTTOM, RING_BOTTOM, LITTLE_BOTTOM, THUMB_MID, INDEX_MID, MIDDLE_MID, RING_MID, LITTLE_MID, THUMB_TOP, INDEX_TOP, MIDDLE_TOP, RING_TOP, LITTLE_TOP
 	};
 
 	protected IOrientationSensors sensors;
@@ -64,45 +64,45 @@ public class Hand {
 		
 		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
 
-		Joint elemKT = new Joint(this, JointType.KT, sensors,
+		Joint elemKT = new Joint(this, JointType.LITTLE_TOP, sensors,
 				fingerTopRestriction);
-		Joint elemRT = new Joint(this, JointType.RT, sensors,
+		Joint elemRT = new Joint(this, JointType.RING_TOP, sensors,
 				fingerTopRestriction);
-		Joint elemMT = new Joint(this, JointType.MT, sensors,
+		Joint elemMT = new Joint(this, JointType.MIDDLE_TOP, sensors,
 				fingerTopRestriction);
-		Joint elemZT = new Joint(this, JointType.ZT, sensors,
+		Joint elemZT = new Joint(this, JointType.INDEX_TOP, sensors,
 				fingerTopRestriction);
-		Joint elemDT = new Joint(this, JointType.DT, sensors,
+		Joint elemDT = new Joint(this, JointType.THUMB_TOP, sensors,
 				fingerTopRestriction);
 
 		Restriction fingerMidRestriction = new Restriction(-1.8, 0.05, 0, 0, 0,
 				0);
 
-		Joint elemKM = new Joint(this, JointType.KM, sensors,
+		Joint elemKM = new Joint(this, JointType.LITTLE_MID, sensors,
 				fingerMidRestriction);
-		Joint elemRM = new Joint(this, JointType.RM, sensors,
+		Joint elemRM = new Joint(this, JointType.RING_MID, sensors,
 				fingerMidRestriction);
-		Joint elemMM = new Joint(this, JointType.MM, sensors,
+		Joint elemMM = new Joint(this, JointType.MIDDLE_MID, sensors,
 				fingerMidRestriction);
-		Joint elemZM = new Joint(this, JointType.ZM, sensors,
+		Joint elemZM = new Joint(this, JointType.INDEX_MID, sensors,
 				fingerMidRestriction);
-		Joint elemDM = new Joint(this, JointType.DM, sensors,
+		Joint elemDM = new Joint(this, JointType.THUMB_MID, sensors,
 				fingerMidRestriction);
 
 		Restriction fingerBottomRestriction = new Restriction(-1.5, 0.05, -0.2,
 				+0.2, 0, 0);
 
-		Joint elemKD = new Joint(this, JointType.KD, sensors,
+		Joint elemKD = new Joint(this, JointType.LITTLE_BOTTOM, sensors,
 				fingerBottomRestriction);
-		Joint elemRD = new Joint(this, JointType.RD, sensors,
+		Joint elemRD = new Joint(this, JointType.RING_BOTTOM, sensors,
 				fingerBottomRestriction);
-		Joint elemMD = new Joint(this, JointType.MD, sensors,
+		Joint elemMD = new Joint(this, JointType.MIDDLE_BOTTOM, sensors,
 				fingerBottomRestriction);
-		Joint elemZD = new Joint(this, JointType.ZD, sensors,
+		Joint elemZD = new Joint(this, JointType.INDEX_BOTTOM, sensors,
 				fingerBottomRestriction);
-		Joint elemDD = new Joint(this, JointType.DD, sensors);
+		Joint elemDD = new Joint(this, JointType.THUMB_BOTTOM, sensors);
 
-		Joint elemHR = new Joint(this, JointType.HR, sensors);
+		Joint elemHR = new Joint(this, JointType.HAND_ROOT, sensors);
 		elemHR.addChild(elemKD);
 		elemHR.addChild(elemRD);
 		elemHR.addChild(elemMD);

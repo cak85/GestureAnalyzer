@@ -74,7 +74,7 @@ public class MarkerAnalysesUi extends JDialog {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
 
-		JButton sumButton = new JButton("Sum");
+		JButton sumButton = new JButton("Boxplot");
 		sumButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -92,7 +92,7 @@ public class MarkerAnalysesUi extends JDialog {
 		});
 		buttonPanel.add(sumButton);
 
-		JButton avgButton = new JButton("Average");
+		JButton avgButton = new JButton("Motion Average");
 		avgButton.addActionListener(new ActionListener() {
 
 			@Override
