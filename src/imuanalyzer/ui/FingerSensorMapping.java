@@ -124,20 +124,30 @@ public class FingerSensorMapping extends JPanel {
 		JSpinner spinner = new JSpinner(spinnerModel);
 		Insets insets = background.getInsets();
 		spinner.setBounds(xOffset + insets.left, yOffset + insets.top, 45, 25);
-		spinner.setBackground(Color.gray);
-		spinner.setForeground(Color.red);
 
 		spinner.addChangeListener(new SensorChangeListener(finger, hand));
 
 		spinners.put(finger, spinner);
 		background.add(spinner);
 
+		updateSpinnerColor(defaultValue-1, spinner);
 		return spinner;
 	}
 
 	private void resetAllSpinners() {
 		for (Entry<JointType, JSpinner> e : spinners.entrySet()) {
 			e.getValue().setValue(0);
+		}
+	}
+
+	private void updateSpinnerColor(int id, JSpinner spinner) {
+		JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner
+				.getEditor();
+
+		if (id > -1) {
+			editor.getTextField().setBackground(Color.green);
+		} else {
+			editor.getTextField().setBackground(Color.white);
 		}
 	}
 
@@ -157,6 +167,8 @@ public class FingerSensorMapping extends JPanel {
 			int id = ((Integer) s.getValue()) - 1;
 			hand.setSensorID(f, id);
 			hand.saveJointSensorMapping(f);
+
+			updateSpinnerColor(id, s);
 		}
 
 	}
