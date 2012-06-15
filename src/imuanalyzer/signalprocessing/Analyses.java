@@ -55,11 +55,11 @@ public class Analyses {
 	FilterTypes filterType;
 	ArrayList<JointType> saveMotionJoints;
 	ArrayList<JointType> saveTouchJoints;
-	
+
 	/**
 	 * touch analysis statistics Data
 	 */
-	ArrayList<IBoxplotData> statistics ;
+	ArrayList<IBoxplotData> statistics;
 
 	public Analyses() {
 		try {
@@ -78,7 +78,7 @@ public class Analyses {
 				break;
 			case SUM:
 				calculateMotionSum();
-				calculateTouchSum();
+				calculateSum();
 				break;
 
 			default:
@@ -116,7 +116,7 @@ public class Analyses {
 			break;
 		case SUM:
 			calculateMotionSum();
-			calculateTouchSum();
+			calculateSum();
 			break;
 
 		default:
@@ -192,11 +192,13 @@ public class Analyses {
 								// order array by id
 								currentSet[newData.getId()] = newData;
 							} else {
-								db.selectFeelingData(currentPeriod, hand.getComfortScale());
-								orientationManager.processImuData(currentSet.clone(),
+								db.selectFeelingData(currentPeriod,
+										hand.getComfortScale());
+								orientationManager.processImuData(
+										currentSet.clone(),
 										newData.getSamplePeriod());
 								currentPeriod = newData.getTimeStamp();
-								//do not forget to process current item
+								// do not forget to process current item
 								currentSet[newData.getId()] = newData;
 							}
 						}
@@ -297,8 +299,8 @@ public class Analyses {
 		}
 
 	}
-	
-	private void calculateTouchSum() {
+
+	private void calculateSum() {
 		touchResult = new ArrayList<VectorLine>();
 		for (Hand h : hands) {
 			touchResult.addAll(h.getMaxTouchLines());
@@ -313,9 +315,11 @@ public class Analyses {
 						.get(i);
 				linesOfOneJointAnalysis.add(touchAnalysis.getMaxLine());
 			}
-			statistics.add(new VectorLineStatistics(linesOfOneJointAnalysis));
+			String name = Hand.jointTypeToName(saveTouchJoints.get(i));
+			statistics.add(new VectorLineStatistics(name,
+					linesOfOneJointAnalysis));
 		}
-		
+
 		for (int i = 0; i < saveMotionJoints.size(); i++) {
 			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
 			for (Hand h : hands) {
@@ -323,7 +327,9 @@ public class Analyses {
 						.get(i);
 				linesOfOneJointAnalysis.addAll(motionAnalysis.getMaxLine());
 			}
-			statistics.add(new VectorLineStatistics(linesOfOneJointAnalysis));
+			String name = Hand.jointTypeToName(saveMotionJoints.get(i));
+			statistics.add(new VectorLineStatistics(name,
+					linesOfOneJointAnalysis));
 		}
 
 	}
@@ -414,9 +420,8 @@ public class Analyses {
 		return touchResult;
 	}
 
-	public ArrayList<IBoxplotData> getTouchStatistics() {
+	public ArrayList<IBoxplotData> getStatistics() {
 		return statistics;
 	}
-
 
 }

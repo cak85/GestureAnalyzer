@@ -25,6 +25,7 @@ import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
+import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
@@ -179,7 +180,7 @@ public class Visual3d extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
-
+		
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
 		}
@@ -493,9 +494,7 @@ public class Visual3d extends SimpleApplication {
 	}
 
 	private void configureCam() {
-		flyCam.setMoveSpeed(8f);
-		flyCam.setDragToRotate(true);
-		flyCam.setEnabled(false);
+		stateManager.detach( stateManager.getState(FlyCamAppState.class));
 
 		chaseCam = new ChaseCamera(cam, visualHand, inputManager);
 		chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(
@@ -802,7 +801,7 @@ public class Visual3d extends SimpleApplication {
 			}
 			this.analysesMovementPositions = analysesMovementPositions;
 
-			touchLineStatistics.setStatistics(analyses.getTouchStatistics());
+			touchLineStatistics.setStatistics(analyses.getStatistics());
 
 			touchLineStatistics.setCullHint(CullHint.Never);
 

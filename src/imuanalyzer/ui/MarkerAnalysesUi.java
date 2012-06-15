@@ -7,25 +7,28 @@ import imuanalyzer.signalprocessing.Analyses.AnalysesMode;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
 public class MarkerAnalysesUi extends JDialog {
-	
-	private static final Logger LOGGER = Logger.getLogger(MarkerAnalysesUi.class
-			.getName());
 
+	private static final Logger LOGGER = Logger
+			.getLogger(MarkerAnalysesUi.class.getName());
 
 	/**
 	 * 
@@ -41,20 +44,24 @@ public class MarkerAnalysesUi extends JDialog {
 	AnalysesMode selectedCalculationMode = AnalysesMode.NONE;
 
 	MarkerAnalysesUi myInstance;
-	
+
 	Database db;
-	
-	public enum ReturnCode {CANCEL,OK};
-	
+
+	public enum ReturnCode {
+		CANCEL, OK
+	};
+
 	ReturnCode returnCode = ReturnCode.CANCEL;
-	
+
+	boolean showBoxplot2d = false;
+
 	public MarkerAnalysesUi(Frame parent, ArrayList<Marker> markers) {
 		super(parent, true);
-		myInstance=this;
+		myInstance = this;
 		this.markers = markers;
-		
+
 		try {
-			db= Database.getInstance();
+			db = Database.getInstance();
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
@@ -71,6 +78,25 @@ public class MarkerAnalysesUi extends JDialog {
 
 		this.add(list, BorderLayout.CENTER);
 
+		JPanel bottomPanel = new JPanel(new GridLayout(0, 1));
+
+		JPanel optionsPanel = new JPanel(new FlowLayout());
+
+		JCheckBox checkShowBoxplot2d = new JCheckBox("Show boxplot 2D ");
+		checkShowBoxplot2d.setSelected(false);
+		checkShowBoxplot2d.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				showBoxplot2d = source.isSelected();
+			}
+		});
+
+		optionsPanel.add(checkShowBoxplot2d);
+
+		bottomPanel.add(optionsPanel);
+
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
 
@@ -82,10 +108,11 @@ public class MarkerAnalysesUi extends JDialog {
 				collectSelection();
 				if (selectedMarkers.size() > 0) {
 					selectedCalculationMode = AnalysesMode.SUM;
-					returnCode=ReturnCode.OK;
-					setVisible(false);					
+					returnCode = ReturnCode.OK;
+					setVisible(false);
 				} else {
-					JOptionPane.showMessageDialog(myInstance, "You need to select at least one element",
+					JOptionPane.showMessageDialog(myInstance,
+							"You need to select at least one element",
 							"Information", JOptionPane.WARNING_MESSAGE);
 				}
 			}
@@ -100,31 +127,34 @@ public class MarkerAnalysesUi extends JDialog {
 				collectSelection();
 				if (selectedMarkers.size() > 0) {
 					selectedCalculationMode = AnalysesMode.AVG;
-					returnCode=ReturnCode.OK;
-					setVisible(false);					
+					returnCode = ReturnCode.OK;
+					setVisible(false);
 				} else {
-					JOptionPane.showMessageDialog(myInstance, "You need to select at least one element",
+					JOptionPane.showMessageDialog(myInstance,
+							"You need to select at least one element",
 							"Information", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
 		buttonPanel.add(avgButton);
-		
+
 		JButton deleteButton = new JButton("Delete");
 		deleteButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				collectSelection();
-				for(Marker m : selectedMarkers){
-					db.removeMarker(m);					
-				}	
+				for (Marker m : selectedMarkers) {
+					db.removeMarker(m);
+				}
 				setVisible(false);
 			}
 		});
 		buttonPanel.add(deleteButton);
 
-		this.add(buttonPanel, BorderLayout.SOUTH);
+		bottomPanel.add(buttonPanel);
+
+		this.add(bottomPanel, BorderLayout.SOUTH);
 
 		this.setVisible(true);
 
@@ -143,9 +173,13 @@ public class MarkerAnalysesUi extends JDialog {
 	public ArrayList<Marker> getSelectedMarkers() {
 		return selectedMarkers;
 	}
-	
+
 	public ReturnCode getReturnCode() {
 		return returnCode;
+	}
+
+	public boolean isShowBoxplot2d() {
+		return showBoxplot2d;
 	}
 
 }

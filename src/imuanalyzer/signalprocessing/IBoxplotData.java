@@ -18,4 +18,6 @@ public interface IBoxplotData {
 	public Object getMinObj() ;
 	
 	public ArrayList<Object> getOutliners();
+	
+	public String getDescription();
 }

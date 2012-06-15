@@ -19,7 +19,7 @@ import com.jme3.system.JmeSystem;
 
 /**
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class VisualStatisticsTest {
 
@@ -31,19 +31,22 @@ public class VisualStatisticsTest {
 	}
 
 	/**
-	 * Test method for {@link imuanalyzer.ui.VisualTouchLineStatistics#getStatistics()}.
+	 * Test method for
+	 * {@link imuanalyzer.ui.VisualTouchLineStatistics#getStatistics()}.
 	 */
 	@Test
 	public void testGetStatistics() {
-		AssetManager assetManager  = JmeSystem.newAssetManager(
-                Thread.currentThread().getContextClassLoader()
-                .getResource("com/jme3/asset/Desktop.cfg"));
+		AssetManager assetManager = JmeSystem.newAssetManager(Thread
+				.currentThread().getContextClassLoader()
+				.getResource("com/jme3/asset/Desktop.cfg"));
 		Boxplot3d vstat = new Boxplot3d(assetManager);
 		ArrayList<IBoxplotData> stats = new ArrayList<IBoxplotData>();
-		stats.add(new VectorLineStatistics(Helper.getExampleTouchlineEven()));
-		stats.add(new VectorLineStatistics(Helper.getExampleTouchlineOdd()));
+		stats.add(new VectorLineStatistics("Test", Helper
+				.getExampleTouchlineEven()));
+		stats.add(new VectorLineStatistics("Test", Helper
+				.getExampleTouchlineOdd()));
 		vstat.setStatistics(stats);
-		
+
 	}
 
 }

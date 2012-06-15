@@ -51,9 +51,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		this.type = f;
 		this.sensors = sensors;
 		this.restriction = restriction;
-		name = type.toString().replaceAll("_", " ").toLowerCase();
-		name = name.substring(0, 1).toUpperCase()
-				+ name.substring(1, name.length());
+		name = Hand.jointTypeToName(type);
 	}
 
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors) {

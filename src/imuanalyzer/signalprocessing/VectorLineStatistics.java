@@ -25,11 +25,14 @@ public class VectorLineStatistics implements IBoxplotData {
 	private float upperQuantile = 0;
 	private float lowerQuantile = 0;
 
-	ArrayList<VectorLine> lines;
+	protected ArrayList<VectorLine> lines;
 
-	ArrayList<Object> outliners = new ArrayList<Object>();
+	protected ArrayList<Object> outliners = new ArrayList<Object>();
 
-	public VectorLineStatistics(ArrayList<VectorLine> lines) {
+	protected String description;
+
+	public VectorLineStatistics(String description, ArrayList<VectorLine> lines) {
+		this.description = description;
 		this.lines = lines;
 		for (VectorLine l : lines) {
 			l.updateLength();
@@ -145,6 +148,11 @@ public class VectorLineStatistics implements IBoxplotData {
 	@Override
 	public ArrayList<Object> getOutliners() {
 		return outliners;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
 	}
 
 }

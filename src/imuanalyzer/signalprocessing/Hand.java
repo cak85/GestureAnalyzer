@@ -46,13 +46,13 @@ public class Hand {
 	public Hand(IOrientationSensors sensors, Marker marker) {
 		this.sensors = sensors;
 		this.currentMarker = marker;
-		
+
 		try {
 			db = Database.getInstance();
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		}
-		
+
 		ArrayList<Integer> values = new ArrayList<Integer>();
 		values.add(0);
 		feelingScale = new FeelingScale(-5, +5, values);
@@ -61,7 +61,7 @@ public class Hand {
 			// register for record notification
 			sensors.setRecordDataNotifyListener(feelingScale);
 		}
-		
+
 		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
 
 		Joint elemKT = new Joint(this, JointType.LITTLE_TOP, sensors,
@@ -324,6 +324,13 @@ public class Hand {
 
 	public FeelingScale getComfortScale() {
 		return feelingScale;
+	}
+
+	public static String jointTypeToName(JointType type) {
+		String name = type.toString().replaceAll("_", " ").toLowerCase();
+		name = name.substring(0, 1).toUpperCase()
+				+ name.substring(1, name.length());
+		return name;
 	}
 
 }

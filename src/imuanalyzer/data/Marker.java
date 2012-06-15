@@ -80,5 +80,9 @@ public class Marker {
 	public String toString() {
 		return name + description;
 	}
+	
+	public boolean isUsed(){
+		return !start.equals(end);
+	}
 
 }

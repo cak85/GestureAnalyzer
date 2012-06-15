@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
@@ -90,11 +91,11 @@ public class MarkerControl extends JPanel {
 
 	JToggleButton buttonRepeat;
 
-	public MarkerControl(MainFrame frame, Visual3d _visual3d,
+	public MarkerControl(MainFrame _frame, Visual3d _visual3d,
 			IOrientationSensors _sensor, Hand hand) {
 		this.sensor = _sensor;
 		this.hand = hand;
-		this.frame = frame;
+		this.frame = _frame;
 		this.visual3d = _visual3d;
 		myInstance = this;
 
@@ -136,13 +137,31 @@ public class MarkerControl extends JPanel {
 		buttonRec.setToolTipText("Record movement");
 		buttonRec.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 				KeyStroke.getKeyStroke("F8"), "Record");
+		buttonRec.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!buttonRec.isSelected()) {
+					stopRecording();
+				} else {
+					Object selectedItem = markerComboBox.getSelectedItem();
+
+					if (selectedItem != null) {
+						startRecording(selectedItem.toString());
+					} else {
+						JOptionPane.showMessageDialog(myInstance,
+								"Please enter a valid dataset name",
+								"Information", JOptionPane.WARNING_MESSAGE);
+					}
+				}
+			}
+		});
 		buttonRec.getActionMap().put("Record", new ActionAdapter() {
 			@Override
 			public boolean isEnabled() {
 				if (buttonRec.isSelected()) {
 					buttonRec.setSelected(false);
 					stopRecording();
-				} else {					
+				} else {
 					Object selectedItem = markerComboBox.getSelectedItem();
 
 					if (selectedItem != null) {
@@ -170,6 +189,16 @@ public class MarkerControl extends JPanel {
 		buttonPlay.setToolTipText("Play current dataset");
 		buttonPlay.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 				KeyStroke.getKeyStroke("F6"), "Play");
+		buttonPlay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (buttonPlay.isSelected()) {
+					startPlayback();
+				} else {
+					stopPlayback();
+				}
+			}
+		});
 		buttonPlay.getActionMap().put("Play", new ActionAdapter() {
 			@Override
 			public boolean isEnabled() {
@@ -229,7 +258,7 @@ public class MarkerControl extends JPanel {
 
 		this.add(buttonAnalysis);
 
-		// eject button
+		// eject buttonframe
 		icon = new ImageIcon(getClass().getResource("/Icons/trash.png"));
 
 		JButton buttonDelete = new JButton(icon);
@@ -272,13 +301,24 @@ public class MarkerControl extends JPanel {
 		markerComboBox.setEditable(true);
 
 		updateMarkers();
-		markerComboBox.setSelectedIndex(markerComboBox.getItemCount() - 1);
+		markerComboBox.setSelectedIndex(markerComboBox.getItemCount() - 2);
 		markerComboBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				int index = markerComboBox.getSelectedIndex();
 				if (index > -1) {
-					currentActiveMarker = markers.get(index);
+					if (index == markers.size()) {
+						String str = JOptionPane.showInputDialog(frame,
+								"Enter name for new dataset: ",
+								"Add new dataset", 1);
+						if (!str.isEmpty()) {
+							currentActiveMarker = new Marker(str, "");
+							db.setMarker(currentActiveMarker);
+							updateMarkers();
+						}
+					} else {
+						currentActiveMarker = markers.get(index);
+					}
 				}
 			}
 		});
@@ -342,6 +382,7 @@ public class MarkerControl extends JPanel {
 			currentActiveMarker = markers.get(index);
 			if (currentActiveMarker != null) {
 				db.deleteImuData(currentActiveMarker);
+				db.deleteFeelingData(currentActiveMarker);
 				db.removeMarker(currentActiveMarker);
 				updateMarkers();
 			}
@@ -363,26 +404,37 @@ public class MarkerControl extends JPanel {
 
 		for (int i = 0; i < markers.size(); i++) {
 			Marker m = markers.get(i);
-			if (m.getName().equals(cleanMarkerName + " " + markerNumber)) {
+			String combinedName;
+			if (cleanMarkerName.isEmpty()) {
+				combinedName = "" + markerNumber;
+			} else {
+				combinedName = cleanMarkerName + " " + markerNumber;
+			}
+			if (m.getName().equals(combinedName)) {
 				markerNumber++;
 				i = -1;// start again
 			}
 		}
 
-		return cleanMarkerName + " " + markerNumber;
+		if (cleanMarkerName.isEmpty()) {
+			return "" + markerNumber;
+		} else {
+			return cleanMarkerName + " " + markerNumber;
+		}
 	}
 
 	private void startRecording(String markerName) {
 
-		System.out.println(markerName);
+		if (currentActiveMarker.isUsed()) {
+			System.out.println(markerName);
 
-		markerName = generateMarkerName(markerName);
+			markerName = generateMarkerName(markerName);
 
-		System.out.println(markerName);
-
-		currentActiveMarker = new Marker(markerName, "");
-		db.setMarker(currentActiveMarker);
-		updateMarkers();
+			System.out.println(markerName);
+			currentActiveMarker = new Marker(markerName, "");
+			db.setMarker(currentActiveMarker);
+			updateMarkers();
+		}
 		storeInitialHandPosition(currentActiveMarker);
 		storeJointMapping(currentActiveMarker);
 		sensor.setRecording(true);
@@ -395,7 +447,19 @@ public class MarkerControl extends JPanel {
 			db.setMarker(currentActiveMarker);
 		}
 		sensor.setRecording(false);
-		playback.stop();
+
+		if (db.getImuData(currentActiveMarker).size() == 0) {
+			int selection = JOptionPane
+					.showOptionDialog(
+							frame,
+							"The recording does not include any data, do you want to keep it anyway?",
+							"Recording result", JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE, null, new String[] {
+									"Yes", "No" }, "No");
+			if (selection == JOptionPane.NO_OPTION) {
+				deleteMarker();
+			}
+		}
 	}
 
 	private void stopPlayback() {
@@ -449,6 +513,10 @@ public class MarkerControl extends JPanel {
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",
 						JOptionPane.INFORMATION_MESSAGE);
+				if (selector.isShowBoxplot2d()) {
+					new Boxplot2d("Analysis statistics",
+							newAnalyses.getStatistics());
+				}
 			}
 		} else {
 			JOptionPane.showMessageDialog(myInstance, "No markers available",
@@ -458,7 +526,7 @@ public class MarkerControl extends JPanel {
 
 	private void increaseSelectedMarker() {
 		int index = markerComboBox.getSelectedIndex();
-		if (index < (markerComboBox.getItemCount() - 1)) {
+		if (index < (markerComboBox.getItemCount() - 2)) {
 			index++;
 		}
 		markerComboBox.setSelectedIndex(index);
@@ -490,6 +558,7 @@ public class MarkerControl extends JPanel {
 			currentActiveMarker = markers
 					.get(markerComboBox.getSelectedIndex());
 		}
+		markerComboBox.addItem("new...");
 	}
 
 	private void storeJointMapping(Marker marker) {
