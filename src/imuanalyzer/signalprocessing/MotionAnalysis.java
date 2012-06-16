@@ -55,8 +55,6 @@ public class MotionAnalysis {
 			s.getMove().updateWorldOrientation();
 		}
 
-		// System.out.println("Type updatedBy = " + updatedBy.getType());
-
 		// check if updateBy is parent of currently observed joint
 		// if yes its not neccessary to update
 		if (observedJoint.hasParent(updatedBy)) {
@@ -159,6 +157,11 @@ public class MotionAnalysis {
 		return getLineToId(minIds);
 	}
 
+	/**
+	 * Get Line over given ids of saved motion states
+	 * @param ids
+	 * @return
+	 */
 	protected ArrayList<VectorLine> getLineToId(ArrayList<Integer> ids) {
 		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
 

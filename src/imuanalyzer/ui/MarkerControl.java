@@ -11,7 +11,7 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.Playback;
 import imuanalyzer.signalprocessing.TouchAnalysis;
-import imuanalyzer.ui.MarkerAnalysesUi.ReturnCode;
+import imuanalyzer.ui.AnalysisUi.ReturnCode;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -473,7 +473,7 @@ public class MarkerControl extends JPanel {
 		ArrayList<Marker> markers = db.getAvailableMarkers();
 		if (markers.size() > 0) {
 
-			MarkerAnalysesUi selector = new MarkerAnalysesUi(frame, markers);
+			AnalysisUi selector = new AnalysisUi(frame, markers);
 
 			if (selector.getReturnCode() == ReturnCode.CANCEL) {
 				updateMarkers();
@@ -499,13 +499,18 @@ public class MarkerControl extends JPanel {
 					currentSavedTouchJoints.add(t.getObservedJoint().getType());
 				}
 
+				//start calculation
 				newAnalyses.calculate(selector.getSelectedCalculationMode(),
 						selectedMarkers, sensor.getCurrentFilter(),
-						currentSavedMotionJoints, currentSavedTouchJoints);
+						currentSavedMotionJoints, currentSavedTouchJoints,
+						selector.getSpecialPoints());
+				
 				visual3d.setAnalyses(newAnalyses);
+				
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",
 						JOptionPane.INFORMATION_MESSAGE);
+				
 				if (selector.isShowBoxplot2d()) {
 					new Boxplot2d("Analysis statistics",
 							newAnalyses.getStatistics());

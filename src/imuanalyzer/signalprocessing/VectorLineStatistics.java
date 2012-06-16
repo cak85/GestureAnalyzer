@@ -27,9 +27,12 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	protected ArrayList<Object> outliners = new ArrayList<Object>();
 
+	protected ArrayList<Float> specialPoints = new ArrayList<Float>();
+
 	protected String description;
 
-	public VectorLineStatistics(String description, ArrayList<VectorLine> lines) {
+	public VectorLineStatistics(String description,
+			ArrayList<VectorLine> lines, ArrayList<Float> specialPercentPoints) {
 		this.description = description;
 		this.lines = lines;
 		for (VectorLine l : lines) {
@@ -54,10 +57,10 @@ public class VectorLineStatistics implements IBoxplotData {
 						(int) (lines.size() / 2f), lines.size()));
 			}
 
-			lines = eliminateOutliners(lines, lowerQuantile, upperQuantile);
-			if (lines.size() > 0) {
-				max = lines.get(lines.size() - 1).getLength();
-				min = lines.get(0).getLength();
+			ArrayList<VectorLine> linesWithoutOutliers = eliminateOutliners(lines, lowerQuantile, upperQuantile);
+			if (linesWithoutOutliers.size() > 0) {
+				max = linesWithoutOutliers.get(linesWithoutOutliers.size() - 1).getLength();
+				min = linesWithoutOutliers.get(0).getLength();
 			}
 
 		} else if (linesSize == 1) {
@@ -66,6 +69,13 @@ public class VectorLineStatistics implements IBoxplotData {
 			min = median;
 			upperQuantile = median;
 			lowerQuantile = median;
+		}
+
+		for (Float p : specialPercentPoints) {
+			float idx = (linesSize*p);
+			int intIdx = (int) idx;
+			LOGGER.debug("Percent: "+p +"  idx: "+idx);
+			specialPoints.add(lines.get(intIdx).getLength());
 		}
 	}
 
@@ -151,6 +161,11 @@ public class VectorLineStatistics implements IBoxplotData {
 	@Override
 	public String getDescription() {
 		return description;
+	}
+
+	@Override
+	public ArrayList<Float> getSpecialPoints() {
+		return specialPoints;
 	}
 
 }

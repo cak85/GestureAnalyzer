@@ -40,9 +40,9 @@ public class VisualStatisticsTest {
 		Boxplot3d vstat = new Boxplot3d(assetManager);
 		ArrayList<IBoxplotData> stats = new ArrayList<IBoxplotData>();
 		stats.add(new VectorLineStatistics("Test", Helper
-				.getExampleTouchlineEven()));
+				.getExampleTouchlineEven(),new ArrayList<Float>()));
 		stats.add(new VectorLineStatistics("Test", Helper
-				.getExampleTouchlineOdd()));
+				.getExampleTouchlineOdd(),new ArrayList<Float>()));
 		vstat.setStatistics(stats);
 
 	}

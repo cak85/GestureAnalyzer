@@ -28,7 +28,7 @@ public class Boxplot2dTest {
 	@Test
 	public void testConstructor() {
 		VectorLineStatistics stat = new VectorLineStatistics("Test",
-				Helper.getExampleTouchlineOddWithOutliners());
+				Helper.getExampleTouchlineOddWithOutliners(),new ArrayList<Float>());
 
 		ArrayList<IBoxplotData> statistics = new ArrayList<IBoxplotData>();
 		statistics.add(stat);

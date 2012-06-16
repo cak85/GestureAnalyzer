@@ -31,7 +31,7 @@ public class TouchLineStatisticsTest {
 	 */
 	@Test
 	public void testTouchLineStatistics() {
-		VectorLineStatistics stat = new VectorLineStatistics("TEST ",touchlines);
+		VectorLineStatistics stat = new VectorLineStatistics("TEST ",touchlines,new ArrayList<Float>());
 		assertEquals("Max", 5, stat.getMax(),0);
 		assertEquals("Min", 1, stat.getMin(),0);
 		assertEquals("Median", 3, stat.getMedian(),0);

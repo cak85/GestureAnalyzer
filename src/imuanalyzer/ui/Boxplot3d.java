@@ -24,13 +24,16 @@ public class Boxplot3d extends Node {
 
 	private static final float SEGMENTHEIGTH = 0.05f;
 	private static final float WHISKERRADIUS = 0.2f;
+	private static final float SPECIALRADIUS = 0.3f;
 	private static final float MEDIANRADIUS = WHISKERRADIUS;
 	private static final float OUTLINERSIDELENGTH = WHISKERRADIUS / 3;
 	private static final float SEGMENTOFFSET = 0.05f;
 
 	ArrayList<IBoxplotData> statistics;
 
-	Geometry line = null;
+	Geometry line;
+
+	Geometry specialPointsLine;
 
 	ArrayList<Geometry> cylinders = new ArrayList<Geometry>();
 	ArrayList<Geometry> boxes = new ArrayList<Geometry>();
@@ -40,6 +43,8 @@ public class Boxplot3d extends Node {
 	ColorRGBA boxColor = ColorRGBA.Orange;
 	ColorRGBA extremaColor = ColorRGBA.Pink;
 	ColorRGBA outlinerColor = ColorRGBA.Pink;
+	ColorRGBA specialLineColor = ColorRGBA.Gray;
+	ColorRGBA specialPointColor = ColorRGBA.Red;
 
 	AssetManager assetManager;
 
@@ -51,10 +56,31 @@ public class Boxplot3d extends Node {
 		line = Utils.CreateLine(assetManager, lineBuffer, mainColor, false, 4);
 
 		this.attachChild(line);
+
+		specialPointsLine = Utils.CreateLine(assetManager, lineBuffer,
+				mainColor, false, 4);
+
+		this.attachChild(specialPointsLine);
+
 	}
 
-	private Geometry getCylinder(int index, ColorRGBA color, float height,
-			float radius, boolean closed) {
+	public void clear() {
+		ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
+		Utils.updateLine(specialPointsLine, lineBuffer, false, specialLineColor);
+		Utils.updateLine(line, lineBuffer, false, mainColor);
+		for (Geometry g : boxes) {
+			g.removeFromParent();
+		}
+		boxes.clear();
+		for (Geometry g : cylinders) {
+			g.removeFromParent();
+		}
+		cylinders.clear();
+	}
+
+	private Geometry getCylinder(ArrayList<Geometry> cylinders, Node toAttach,
+			int index, ColorRGBA color, float height, float radius,
+			boolean closed) {
 		Geometry cylinder = null;
 
 		if (index < cylinders.size()) {
@@ -75,12 +101,12 @@ public class Boxplot3d extends Node {
 			cylinder.setMaterial(mat);
 
 			cylinders.add(cylinder);
-			this.attachChild(cylinder);
+			toAttach.attachChild(cylinder);
 		}
 
 		return cylinder;
 	}
-	
+
 	private Geometry getBox(int index, ColorRGBA color, float height,
 			float radius) {
 		Geometry box = null;
@@ -129,8 +155,9 @@ public class Boxplot3d extends Node {
 				Vector3f up = new Vector3f(0, 1, 0);
 
 				// /MEDIAN
-				Geometry median = getCylinder(cylinderIndex++, medianColor,
-						SEGMENTHEIGTH, MEDIANRADIUS + SEGMENTOFFSET,true);
+				Geometry median = getCylinder(cylinders, this, cylinderIndex++,
+						medianColor, SEGMENTHEIGTH, MEDIANRADIUS
+								+ SEGMENTOFFSET, true);
 				LOGGER.debug("Median: " + t.getMedian());
 				getPosAndDirectionLength(maxlineBuffer, t.getMedian(), pos,
 						direction);
@@ -139,8 +166,8 @@ public class Boxplot3d extends Node {
 				median.setLocalRotation(rotation);
 
 				// whisker
-				Geometry max = getCylinder(cylinderIndex++, extremaColor,
-						SEGMENTHEIGTH, WHISKERRADIUS,true);
+				Geometry max = getCylinder(cylinders, this, cylinderIndex++,
+						extremaColor, SEGMENTHEIGTH, WHISKERRADIUS, true);
 				LOGGER.debug("Whisker high: " + t.getMax());
 				getPosAndDirectionLength(maxlineBuffer, t.getMax(), pos,
 						direction);
@@ -148,8 +175,8 @@ public class Boxplot3d extends Node {
 				rotation.lookAt(direction, up);
 				max.setLocalRotation(rotation);
 
-				Geometry min = getCylinder(cylinderIndex++, extremaColor,
-						SEGMENTHEIGTH, WHISKERRADIUS,true);
+				Geometry min = getCylinder(cylinders, this, cylinderIndex++,
+						extremaColor, SEGMENTHEIGTH, WHISKERRADIUS, true);
 				LOGGER.debug("Whisker low: " + t.getMin());
 				getPosAndDirectionLength(maxlineBuffer, t.getMin(), pos,
 						direction);
@@ -157,7 +184,7 @@ public class Boxplot3d extends Node {
 				rotation.lookAt(direction, up);
 				min.setLocalRotation(rotation);
 
-				// Outliner
+				// Outlier
 				for (Object o : t.getOutliners()) {
 					VectorLine outLiner = (VectorLine) o;
 					Geometry gOut = getBox(boxIndex++, outlinerColor,
@@ -193,6 +220,31 @@ public class Boxplot3d extends Node {
 					addCylinderBetweenTwoPoits(cylinderIndex++,
 							boxLine.get(j - 1), boxLine.get(j));
 				}
+
+				// special points
+				if (t.getSpecialPoints().size() > 0) {
+					// generate special points line
+					ArrayList<Vector3f> specialPoints = new ArrayList<Vector3f>();
+					// generate special line
+					for (int j = 0; j < maxlineBuffer.size(); j++) {
+						specialPoints.add(maxlineBuffer.get(j));
+					}
+
+					for (Float p : t.getSpecialPoints()) {
+						Geometry special = getCylinder(cylinders, this,
+								cylinderIndex++, specialPointColor,
+								SEGMENTHEIGTH, SPECIALRADIUS, true);
+						getPosAndDirectionLength(specialPoints, p, pos,
+								direction);
+						special.setLocalTranslation(pos);
+						rotation.lookAt(direction, up);
+						special.setLocalRotation(rotation);
+					}
+
+					Utils.updateLine(specialPointsLine, specialPoints, false,
+							specialLineColor);
+				}
+
 			}
 		}
 
@@ -209,8 +261,8 @@ public class Boxplot3d extends Node {
 
 		Vector3f pos = pos2.subtract(direction.mult(0.5f)); // get mid position
 
-		Geometry box = getCylinder(cylinderIndex, boxColor, direction.length(),
-				WHISKERRADIUS,true);
+		Geometry box = getCylinder(cylinders, this, cylinderIndex, boxColor,
+				direction.length(), WHISKERRADIUS, true);
 
 		box.setLocalTranslation(pos);
 		rotation.lookAt(direction, up);
@@ -281,6 +333,7 @@ public class Boxplot3d extends Node {
 
 	public void setStatistics(ArrayList<IBoxplotData> statistics) {
 		this.statistics = statistics;
+		clear();
 		if (statistics != null) {
 			updateData();
 		}

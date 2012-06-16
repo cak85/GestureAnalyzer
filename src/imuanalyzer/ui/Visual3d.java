@@ -683,15 +683,6 @@ public class Visual3d extends SimpleApplication {
 						currentSetting.getLiveMotionColor(), OPACITY_STEP,
 						count);
 
-				// just debug TODO remove sometime
-				// if (i == motionAnalysis.getMaxIdMotion()) {
-				// hand3d.setOpacity(ColorRGBA.Red, 1, count);
-				// } else if (i == motionAnalysis.getMinIdMotion()) {
-				// hand3d.setOpacity(ColorRGBA.Blue, 1, count);
-				// } else {
-				// hand3d.setOpacity(OPACITY_STEP, count);
-				// }
-
 				EnumMap<JointType, StoredJointState> storedSet = moveStep
 						.getJointSet();
 

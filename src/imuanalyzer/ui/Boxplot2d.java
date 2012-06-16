@@ -6,6 +6,7 @@ import imuanalyzer.signalprocessing.VectorLine;
 import java.awt.Font;
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
@@ -34,6 +35,10 @@ public class Boxplot2d extends JFrame {
 
 	public Boxplot2d(String title, ArrayList<IBoxplotData> statistics) {
 		super(title);
+
+		ImageIcon icon = new ImageIcon(getClass()
+				.getResource("/Icons/hand.png"));
+		this.setIconImage(icon.getImage());
 
 		final BoxAndWhiskerCategoryDataset dataset = getData(statistics);
 

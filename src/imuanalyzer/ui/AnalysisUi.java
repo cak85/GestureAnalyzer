@@ -15,47 +15,54 @@ import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
-public class MarkerAnalysesUi extends JDialog {
+public class AnalysisUi extends JDialog {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(MarkerAnalysesUi.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(AnalysisUi.class
+			.getName());
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6103905099594851540L;
 
-	ArrayList<Marker> markers;
+	protected ArrayList<Marker> markers;
 
-	ArrayList<Marker> selectedMarkers = new ArrayList<Marker>();
+	protected ArrayList<Marker> selectedMarkers = new ArrayList<Marker>();
 
-	JList list;
+	protected JList list;
 
-	AnalysesMode selectedCalculationMode = AnalysesMode.NONE;
+	protected AnalysesMode selectedCalculationMode = AnalysesMode.NONE;
 
-	MarkerAnalysesUi myInstance;
+	protected AnalysisUi myInstance;
 
-	Database db;
+	protected Database db;
 
 	public enum ReturnCode {
 		CANCEL, OK
 	};
 
-	ReturnCode returnCode = ReturnCode.CANCEL;
+	private ReturnCode returnCode = ReturnCode.CANCEL;
 
 	boolean showBoxplot2d = false;
 
-	public MarkerAnalysesUi(Frame parent, ArrayList<Marker> markers) {
+	JComboBox specialPointsList;
+
+	public AnalysisUi(Frame parent, ArrayList<Marker> markers) {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
@@ -93,6 +100,58 @@ public class MarkerAnalysesUi extends JDialog {
 			}
 		});
 
+		JPanel specialPointsPanel = new JPanel(new FlowLayout());
+
+		specialPointsPanel.add(new JLabel("Custom % "));
+
+		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(25, 0, 100, 1);
+		final JSpinner percentSpinner = new JSpinner(percentSpinnerModel);
+
+		specialPointsPanel.add(percentSpinner);
+
+		specialPointsList = new JComboBox();
+		specialPointsList.setEditable(false);
+
+		specialPointsPanel.add(specialPointsList);
+
+		JButton addPoint = new JButton("Add");
+
+		addPoint.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int newValue = (Integer) percentSpinner.getValue();
+				for (int i = 0; i < specialPointsList.getItemCount(); i++) {
+					if (newValue == ((Integer) specialPointsList.getItemAt(i))) {
+						return;
+					}
+
+				}
+				specialPointsList.addItem(newValue);
+				specialPointsList.setSelectedIndex(specialPointsList
+						.getItemCount() - 1);
+			}
+		});
+
+		specialPointsPanel.add(addPoint);
+
+		JButton removePoint = new JButton("Remove");
+
+		removePoint.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int index = specialPointsList.getSelectedIndex();
+				if (index > -1) {
+					specialPointsList.removeItemAt(index);
+				}
+			}
+		});
+
+		specialPointsPanel.add(removePoint);
+
+		optionsPanel.add(specialPointsPanel);
+
 		optionsPanel.add(checkShowBoxplot2d);
 
 		bottomPanel.add(optionsPanel);
@@ -100,8 +159,8 @@ public class MarkerAnalysesUi extends JDialog {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
 
-		JButton sumButton = new JButton("Boxplot");
-		sumButton.addActionListener(new ActionListener() {
+		JButton boxplotButton = new JButton("Boxplot");
+		boxplotButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -117,7 +176,7 @@ public class MarkerAnalysesUi extends JDialog {
 				}
 			}
 		});
-		buttonPanel.add(sumButton);
+		buttonPanel.add(boxplotButton);
 
 		JButton avgButton = new JButton("Motion Average");
 		avgButton.addActionListener(new ActionListener() {
@@ -180,6 +239,17 @@ public class MarkerAnalysesUi extends JDialog {
 
 	public boolean isShowBoxplot2d() {
 		return showBoxplot2d;
+	}
+
+	public ArrayList<Float> getSpecialPoints() {
+		ArrayList<Float> specialPoints = new ArrayList<Float>();
+		for (int i = 0; i < specialPointsList.getItemCount(); i++) {
+			specialPoints
+					.add(((Integer) specialPointsList.getItemAt(i)) / 100f);
+
+		}
+
+		return specialPoints;
 	}
 
 }

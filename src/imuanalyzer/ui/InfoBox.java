@@ -1,5 +1,6 @@
 package imuanalyzer.ui;
 
+import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.awt.Dimension;
@@ -12,10 +13,13 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.log4j.Logger;
+
 /**
  * Show frequent updated key-valu pairs in a JTable
+ * 
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class InfoBox extends JPanel {
 
@@ -23,6 +27,9 @@ public class InfoBox extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = -2627290249147451521L;
+
+	private static final Logger LOGGER = Logger.getLogger(InfoBox.class
+			.getName());
 
 	private static final long SLEEP_TIME = 250;
 
@@ -103,8 +110,8 @@ public class InfoBox extends JPanel {
 						@Override
 						public void run() {
 
-							//hack for updating the view in main frame to the
-							//right time
+							// hack for updating the view in main frame to the
+							// right time
 							if (newRow) {
 								mainFrame.refresh();
 							}
@@ -120,26 +127,25 @@ public class InfoBox extends JPanel {
 
 							for (int i = 0; i < observedObjects.size(); i++) {
 								IInfoContent content = observedObjects.get(i);
-								tableModel.setValueAt(content.getInfoName(), i, 0);
-								tableModel.setValueAt(content.getInfoValue(), i, 1);
+								tableModel.setValueAt(content.getInfoName(), i,
+										0);
+								tableModel.setValueAt(content.getInfoValue(),
+										i, 1);
 							}
 						}
 
 					});
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					LOGGER.error(e1.toString());
 				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					LOGGER.error(e1.toString());
 				}
 
 				try {
 					Thread.sleep(SLEEP_TIME);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.error(e.toString());
 				}
-
 			}
 		}
 

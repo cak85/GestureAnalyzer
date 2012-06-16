@@ -56,6 +56,8 @@ public class Analyses {
 	ArrayList<JointType> saveMotionJoints;
 	ArrayList<JointType> saveTouchJoints;
 
+	ArrayList<Float> specialPercentPoints;
+
 	/**
 	 * touch analysis statistics Data
 	 */
@@ -78,7 +80,7 @@ public class Analyses {
 				break;
 			case SUM:
 				calculateMotionSum();
-				calculateSum();
+				calculateSum(specialPercentPoints);
 				break;
 
 			default:
@@ -91,23 +93,27 @@ public class Analyses {
 
 	public void calculateAvg(Collection<Marker> _markers,
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
-			ArrayList<JointType> _touchJoint) {
+			ArrayList<JointType> _touchJoint,
+			ArrayList<Float> specialPercentPoints) {
 		calculate(AnalysesMode.AVG, _markers, _filterType, _movementStartJoint,
-				_touchJoint);
+				_touchJoint, specialPercentPoints);
 	}
 
 	public void calculateSUM(Collection<Marker> _markers,
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
-			ArrayList<JointType> _touchJoint) {
+			ArrayList<JointType> _touchJoint,
+			ArrayList<Float> specialPercentPoints) {
 		calculate(AnalysesMode.SUM, _markers, _filterType, _movementStartJoint,
-				_touchJoint);
+				_touchJoint, specialPercentPoints);
 	}
 
 	public void calculate(AnalysesMode mode, Collection<Marker> _markers,
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
-			ArrayList<JointType> _touchJoint) {
+			ArrayList<JointType> _touchJoint,
+			ArrayList<Float> specialPercentPoints) {
 
 		this.mode = mode;
+		this.specialPercentPoints = specialPercentPoints;
 		prepare(_markers, _filterType, _movementStartJoint, _touchJoint);
 
 		switch (mode) {
@@ -116,7 +122,7 @@ public class Analyses {
 			break;
 		case SUM:
 			calculateMotionSum();
-			calculateSum();
+			calculateSum(specialPercentPoints);
 			break;
 
 		default:
@@ -300,7 +306,7 @@ public class Analyses {
 
 	}
 
-	private void calculateSum() {
+	private void calculateSum(ArrayList<Float> specialPercentPoints) {
 		touchResult = new ArrayList<VectorLine>();
 		for (Hand h : hands) {
 			touchResult.addAll(h.getMaxTouchLines());
@@ -317,7 +323,7 @@ public class Analyses {
 			}
 			String name = Hand.jointTypeToName(saveTouchJoints.get(i));
 			statistics.add(new VectorLineStatistics(name,
-					linesOfOneJointAnalysis));
+					linesOfOneJointAnalysis, specialPercentPoints));
 		}
 
 		for (int i = 0; i < saveMotionJoints.size(); i++) {
@@ -329,7 +335,7 @@ public class Analyses {
 			}
 			String name = Hand.jointTypeToName(saveMotionJoints.get(i));
 			statistics.add(new VectorLineStatistics(name,
-					linesOfOneJointAnalysis));
+					linesOfOneJointAnalysis, specialPercentPoints));
 		}
 
 	}

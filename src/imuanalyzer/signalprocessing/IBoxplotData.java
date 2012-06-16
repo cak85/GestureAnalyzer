@@ -20,4 +20,6 @@ public interface IBoxplotData {
 	public ArrayList<Object> getOutliners();
 	
 	public String getDescription();
+	
+	ArrayList<Float> getSpecialPoints();
 }
