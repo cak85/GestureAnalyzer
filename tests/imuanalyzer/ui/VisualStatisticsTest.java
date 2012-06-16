@@ -3,8 +3,6 @@
  */
 package imuanalyzer.ui;
 
-import static org.junit.Assert.*;
-
 import imuanalyzer.signalprocessing.Helper;
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.VectorLineStatistics;

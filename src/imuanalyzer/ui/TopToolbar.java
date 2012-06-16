@@ -9,6 +9,11 @@ import javax.swing.JPanel;
 
 public class TopToolbar extends JPanel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7403865217590908973L;
+	
 	Visual3d visual3d;
 
 	public TopToolbar(Visual3d _visual3d) {

@@ -7,7 +7,6 @@ import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.logging.Level;
 
@@ -16,7 +15,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 

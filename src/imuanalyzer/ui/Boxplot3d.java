@@ -220,31 +220,6 @@ public class Boxplot3d extends Node {
 	/**
 	 * paint a line segment of 2 points around length point position
 	 */
-	private ArrayList<Vector3f> getLineSegment(ArrayList<Vector3f> lineBuffer,
-			float lengthPosition) {
-		Vector3f segmentStart = new Vector3f();
-		int idx = getPosFromLength(lineBuffer, lengthPosition, segmentStart);
-
-		Vector3f segmentEnd;
-		if (idx < (lineBuffer.size() - 1)) {
-			segmentEnd = segmentStart.add(lineBuffer.get(idx + 1)
-					.subtract(segmentStart).normalize().mult(0.1f));
-		} else {
-			segmentEnd = segmentStart;
-			segmentStart = segmentStart.add(lineBuffer.get(idx - 1)
-					.subtract(segmentStart).normalize().mult(0.1f));
-		}
-
-		ArrayList<Vector3f> segmentLine = new ArrayList<Vector3f>();
-		segmentLine.add(segmentStart);
-		segmentLine.add(segmentEnd);
-
-		return segmentLine;
-	}
-
-	/**
-	 * paint a line segment of 2 points around length point position
-	 */
 	private void getPosAndDirectionLength(ArrayList<Vector3f> lineBuffer,
 			float lengthPosition, Vector3f retPos, Vector3f retDirection) {
 

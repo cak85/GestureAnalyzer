@@ -1,7 +1,5 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.ui.Boxplot3d;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -21,6 +21,11 @@ import com.jme3.math.ColorRGBA;
  */
 public class ColorChooserButton extends JButton {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8731153309898873291L;
+
 	private static final Logger LOGGER = Logger
 			.getLogger(ColorChooserButton.class.getName());
 
