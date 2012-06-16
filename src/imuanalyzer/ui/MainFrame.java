@@ -81,6 +81,7 @@ public class MainFrame extends JFrame {
 	protected OrientationChartManager chartOrientation;
 	protected AccelerationChartManager chartsAcceleration;
 	protected FeelingChartManager chartsFeeling;
+	protected JointRelationChartManager chartsRelation;
 
 	protected Hand hand;
 
@@ -138,7 +139,8 @@ public class MainFrame extends JFrame {
 
 	protected void createMenu() {
 		JMenuBar menuBar = new MainMenuBar(hand, visual3d, sensors,
-				chartOrientation, chartsAcceleration, chartsFeeling);
+				chartOrientation, chartsAcceleration, chartsFeeling,
+				chartsRelation);
 
 		this.setJMenuBar(menuBar);
 	}
@@ -164,6 +166,8 @@ public class MainFrame extends JFrame {
 		chartsAcceleration = new AccelerationChartManager(hand);
 
 		chartsFeeling = new FeelingChartManager(hand);
+
+		chartsRelation = new JointRelationChartManager(hand);
 
 	}
 
@@ -191,7 +195,7 @@ public class MainFrame extends JFrame {
 		c.gridx = 0;
 		c.gridy = 0;
 		TopToolbar topBar = new TopToolbar(visual3d);
-		mainPanel.add(topBar,c);
+		mainPanel.add(topBar, c);
 
 		infoBox = new InfoBox(this);
 

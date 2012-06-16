@@ -34,10 +34,10 @@ public class AccelerationChartManager {
 
 	protected Hand hand;
 
+	protected UpdaterAcceleration thread;
+
 	public AccelerationChartManager(Hand hand) {
 		this.hand = hand;
-
-		new Updater(charts, hand).start();
 	}
 
 	public void addChart(final JointType type) {
@@ -60,14 +60,14 @@ public class AccelerationChartManager {
 			traceZ.setName("Z");
 			traceZ.setColor(Color.GREEN);
 			chart.addTrace(traceZ);
-			
+
 			LayoutFactory lfct = LayoutFactory.getInstance();
 			ChartPanel chartpanel = new ChartPanel(chart);
 
 			final JFrame frame = new JFrame("Acceleration " + type);
-			
-			ImageIcon icon = new ImageIcon(getClass()
-					.getResource("/Icons/hand.png"));
+
+			ImageIcon icon = new ImageIcon(getClass().getResource(
+					"/Icons/hand.png"));
 			frame.setIconImage(icon.getImage());
 			// add the chart to the frame:
 			frame.getContentPane().add(chartpanel);
@@ -85,17 +85,24 @@ public class AccelerationChartManager {
 			frame.setVisible(true);
 
 			charts.put(type, chart);
+			if (charts.size() == 1) {
+				thread = new UpdaterAcceleration(charts, hand);
+				thread.start();
+			}
 		}
 	}
 
 	public void removeChart(JointType type) {
 		Chart2D chart = charts.get(type);
 		if (chart != null) {
-			charts.put(type, null);
+			charts.remove(type);
+		}
+		if (charts.size() == 0) {
+			thread.setStop(true);
 		}
 	}
 
-	private static class Updater extends Thread {
+	private static class UpdaterAcceleration extends Thread {
 
 		protected Hand hand;
 
@@ -103,8 +110,18 @@ public class AccelerationChartManager {
 
 		private long starttime = System.currentTimeMillis();
 
+		private boolean stop;
+
+		public UpdaterAcceleration(EnumMap<JointType, Chart2D> charts, Hand hand) {
+			this.charts = charts;
+			this.hand = hand;
+		}
+
 		public void run() {
 			while (true) {
+				if (stop) {
+					break;
+				}
 				try {
 
 					for (Entry<JointType, Chart2D> entry : charts.entrySet()) {
@@ -134,10 +151,10 @@ public class AccelerationChartManager {
 			}
 		}
 
-		private Updater(EnumMap<JointType, Chart2D> charts, Hand hand) {
-			this.charts = charts;
-			this.hand = hand;
+		public void setStop(boolean stop) {
+			this.stop = stop;
 		}
+
 	}
 
 }

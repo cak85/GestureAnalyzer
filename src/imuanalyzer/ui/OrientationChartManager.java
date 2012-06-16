@@ -19,7 +19,7 @@ import java.util.SortedSet;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-public class OrientationChartManager{
+public class OrientationChartManager {
 
 	/**
 	 * 
@@ -33,13 +33,11 @@ public class OrientationChartManager{
 			JointType.class);
 
 	protected Hand hand;
-	
+
+	protected UpdaterOrientation thread;
 
 	public OrientationChartManager(Hand hand) {
 		this.hand = hand;
-
-		new UpdaterOrientation(charts, hand).start();
-
 	}
 
 	public void addChart(final JointType type) {
@@ -47,7 +45,7 @@ public class OrientationChartManager{
 		if (charts.get(type) == null) {
 
 			Chart2D chart = new Chart2D();
-			
+
 			LayoutFactory lfct = LayoutFactory.getInstance();
 			ChartPanel chartpanel = new ChartPanel(chart);
 
@@ -67,9 +65,9 @@ public class OrientationChartManager{
 			chart.addTrace(traceZ);
 
 			final JFrame frame = new JFrame("Orientation " + type);
-			
-			ImageIcon icon = new ImageIcon(getClass()
-					.getResource("/Icons/hand.png"));
+
+			ImageIcon icon = new ImageIcon(getClass().getResource(
+					"/Icons/hand.png"));
 			frame.setIconImage(icon.getImage());
 			// add the chart to the frame:
 			frame.getContentPane().add(chartpanel);
@@ -87,14 +85,22 @@ public class OrientationChartManager{
 			frame.setVisible(true);
 
 			charts.put(type, chart);
-			
+
+			if (charts.size() == 1) {
+				thread = new UpdaterOrientation(charts, hand);
+				thread.start();
+			}
+
 		}
 	}
 
 	public void removeChart(JointType type) {
 		Chart2D chart = charts.get(type);
 		if (chart != null) {
-			charts.put(type, null);
+			charts.remove(type);
+		}
+		if (charts.size() == 0) {
+			thread.setStop(true);
 		}
 	}
 
@@ -106,13 +112,21 @@ public class OrientationChartManager{
 
 		private long starttime = System.currentTimeMillis();
 
+		private boolean stop = false;
+
+		public UpdaterOrientation(EnumMap<JointType, Chart2D> charts, Hand hand) {
+			this.charts = charts;
+			this.hand = hand;
+		}
 
 		public void run() {
 			while (true) {
+				if (stop) {
+					break;
+				}
 				try {
 
-					for (Entry<JointType, Chart2D> entry : charts
-							.entrySet()) {
+					for (Entry<JointType, Chart2D> entry : charts.entrySet()) {
 
 						Chart2D chart = entry.getValue();
 
@@ -123,13 +137,13 @@ public class OrientationChartManager{
 
 							double[] angles = orientation
 									.getAnglesRadFromQuaternion();
-												
+
 							SortedSet<ITrace2D> traces = chart.getTraces();
 							int i = 0;
 							for (ITrace2D trace : traces) {
 								trace.addPoint(
 										((double) System.currentTimeMillis() - this.starttime),
-										angles[i]* 180 / Math.PI);
+										angles[i] * 180 / Math.PI);
 								i++;
 							}
 
@@ -142,10 +156,8 @@ public class OrientationChartManager{
 			}
 		}
 
-		private UpdaterOrientation(EnumMap<JointType, Chart2D> charts,
-				Hand hand) {
-			this.charts = charts;
-			this.hand = hand;
+		public void setStop(boolean stop) {
+			this.stop = stop;
 		}
 	}
 

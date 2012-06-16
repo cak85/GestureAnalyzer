@@ -41,15 +41,14 @@ public class Boxplot2d extends JFrame {
 		final CategoryAxis xAxis = new CategoryAxis("Joint");
 		final NumberAxis yAxis = new NumberAxis("Length");
 		yAxis.setAutoRangeIncludesZero(false);
-		final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
+		final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRendererWithOutliers(
+				statistics);
 		renderer.setFillBox(false);
 		renderer.setMeanVisible(false);
-		// renderer.setSeriesVisibleInLegend(false);
 		renderer.setSeriesVisibleInLegend(0, false);
-		// renderer.setToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
 		renderer.setSeriesToolTipGenerator(0,
 				new BoxAndWhiskerToolTipGenerator());
-		
+
 		final CategoryPlot plot = new CategoryPlot(dataset, xAxis, yAxis,
 				renderer);
 

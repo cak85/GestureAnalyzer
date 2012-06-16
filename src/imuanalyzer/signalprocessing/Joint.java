@@ -426,9 +426,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		return ret;
 	}
-
-	@Override
-	public String getInfoValue() {
+	
+	public Quaternion getRotationBetweenParent(){
 		Joint joint = this;
 		IJoint parent = joint.getParent();
 
@@ -439,8 +438,16 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		} else {
 			quat = joint.getLocalOrientation();
 		}
+		return quat;
+	}
+
+	@Override
+	public String getInfoValue() {
+
+		Quaternion quat = getRotationBetweenParent();
+		
 		double[] angles = quat.getAnglesRadFromQuaternion();
-		Restriction restriction = joint.getRestriction();
+		Restriction restriction = getRestriction();
 
 		StringBuffer values = new StringBuffer("");
 		if (restriction.isRollAllowed()) {

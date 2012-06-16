@@ -33,6 +33,7 @@ public class MainMenuBar extends JMenuBar {
 	protected OrientationChartManager chartOrientation;
 	protected AccelerationChartManager chartsAcceleration;
 	protected FeelingChartManager feelingChart;
+	protected JointRelationChartManager chartsRelation;
 
 	protected Hand hand;
 
@@ -42,7 +43,8 @@ public class MainMenuBar extends JMenuBar {
 			IOrientationSensors _sensors,
 			OrientationChartManager _chartOrientation,
 			AccelerationChartManager _chartsAcceleration,
-			FeelingChartManager _feelingChart) {
+			FeelingChartManager _feelingChart,
+			JointRelationChartManager _chartsRelation) {
 		instance = this;
 		hand = _hand;
 		visual3d = _visual3d;
@@ -50,6 +52,7 @@ public class MainMenuBar extends JMenuBar {
 		chartOrientation = _chartOrientation;
 		chartsAcceleration = _chartsAcceleration;
 		feelingChart = _feelingChart;
+		chartsRelation = _chartsRelation;
 
 		JMenu menu;
 		JMenuItem menuItem;
@@ -197,6 +200,30 @@ public class MainMenuBar extends JMenuBar {
 			});
 
 			jointMenuAdd.add(submenuitemAddAccelerartion);
+
+			JMenu subMenuRelation = new JMenu("Relation to ...");
+			for (Entry<JointType, Joint> secondStageEntry : hand.getJointSet()) {
+				final JointType secondType = secondStageEntry.getKey();
+				if (type.equals(secondType)) {
+					continue;
+				}
+				JMenuItem submenuitemRelation = new JMenuItem(secondStageEntry
+						.getValue().getInfoName());
+				submenuitemRelation.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						chartsRelation.addChart(type, secondType);
+					}
+				});
+
+				subMenuRelation.add(submenuitemRelation);
+			}
+
+			jointMenuAdd.add(submenuitemAddAccelerartion);
+
+			jointMenuAdd.add(subMenuRelation);
+
 			submenuChart.add(jointMenuAdd);
 		}
 
