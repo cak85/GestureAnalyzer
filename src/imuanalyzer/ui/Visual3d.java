@@ -11,8 +11,7 @@ import imuanalyzer.signalprocessing.StoredJointState;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -52,6 +51,7 @@ import com.jme3.scene.debug.Grid;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
+import com.jme3.system.JmeSystem;
 
 public class Visual3d extends SimpleApplication {
 
@@ -107,8 +107,6 @@ public class Visual3d extends SimpleApplication {
 	 */
 	Axis currentAxis = Axis.X;
 
-	Dimension dim = new Dimension(640, 480);
-
 	ArrayList<VisualHand3d> liveMovementSteps = new ArrayList<VisualHand3d>();
 
 	ArrayList<VisualHand3d> analysesMovementSteps = new ArrayList<VisualHand3d>();
@@ -155,7 +153,7 @@ public class Visual3d extends SimpleApplication {
 		myInstance = this;
 		this.hand = hand;
 
-		this.inputEnabled=false;
+		this.inputEnabled = false;
 		showSettings = false;
 		setDisplayStatView(false);
 		setDisplayFps(false);
@@ -168,13 +166,13 @@ public class Visual3d extends SimpleApplication {
 		this.createCanvas();
 		JmeCanvasContext ctx = (JmeCanvasContext) this.getContext();
 		ctx.setSystemListener(this);
-		ctx.getCanvas().setPreferredSize(dim);
+		ctx.getCanvas().setSize(settings.getWidth(), settings.getHeight());
 
-		panel3d = new JPanel(new FlowLayout()); // a panel
+		panel3d = new JPanel(new BorderLayout()); // a panel
 
 		// add the JME canvas
-		panel3d.add(ctx.getCanvas());
-		
+		panel3d.add(ctx.getCanvas(), BorderLayout.CENTER);
+
 		HelpManager.getInstance().enableHelpKey(panel3d, "3dview");
 
 		this.startCanvas();
@@ -183,7 +181,13 @@ public class Visual3d extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
-		
+
+		// optional
+		// FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+		// BloomFilter bloom = new BloomFilter(GlowMode.Objects);
+		// fpp.addFilter(bloom);
+		// viewPort.addProcessor(fpp);
+
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
 		}
@@ -391,8 +395,8 @@ public class Visual3d extends SimpleApplication {
 					}
 					if (menu != null) {
 						Vector2f click2d = inputManager.getCursorPosition();
-						menu.show(panel3d, (int) click2d.x + 10, dim.height
-								- (int) click2d.y);
+						menu.show(panel3d, (int) click2d.x + 10,
+								settings.getHeight() - (int) click2d.y);
 					}
 				}
 			}
@@ -497,7 +501,7 @@ public class Visual3d extends SimpleApplication {
 	}
 
 	private void configureCam() {
-		stateManager.detach( stateManager.getState(FlyCamAppState.class));
+		stateManager.detach(stateManager.getState(FlyCamAppState.class));
 
 		chaseCam = new ChaseCamera(cam, visualHand, inputManager);
 		chaseCam.setToggleRotationTrigger(new MouseButtonTrigger(
@@ -725,8 +729,7 @@ public class Visual3d extends SimpleApplication {
 		arrow = new Arrow(Vector3f.UNIT_Z.mult(3));
 		arrow.setLineWidth(4); // make arrow thicker
 		// violett
-		putShape(coordinateAxes, arrow,
-				ColorRGBA.Blue)
+		putShape(coordinateAxes, arrow, ColorRGBA.Blue)
 				.setLocalTranslation(pos);
 		rootNode.attachChild(coordinateAxes);
 	}
@@ -748,6 +751,7 @@ public class Visual3d extends SimpleApplication {
 		Material mat = new Material(assetManager,
 				"Common/MatDefs/Misc/Unshaded.j3md");
 		mat.getAdditionalRenderState().setWireframe(true);
+		mat.setColor("GlowColor", color);
 		mat.setColor("Color", color);
 		g.setMaterial(mat);
 		node.attachChild(g);
@@ -936,6 +940,17 @@ public class Visual3d extends SimpleApplication {
 
 	public void setInfoBox(InfoBox infoBox) {
 		this.infoBox = infoBox;
+	}
+
+	public void showSettings() {
+		enqueue(new Callable<Object>() {
+			public Object call() {
+				JmeSystem.showSettingsDialog(settings, false);
+				setSettings(settings);
+				restart();
+				return null;
+			}
+		});
 	}
 
 }

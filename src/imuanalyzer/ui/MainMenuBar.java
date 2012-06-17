@@ -8,6 +8,8 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Comparator;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -39,6 +41,18 @@ public class MainMenuBar extends JMenuBar {
 
 	private JMenuBar instance;
 
+	/**
+	 * compares FilterMapping by priority of its listener
+	 */
+	class JMenuItemComparator implements Comparator<JMenuItem> {
+
+		@Override
+		public int compare(JMenuItem o1, JMenuItem o2) {
+			return o1.getText().compareTo(o2.getText());
+		}
+
+	}
+
 	public MainMenuBar(Hand _hand, Visual3d _visual3d,
 			IOrientationSensors _sensors,
 			OrientationChartManager _chartOrientation,
@@ -59,7 +73,7 @@ public class MainMenuBar extends JMenuBar {
 
 		// Build tools menu
 		menu = new JMenu("Control");
-		
+
 		HelpManager.getInstance().enableHelpKey(menu, "controlmenu");
 
 		// disable movement saving
@@ -159,7 +173,7 @@ public class MainMenuBar extends JMenuBar {
 		// build view menu
 
 		menu = new JMenu("View");
-		
+
 		HelpManager.getInstance().enableHelpKey(menu, "viewmenu");
 
 		JMenu submenuChart = new JMenu("Show chart");
@@ -176,22 +190,15 @@ public class MainMenuBar extends JMenuBar {
 		});
 		submenuChart.add(menuitemFeeling);
 
+		TreeSet<JMenuItem> menuSet = new TreeSet<JMenuItem>(
+				new JMenuItemComparator());
+
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 
 			Joint j = entry.getValue();
 			final JointType type = entry.getKey();
 
 			JMenu jointMenuAdd = new JMenu(j.getInfoName());
-
-			JMenuItem submenuitemAddOrientation = new JMenuItem("Orientation");
-			submenuitemAddOrientation.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					chartOrientation.addChart(type);
-				}
-			});
-			jointMenuAdd.add(submenuitemAddOrientation);
 
 			JMenuItem submenuitemAddAccelerartion = new JMenuItem(
 					"Acceleration");
@@ -205,7 +212,20 @@ public class MainMenuBar extends JMenuBar {
 
 			jointMenuAdd.add(submenuitemAddAccelerartion);
 
+			JMenuItem submenuitemAddOrientation = new JMenuItem("Orientation");
+			submenuitemAddOrientation.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					chartOrientation.addChart(type);
+				}
+			});
+			jointMenuAdd.add(submenuitemAddOrientation);
+
 			JMenu subMenuRelation = new JMenu("Relation to ...");
+
+			TreeSet<JMenuItem> menuItemSet = new TreeSet<JMenuItem>(
+					new JMenuItemComparator());
 			for (Entry<JointType, Joint> secondStageEntry : hand.getJointSet()) {
 				final JointType secondType = secondStageEntry.getKey();
 				if (type.equals(secondType)) {
@@ -221,14 +241,21 @@ public class MainMenuBar extends JMenuBar {
 					}
 				});
 
-				subMenuRelation.add(submenuitemRelation);
+				menuItemSet.add(submenuitemRelation);
+			}
+			for (JMenuItem item : menuItemSet) {
+				subMenuRelation.add(item);
 			}
 
 			jointMenuAdd.add(submenuitemAddAccelerartion);
 
 			jointMenuAdd.add(subMenuRelation);
 
-			submenuChart.add(jointMenuAdd);
+			menuSet.add(jointMenuAdd);
+
+		}
+		for (JMenuItem item : menuSet) {
+			submenuChart.add(item);
 		}
 
 		JCheckBoxMenuItem checkMenuItem = new JCheckBoxMenuItem("Right Hand");
@@ -330,6 +357,22 @@ public class MainMenuBar extends JMenuBar {
 			}
 		});
 		menu.add(checkMenuItem);
+
+		this.add(menu);
+
+		// options
+		menu = new JMenu("Options");
+
+		menuItem = new JMenuItem("3D Settings");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				visual3d.showSettings();
+			}
+		});
+
+		menu.add(menuItem);
 
 		this.add(menu);
 

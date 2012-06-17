@@ -85,7 +85,9 @@ public class Boxplot3d extends Node {
 
 		if (index < cylinders.size()) {
 			cylinder = cylinders.get(index);
-			cylinder.getMaterial().setColor("Color", color);
+			Material mat = cylinder.getMaterial();
+			mat.setColor("Color", color);
+			mat.setColor("GlowColor", color);
 			Cylinder mesh = (Cylinder) cylinder.getMesh();
 			mesh.updateGeometry(10, 10, radius, radius, height, closed, false);
 			cylinder.updateModelBound();
@@ -98,6 +100,7 @@ public class Boxplot3d extends Node {
 			// mat.getAdditionalRenderState().setFaceCullMode(
 			// FaceCullMode.Off);
 			mat.setColor("Color", color);
+			mat.setColor("GlowColor", color);
 			cylinder.setMaterial(mat);
 
 			cylinders.add(cylinder);
@@ -113,7 +116,9 @@ public class Boxplot3d extends Node {
 
 		if (index < boxes.size()) {
 			box = boxes.get(index);
-			box.getMaterial().setColor("Color", color);
+			Material mat = box.getMaterial();
+			mat.setColor("Color", color);
+			mat.setColor("GlowColor", color);
 			Box mesh = (Box) box.getMesh();
 			mesh.updateGeometry(new Vector3f(), radius, radius, height);
 			box.updateModelBound();
@@ -125,6 +130,7 @@ public class Boxplot3d extends Node {
 			// mat.getAdditionalRenderState().setFaceCullMode(
 			// FaceCullMode.Off);
 			mat.setColor("Color", color);
+			mat.setColor("GlowColor", color);
 			box.setMaterial(mat);
 
 			boxes.add(box);

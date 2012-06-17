@@ -132,7 +132,7 @@ public class MainFrame extends JFrame {
 
 	private void configureFrame() {
 		this.setTitle("IMUAnalyzer");
-		this.setSize(1280, 768);
+		this.setSize(1024, 768);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
@@ -149,8 +149,9 @@ public class MainFrame extends JFrame {
 
 	protected void create3dPanel() {
 		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 0.0;
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 2;
+		c.weighty = 2;
 		c.gridwidth = 3;
 		c.gridheight = 3;
 		c.gridx = 0;
@@ -159,7 +160,6 @@ public class MainFrame extends JFrame {
 		visual3d = new Visual3d(hand);
 				
 		JPanel jme3Panel = visual3d.get3dPanel();
-		jme3Panel.setFocusable(false);
 		mainPanel.add(jme3Panel, c);
 	}
 
@@ -180,7 +180,7 @@ public class MainFrame extends JFrame {
 				OrientationSensorManagerFactory.NUMBER_OF_SENSORS);
 
 		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.NONE;
+		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
@@ -204,7 +204,7 @@ public class MainFrame extends JFrame {
 		infoBox = new InfoBox();
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.CENTER;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
@@ -219,7 +219,7 @@ public class MainFrame extends JFrame {
 		JPanel toolBarPanel = new ToolbarPanel(hand, sensors, this);
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.CENTER;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
