@@ -45,6 +45,8 @@ public class FingerSensorMapping extends JPanel {
 	public FingerSensorMapping(Hand hand, int numberOfSensors) {
 		this.numberOfSensors = numberOfSensors;
 		this.hand = hand;
+		
+		HelpManager.getInstance().enableHelpKey(this, "jointsensormapping");
 
 		BufferedImage img = null;
 		try {

@@ -66,6 +66,8 @@ public class AnalysisUi extends JDialog {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
+		
+		HelpManager.getInstance().enableHelpKey(this.getRootPane(), "analysisselection");
 
 		try {
 			db = Database.getInstance();
@@ -73,7 +75,7 @@ public class AnalysisUi extends JDialog {
 			LOGGER.error(e);
 		}
 
-		this.setTitle("Select markers for analyzing");
+		this.setTitle("Select dataset and analysis");
 		this.setSize(640, 480);
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		this.setLayout(new BorderLayout());

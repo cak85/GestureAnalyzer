@@ -30,6 +30,7 @@ public class MainFrame extends JFrame {
 	private static final Logger LOGGER = Logger.getLogger(MainFrame.class
 			.getName());
 
+
 	public static void main(String[] args) {
 
 		setLookAndFeel();
@@ -39,11 +40,8 @@ public class MainFrame extends JFrame {
 			@Override
 			public void run() {
 				new MainFrame();
-
 			}
-
 		});
-
 	}
 
 	private static void setLookAndFeel() {
@@ -84,6 +82,8 @@ public class MainFrame extends JFrame {
 	protected Hand hand;
 
 	public MainFrame() {
+		
+		HelpManager.getInstance().enableHelpKey(this.getRootPane(), "start");
 
 		configureFrame();
 
@@ -112,6 +112,7 @@ public class MainFrame extends JFrame {
 		this.setVisible(true);
 
 		pack();
+		
 	}
 
 	private void createTabs() {
@@ -154,6 +155,7 @@ public class MainFrame extends JFrame {
 		c.gridy = 2;
 		c.insets = new Insets(10, 0, 0, 0);
 		visual3d = new Visual3d(hand);
+		
 		mainPanel.add(visual3d.get3dPanel(), c);
 	}
 
@@ -238,7 +240,6 @@ public class MainFrame extends JFrame {
 		c.insets = new Insets(0, 0, 0, 0);
 
 		mainPanel.add(markerControl, c);
-
 	}
 
 	public void refresh() {

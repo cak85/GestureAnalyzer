@@ -1,6 +1,5 @@
 package imuanalyzer.ui;
 
-import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.awt.Dimension;
@@ -49,6 +48,9 @@ public class InfoBox extends JPanel {
 		JScrollPane scrollPane;
 
 		infoTable = new JTable(0, 2);
+		
+		HelpManager.getInstance().enableHelpKey(this, "valuetable");
+		
 		infoTable.setCellSelectionEnabled(false);
 
 		model = (DefaultTableModel) infoTable.getModel();

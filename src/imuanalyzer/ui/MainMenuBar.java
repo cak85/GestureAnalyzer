@@ -59,6 +59,8 @@ public class MainMenuBar extends JMenuBar {
 
 		// Build tools menu
 		menu = new JMenu("Control");
+		
+		HelpManager.getInstance().enableHelpKey(menu, "controlmenu");
 
 		// disable movement saving
 		menuItem = new JMenuItem("Clear live movement anaylsis");
@@ -157,6 +159,8 @@ public class MainMenuBar extends JMenuBar {
 		// build view menu
 
 		menu = new JMenu("View");
+		
+		HelpManager.getInstance().enableHelpKey(menu, "viewmenu");
 
 		JMenu submenuChart = new JMenu("Show chart");
 
@@ -329,8 +333,14 @@ public class MainMenuBar extends JMenuBar {
 
 		this.add(menu);
 
-		// Build the about menu.
-		menu = new JMenu("About");
+		// Build the ? menu.
+		menu = new JMenu("?");
+
+		menuItem = new JMenuItem("Help");
+
+		HelpManager.getInstance().enableHelpOnButton(menuItem, "start");
+
+		menu.add(menuItem);
 
 		menuItem = new JMenuItem("About");
 

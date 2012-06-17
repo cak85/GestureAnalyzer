@@ -28,6 +28,8 @@ public class ConnectionPanel extends JPanel {
 	public ConnectionPanel(IOrientationSensors sensor) {
 		this.sensor = sensor;
 		setLayout(new GridBagLayout());
+		
+		HelpManager.getInstance().enableHelpKey(this, "connection");
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;

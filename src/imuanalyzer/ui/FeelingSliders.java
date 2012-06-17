@@ -39,6 +39,8 @@ public class FeelingSliders extends JPanel {
 	public FeelingSliders(Hand _hand, MainFrame _mainFrame) {
 		this.hand = _hand;
 		this.mainFrame=_mainFrame;
+		
+		HelpManager.getInstance().enableHelpKey(this, "feeling");
 
 		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);

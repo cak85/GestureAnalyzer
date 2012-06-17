@@ -91,6 +91,8 @@ public class MarkerControl extends JPanel {
 		this.frame = _frame;
 		this.visual3d = _visual3d;
 		myInstance = this;
+		
+		HelpManager.getInstance().enableHelpKey(this, "datasettoolbar");
 
 		playback = new Playback(hand, sensor);
 

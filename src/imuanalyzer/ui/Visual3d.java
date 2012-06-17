@@ -173,6 +173,8 @@ public class Visual3d extends SimpleApplication {
 
 		// add the JME canvas
 		panel3d.add(ctx.getCanvas());
+		
+		HelpManager.getInstance().enableHelpKey(panel3d, "3dview");
 
 		this.startCanvas();
 

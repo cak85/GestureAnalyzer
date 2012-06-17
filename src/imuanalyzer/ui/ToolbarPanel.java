@@ -61,6 +61,8 @@ public class ToolbarPanel extends JPanel {
 		c.insets = new Insets(20, 10, 0, 0);
 
 		JLabel filterLabel = new JLabel("Sensor-Fusion-Algorithm:");
+		
+		HelpManager.getInstance().enableHelpKey(filterLabel, "sensorfusionalgorithm");
 
 		this.add(filterLabel, c);
 
@@ -81,6 +83,7 @@ public class ToolbarPanel extends JPanel {
 				Configuration.getInstance().setFilterType(filterType);
 			}
 		});
+		HelpManager.getInstance().enableHelpKey(filterTypes, "sensorfusionalgorithm");
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
