@@ -40,10 +40,7 @@ public class InfoBox extends JPanel {
 
 	Updater updater;
 
-	MainFrame mainFrame;
-
-	public InfoBox(MainFrame mainFrame) {
-		this.mainFrame = mainFrame;
+	public InfoBox() {
 
 		JScrollPane scrollPane;
 
@@ -64,7 +61,7 @@ public class InfoBox extends JPanel {
 	}
 
 	private void startUpdateThread() {
-		updater = new Updater(observedObjects, model, mainFrame);
+		updater = new Updater(observedObjects, model);
 		updater.start();
 	}
 
@@ -95,10 +92,12 @@ public class InfoBox extends JPanel {
 		DefaultTableModel tableModel;
 
 		boolean stop = false;
-
-		MainFrame mainFrame;
-
-		boolean newRow = false;
+		
+		private Updater(ArrayList<IInfoContent> observedObjects,
+				DefaultTableModel tableModel) {
+			this.observedObjects = observedObjects;
+			this.tableModel = tableModel;
+		}
 
 		public void run() {
 			while (true) {
@@ -111,19 +110,6 @@ public class InfoBox extends JPanel {
 
 						@Override
 						public void run() {
-
-							// hack for updating the view in main frame to the
-							// right time
-							if (newRow) {
-								mainFrame.refresh();
-							}
-
-							if (tableModel.getRowCount() != observedObjects
-									.size()) {
-								newRow = true;
-							} else {
-								newRow = false;
-							}
 
 							tableModel.setRowCount(observedObjects.size());
 
@@ -149,13 +135,6 @@ public class InfoBox extends JPanel {
 					LOGGER.error(e.toString());
 				}
 			}
-		}
-
-		private Updater(ArrayList<IInfoContent> observedObjects,
-				DefaultTableModel tableModel, MainFrame mainFrame) {
-			this.observedObjects = observedObjects;
-			this.tableModel = tableModel;
-			this.mainFrame = mainFrame;
 		}
 
 		public void setStop(boolean stop) {

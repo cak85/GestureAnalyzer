@@ -155,6 +155,7 @@ public class Visual3d extends SimpleApplication {
 		myInstance = this;
 		this.hand = hand;
 
+		this.inputEnabled=false;
 		showSettings = false;
 		setDisplayStatView(false);
 		setDisplayFps(false);

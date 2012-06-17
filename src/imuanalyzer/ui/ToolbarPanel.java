@@ -44,7 +44,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridheight = 3;
 		c.insets = new Insets(0, 10, 0, 0);
 
-		JPanel subjectivePanel = new FeelingSliders(hand, mainFrame);
+		JPanel subjectivePanel = new FeelingSliders(hand);
 
 		this.add(subjectivePanel, c);
 

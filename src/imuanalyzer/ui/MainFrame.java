@@ -14,6 +14,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -83,6 +84,8 @@ public class MainFrame extends JFrame {
 
 	public MainFrame() {
 		
+		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		
 		HelpManager.getInstance().enableHelpKey(this.getRootPane(), "start");
 
 		configureFrame();
@@ -147,7 +150,6 @@ public class MainFrame extends JFrame {
 	protected void create3dPanel() {
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
-		// c.ipady = 40; // make this component tall
 		c.weightx = 0.0;
 		c.gridwidth = 3;
 		c.gridheight = 3;
@@ -155,8 +157,10 @@ public class MainFrame extends JFrame {
 		c.gridy = 2;
 		c.insets = new Insets(10, 0, 0, 0);
 		visual3d = new Visual3d(hand);
-		
-		mainPanel.add(visual3d.get3dPanel(), c);
+				
+		JPanel jme3Panel = visual3d.get3dPanel();
+		jme3Panel.setFocusable(false);
+		mainPanel.add(jme3Panel, c);
 	}
 
 	protected void createChartManager() {
@@ -197,7 +201,7 @@ public class MainFrame extends JFrame {
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
-		infoBox = new InfoBox(this);
+		infoBox = new InfoBox();
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.CENTER;
@@ -240,12 +244,5 @@ public class MainFrame extends JFrame {
 		c.insets = new Insets(0, 0, 0, 0);
 
 		mainPanel.add(markerControl, c);
-	}
-
-	public void refresh() {
-		System.out.println("Refresh");
-		// pack(); //would also work! but would destroy user settings
-		visual3d.get3dPanel().setVisible(false);
-		visual3d.get3dPanel().setVisible(true);
 	}
 }

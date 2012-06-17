@@ -36,9 +36,8 @@ public class FeelingSliders extends JPanel {
 	
 	protected MainFrame mainFrame;
 
-	public FeelingSliders(Hand _hand, MainFrame _mainFrame) {
+	public FeelingSliders(Hand _hand) {
 		this.hand = _hand;
-		this.mainFrame=_mainFrame;
 		
 		HelpManager.getInstance().enableHelpKey(this, "feeling");
 
@@ -140,7 +139,6 @@ public class FeelingSliders extends JPanel {
 					addSlider();
 				}
 				writeBackSliderValues();
-				mainFrame.refresh();
 			}
 		});
 
