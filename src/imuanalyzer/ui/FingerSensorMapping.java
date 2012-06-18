@@ -160,7 +160,7 @@ public class FingerSensorMapping extends JPanel {
 				.getEditor();
 
 		if (id > -1) {
-			editor.getTextField().setBackground(Color.green);
+			editor.getTextField().setBackground(Color.orange);
 		} else {
 			editor.getTextField().setBackground(Color.white);
 		}

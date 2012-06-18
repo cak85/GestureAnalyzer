@@ -191,6 +191,7 @@ public class MainFrame extends JFrame {
 		c.gridheight = 2;
 		c.gridx = 0;
 		c.gridy = 0;
+		c.insets = new Insets(10, 0, 0, 0);
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
@@ -234,7 +235,7 @@ public class MainFrame extends JFrame {
 		c.gridwidth = 3; // 1 columns wide
 		c.gridy = 5;
 		c.gridheight = 0;
-		c.insets = new Insets(0, 0, 0, 0);
+		c.insets = new Insets(0, 0, 10, 0);
 
 		mainPanel.add(markerControl, c);
 	}

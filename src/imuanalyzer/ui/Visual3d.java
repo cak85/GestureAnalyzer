@@ -41,6 +41,10 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.filters.ColorOverlayFilter;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -52,6 +56,7 @@ import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
 import com.jme3.system.JmeSystem;
+import com.jme3.water.WaterFilter;
 
 public class Visual3d extends SimpleApplication {
 
@@ -183,11 +188,26 @@ public class Visual3d extends SimpleApplication {
 	public void simpleInitApp() {
 
 		// optional
-		// FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//		FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//		fpp.setNumSamples(4);
+//		SSAOFilter ssaoFilter = new SSAOFilter(0.92f, 2.2f, 0.46f, 0.2f);
+//		final WaterFilter water=new WaterFilter(rootNode,new Vector3f(-0.4790551f, -0.39247334f, -0.7851566f));
+//		water.setWaterHeight(-6);
+//		
+//		final BloomFilter bloom = new BloomFilter();
+//		final ColorOverlayFilter overlay = new ColorOverlayFilter(ColorRGBA.LightGray);
+		//fpp.addFilter(bloom) ;
+		//fpp.addFilter(overlay) ;
+		//fpp.addFilter(water) ;
+		// only add the ssao filter
+		//fpp.addFilter(ssaoFilter);
+		//FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 		// BloomFilter bloom = new BloomFilter(GlowMode.Objects);
 		// fpp.addFilter(bloom);
-		// viewPort.addProcessor(fpp);
 
+//		fpp.addFilter(ssaoFilter);
+//		viewPort.addProcessor(fpp);
+		
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
 		}

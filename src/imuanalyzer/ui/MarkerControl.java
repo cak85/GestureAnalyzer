@@ -108,6 +108,8 @@ public class MarkerControl extends JPanel {
 				"/Icons/sq_br_prev.png"));
 
 		JButton buttonBack = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_prev_select.png"));
+		buttonBack.setRolloverIcon(icon);
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
 		buttonBack.setToolTipText("Select previous dataset");
@@ -127,6 +129,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass()
 				.getResource("/Icons/sq_br_stop_red.png"));
 		buttonRec.setSelectedIcon(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec_select.png"));
+		buttonRec.setRolloverIcon(icon);
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
 		buttonRec.setToolTipText("Record movement");
@@ -179,6 +183,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/sq_br_stop_green.png"));
 		buttonPlay.setSelectedIcon(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_next_select.png"));
+		buttonPlay.setRolloverIcon(icon);
 		buttonPlay.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonPlay.setContentAreaFilled(false);
 		buttonPlay.setToolTipText("Play current dataset");
@@ -215,6 +221,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/playback_reloaded_button_transparent.png"));
 		buttonRepeat.setSelectedIcon(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/playback_reloaded_button_select.png"));
+		buttonRepeat.setRolloverIcon(icon);
 		buttonRepeat.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRepeat.setContentAreaFilled(false);
 		buttonRepeat.setToolTipText("Repeat one");
@@ -224,6 +232,9 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
 
 		JButton buttonForward = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next_select.png"));
+		buttonForward.setRolloverIcon(icon);
+
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonForward.setContentAreaFilled(false);
 		buttonForward.setToolTipText("Select next dataset");
@@ -237,10 +248,12 @@ public class MarkerControl extends JPanel {
 
 		this.add(buttonForward);
 
-		// eject button
+		// analysis button
 		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
 
 		JButton buttonAnalysis = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2_select.png"));
+		buttonAnalysis.setRolloverIcon(icon);
 		buttonAnalysis.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonAnalysis.setContentAreaFilled(false);
 		buttonAnalysis.setToolTipText("Open datasets for analyzing");
@@ -257,6 +270,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/trash.png"));
 
 		JButton buttonDelete = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/trash_select.png"));
+		buttonDelete.setRolloverIcon(icon);
 		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonDelete.setContentAreaFilled(false);
 		buttonDelete
@@ -270,20 +285,22 @@ public class MarkerControl extends JPanel {
 
 		this.add(buttonDelete);
 
-		// save button
+		// CSV button
 		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
 
-		JButton buttonSave = new JButton(icon);
-		buttonSave.setContentAreaFilled(false);
-		buttonSave.setToolTipText("Save current dataset's raw data to csv");
-		buttonSave.addActionListener(new ActionListener() {
+		JButton buttonCSV = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/csv_text_select.png"));
+		buttonCSV.setRolloverIcon(icon);
+		buttonCSV.setContentAreaFilled(false);
+		buttonCSV.setToolTipText("Save current dataset's raw data to csv");
+		buttonCSV.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				saveMarker();
 			}
 		});
 
-		this.add(buttonSave);
+		this.add(buttonCSV);
 
 		JPanel comboBoxPanel = new JPanel(new GridLayout(0, 1));
 		LineBorder roundedLineBorder = new LineBorder(Color.lightGray, 1, true);
