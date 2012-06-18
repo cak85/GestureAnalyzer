@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.device.IIMUDataProvider;
+import imuanalyzer.device.IImuReaderStatusNotifier;
 import imuanalyzer.device.ImuEvent;
 import imuanalyzer.device.ImuEventManager;
 import imuanalyzer.device.ImuRawData;
@@ -290,6 +291,14 @@ public class PlaybackRecordTest {
 		@Override
 		public boolean isConnected() {
 			return true;
+		}
+
+		@Override
+		public void registerStatusNotifier(IImuReaderStatusNotifier notifier) {
+		}
+
+		@Override
+		public void deregisterStatusNotifier(IImuReaderStatusNotifier notifier) {
 		}
 
 	}

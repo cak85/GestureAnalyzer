@@ -2,10 +2,15 @@ package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.Joint;
+import imuanalyzer.signalprocessing.Restriction;
 import info.monitorenter.gui.chart.Chart2D;
+import info.monitorenter.gui.chart.IAxis.AxisTitle;
 import info.monitorenter.gui.chart.ITrace2D;
 import info.monitorenter.gui.chart.controls.LayoutFactory;
+import info.monitorenter.gui.chart.pointpainters.PointPainterDisc;
 import info.monitorenter.gui.chart.traces.Trace2DLtd;
+import info.monitorenter.gui.chart.traces.painters.TracePainterDisc;
 import info.monitorenter.gui.chart.views.ChartPanel;
 
 import java.awt.Color;
@@ -25,7 +30,7 @@ public class JointRelationChartManager {
 	private static final long serialVersionUID = 1L;
 
 	private static final long SLEEP_TIME = 250;
-	private static final int VALUES_LIMIT = 50;
+	private static final int VALUES_LIMIT = 250;
 
 	private ArrayList<JointRelation> relations = new ArrayList<JointRelationChartManager.JointRelation>();
 
@@ -93,24 +98,43 @@ public class JointRelationChartManager {
 			this.type2 = type2;
 
 			chart = new Chart2D();
-
+			
+			chart.getAxisX().setAxisTitle(new AxisTitle("Degree of "+ hand.getJoint(type1).getInfoName()));
+			chart.getAxisY().setAxisTitle(new AxisTitle("Degree of "+ hand.getJoint(type2).getInfoName()));
+			
 			LayoutFactory lfct = LayoutFactory.getInstance();
 			ChartPanel chartpanel = new ChartPanel(chart);
+			
+			Joint j1 = hand.getJoint(type1);
 
-			ITrace2D traceX = new Trace2DLtd(VALUES_LIMIT);
-			traceX.setName("Pitch");
-			traceX.setColor(Color.RED);
-			chart.addTrace(traceX);
+			Joint j2 = hand.getJoint(type2);
 
-			ITrace2D traceY = new Trace2DLtd(VALUES_LIMIT);
-			traceY.setName("Roll");
-			traceY.setColor(Color.BLUE);
-			chart.addTrace(traceY);
+			Restriction r1 = j1.getRestriction();
+			Restriction r2 = j2.getRestriction();
 
-			ITrace2D traceZ = new Trace2DLtd(VALUES_LIMIT);
-			traceZ.setName("Yaw");
-			traceZ.setColor(Color.GREEN);
-			chart.addTrace(traceZ);
+			if (r1.isRollAllowed() && r2.isRollAllowed()) {
+				ITrace2D traceX = new Trace2DLtd(VALUES_LIMIT);
+				traceX.setName("Roll");
+				traceX.setColor(Color.RED);
+				chart.addTrace(traceX);
+				traceX.setTracePainter(new TracePainterDisc());
+			}
+
+			if (r1.isPitchAllowed() && r2.isPitchAllowed()) {
+				ITrace2D traceY = new Trace2DLtd(VALUES_LIMIT);
+				traceY.setName("Pitch");
+				traceY.setColor(Color.BLUE);
+				chart.addTrace(traceY);
+				traceY.setTracePainter(new TracePainterDisc());
+			}
+
+			if (r1.isYawAllowed() && r2.isYawAllowed()) {
+				ITrace2D traceZ = new Trace2DLtd(VALUES_LIMIT);
+				traceZ.setName("Yaw");
+				traceZ.setColor(Color.GREEN);
+				chart.addTrace(traceZ);
+				traceZ.setTracePainter(new TracePainterDisc());
+			}
 
 			ImageIcon icon = new ImageIcon(getClass().getResource(
 					"/Icons/hand.png"));
@@ -146,17 +170,15 @@ public class JointRelationChartManager {
 			double[] newReleation = { angles1[0] / angles2[0],
 					angles1[1] / angles2[1], angles1[2] / angles2[2] };
 
-			if (Math.abs(currentRelation[0] - newReleation[0]) > 0.000001 
-					|| Math.abs(currentRelation[1] - newReleation[1]) > 0.000001 
-					|| Math.abs(currentRelation[2] - newReleation[2]) > 0.000001 ) {
+			if (Math.abs(currentRelation[0] - newReleation[0]) > 0.000001
+					|| Math.abs(currentRelation[1] - newReleation[1]) > 0.000001
+					|| Math.abs(currentRelation[2] - newReleation[2]) > 0.000001) {
 				currentRelation = newReleation;
-				System.out.println("New relation " + currentRelation[0]+" "+currentRelation[1]+" "+currentRelation[2]);
-				System.out.println("X " + Math.abs(angles1[0])*180/Math.PI+" "+Math.abs(angles1[1])*180/Math.PI+" "+Math.abs(angles1[2])*180/Math.PI);
-				System.out.println("Y " + Math.abs(angles2[0])*180/Math.PI+" "+Math.abs(angles2[1])*180/Math.PI+" "+Math.abs(angles2[2])*180/Math.PI);
 				SortedSet<ITrace2D> traces = chart.getTraces();
 				int i = 0;
 				for (ITrace2D trace : traces) {
-					trace.addPoint(Math.abs(angles1[i])*180/Math.PI, Math.abs(angles2[i])*180/Math.PI);
+					trace.addPoint(Math.abs(angles1[i]) * 180 / Math.PI,
+							Math.abs(angles2[i]) * 180 / Math.PI);
 					i++;
 				}
 			}

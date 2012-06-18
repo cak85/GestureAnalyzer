@@ -1,6 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.device.CommPortLister;
+import imuanalyzer.device.IImuReaderStatusNotifier;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 
 import java.awt.GridBagConstraints;
@@ -25,10 +26,26 @@ public class ConnectionPanel extends JPanel {
 
 	IOrientationSensors sensor;
 
-	public ConnectionPanel(IOrientationSensors sensor) {
-		this.sensor = sensor;
+	JButton connectButton;
+
+	ConnectionPanel instance;
+
+	public ConnectionPanel(IOrientationSensors _sensor) {
+		this.sensor = _sensor;
+		instance = this;
+
+		sensor.getImuDataProvider().registerStatusNotifier(
+				new IImuReaderStatusNotifier() {
+					@Override
+					public void notifyImuReaderError(String string) {
+						JOptionPane.showMessageDialog(instance, string,
+								"Error", JOptionPane.WARNING_MESSAGE);
+						disconnect();
+					}
+				});
+
 		setLayout(new GridBagLayout());
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "connection");
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -36,9 +53,9 @@ public class ConnectionPanel extends JPanel {
 		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.weightx=1;
-		c.weighty=1;
-		
+		c.weightx = 1;
+		c.weighty = 1;
+
 		cbPort = new JComboBox(CommPortLister.getSerialList());
 
 		this.add(cbPort, c);
@@ -47,22 +64,19 @@ public class ConnectionPanel extends JPanel {
 		c.ipady = 0; // reset to default
 		c.weighty = 1; // request any extra vertical space
 		c.gridx = 1; // aligned with button 2
-		c.gridwidth = 1; 
+		c.gridwidth = 1;
 		c.gridy = 1; // third row
 
-		JButton connectButton = new JButton("Connect");
+		connectButton = new JButton("Connect");
 		connectButton.setToolTipText("Connect with IMU-Reader device");
 
 		connectButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				JButton button = (JButton)arg0.getSource();
-				if(button.getText().equals("Connect")){
+				if (connectButton.getText().equals("Connect")) {
 					connect();
-					button.setText("Disconnect");
-				}else{
-					button.setText("Connect");
+				} else {
 					disconnect();
 				}
 			}
@@ -73,7 +87,7 @@ public class ConnectionPanel extends JPanel {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
 		c.weighty = 0.5; // request any extra vertical space
-		//c.anchor = GridBagConstraints.PAGE_END; // bottom of space
+		// c.anchor = GridBagConstraints.PAGE_END; // bottom of space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 2 columns wide
 		c.gridy = 1; // third row
@@ -94,6 +108,7 @@ public class ConnectionPanel extends JPanel {
 	}
 
 	protected void connect() {
+		connectButton.setText("Disconnect");
 		if (sensor.connect((String) cbPort.getSelectedItem())) {
 			JOptionPane.showMessageDialog(this, "Connection established",
 					"Connection", JOptionPane.INFORMATION_MESSAGE);
@@ -102,8 +117,9 @@ public class ConnectionPanel extends JPanel {
 					"Connection", JOptionPane.ERROR_MESSAGE);
 		}
 	}
-	
-	protected void disconnect(){
+
+	protected void disconnect() {
+		connectButton.setText("Connect");
 		sensor.disconnect();
 	}
 

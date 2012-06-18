@@ -1,5 +1,6 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
@@ -31,5 +32,7 @@ public interface IOrientationSensors {
 			final double samplePeriod);
 	
 	void setRecordDataNotifyListener(IRecordDataNotify listener);
+	
+	IIMUDataProvider getImuDataProvider();
 	
 }

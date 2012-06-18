@@ -78,6 +78,7 @@ public class MainMenuBar extends JMenuBar {
 
 		// disable movement saving
 		menuItem = new JMenuItem("Clear live movement anaylsis");
+		HelpManager.getInstance().enableHelpKey(menuItem, "controlmenu");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override
@@ -90,6 +91,7 @@ public class MainMenuBar extends JMenuBar {
 
 		// disable movement saving
 		menuItem = new JMenuItem("Clear live touch anaylsis");
+		HelpManager.getInstance().enableHelpKey(menuItem, "controlmenu");
 		menuItem.addActionListener(new ActionListener() {
 
 			@Override

@@ -45,6 +45,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	protected String name;
 
+	protected ArrayList<JointRelation> relationsToOtherJoints = new ArrayList<JointRelation>();
+
 	public Joint(Hand hand, JointType f, IOrientationSensors sensors,
 			Restriction restriction) {
 		this.hand = hand;
@@ -82,7 +84,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 			measuredOrientation = measuredOrientation.quaternionProduct(parent
 					.getLastActiveChange().getConjugate());
 
-			this.localOrientation = updateWithRestrictions(measuredOrientation);
+			this.localOrientation = updateWithRestrictions(measuredOrientation,
+					true);
 
 		} else {
 			this.localOrientation = measuredOrientation;
@@ -93,6 +96,11 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 			if (storeLastMovement) {
 				lastActiveChange = localOrientation
 						.quaternionProduct(oldOrientation.getConjugate());
+
+				// update joints in relation to this one
+				for (JointRelation relation : relationsToOtherJoints) {
+					relation.update(lastActiveChange);
+				}
 			}
 			hand.informJointsUpdated(this);
 		} else {
@@ -101,7 +109,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		return this.localOrientation;
 	}
 
-	public void carryOrientationFromChild(Quaternion carry) {
+	public void carryOrientationFromOther(Quaternion carry,
+			boolean carryOffsetToChild) {
 
 		// only handle carry if we do not know it better from out own sensor
 		if (isActive()) {
@@ -112,10 +121,11 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		Quaternion measuredOrientation = carry
 				.quaternionProduct(localOrientation);
 
-		if (parent != null) { // adjust measured orientation with know
+		if (parent != null) { // adjust measured orientation with known
 			// restrictions
 			// adjust rotation if it conflicts with restrictions
-			this.localOrientation = updateWithRestrictions(measuredOrientation);
+			this.localOrientation = updateWithRestrictions(measuredOrientation,
+					carryOffsetToChild);
 
 		} else {
 			this.localOrientation = measuredOrientation;
@@ -171,7 +181,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		}
 	}
 
-	private Quaternion updateWithRestrictions(Quaternion measuredOrientation) {
+	private Quaternion updateWithRestrictions(Quaternion measuredOrientation,
+			boolean carryOffsetToChild) {
 
 		// System.out.println(this.type);
 
@@ -184,11 +195,12 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		Quaternion diff = getRestrictionOffset(rotDiff);
 
-		if (diff != null) {
+		if (diff != null && carryOffsetToChild) {
 
 			measuredOrientation = diff.quaternionProduct(measuredOrientation);
 
-			parent.carryOrientationFromChild(diff.getConjugate());
+			parent.carryOrientationFromOther(diff.getConjugate(),
+					carryOffsetToChild);
 
 			return measuredOrientation;
 
@@ -426,8 +438,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		return ret;
 	}
-	
-	public Quaternion getRotationBetweenParent(){
+
+	public Quaternion getRotationBetweenParent() {
 		Joint joint = this;
 		IJoint parent = joint.getParent();
 
@@ -445,7 +457,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	public String getInfoValue() {
 
 		Quaternion quat = getRotationBetweenParent();
-		
+
 		double[] angles = quat.getAnglesRadFromQuaternion();
 		Restriction restriction = getRestriction();
 
@@ -469,6 +481,16 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	public void addRelation(JointRelation relation) {
+		if (!relationsToOtherJoints.contains(relation)) {
+			relationsToOtherJoints.add(relation);
+		}
+	}
+
+	public void removeRelation(JointRelation relation) {
+		relationsToOtherJoints.remove(relation);
 	}
 
 }

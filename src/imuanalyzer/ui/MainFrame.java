@@ -1,6 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.data.Marker;
+import imuanalyzer.device.IImuReaderStatusNotifier;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
@@ -14,6 +15,7 @@ import java.util.logging.Level;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;

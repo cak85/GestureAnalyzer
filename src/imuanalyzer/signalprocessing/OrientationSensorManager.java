@@ -108,19 +108,14 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 							final double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
 									/ (double) 1000;
-							// LOGGER.debug("SamplePeriod: " + samplePeriod);
+							//LOGGER.debug("SamplePeriod: " + samplePeriod);
 
 							lastFilterUpdate = newFilterUpdate;
 
 							synchronized (filterEditLock) {
-								if (isRecording) { // should never be true on
-									// processing recorded data
+								if (isRecording) { 
 									recordData(event.getData(), samplePeriod);
-									// LOGGER.debug("is Recording");
 								}
-								// else{
-								// LOGGER.debug("NOT Recording");
-								// }
 
 								processImuData(event.getData(), samplePeriod);
 							}
@@ -264,6 +259,11 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public boolean isConnected() {
 		return imureader.isConnected();
+	}
+
+	@Override
+	public IIMUDataProvider getImuDataProvider() {
+		return imureader;
 	}
 
 }

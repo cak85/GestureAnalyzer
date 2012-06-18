@@ -41,6 +41,8 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 
 	private String portName;
 
+	protected ArrayList<IImuReaderStatusNotifier> notifiers = new ArrayList<IImuReaderStatusNotifier>();
+
 	public ImuReader(String portName, int numberOfIMUs, Boolean continousMode)
 			throws Exception {
 		this.numberOfIMUs = numberOfIMUs;
@@ -108,6 +110,9 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 		return Float.intBitsToFloat(intbits);
 	}
 
+	int processCounter = 0;
+	int errorCounter = 0;
+
 	/**
 	 * Read data from IMUs
 	 */
@@ -118,13 +123,33 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 			int len = 0;
 			while ((data = inSerial.read()) > -1) {
 				if (data == '\n') {
+
+					processCounter++;
+					if (processCounter % 10 == 0) {
+						errorCounter = 0;
+					}
+
 					String transferedData = new String(buffer, 0, len);
 					StringTokenizer tokenizer = new StringTokenizer(
 							transferedData, ";");
 
 					ArrayList<String> tokenList = new ArrayList<String>();
 					while (tokenizer.hasMoreTokens()) {
-						tokenList.add(tokenizer.nextToken());
+						String token = tokenizer.nextToken();
+						if (token.equals("ERR")) {
+							errorCounter++;
+							if (errorCounter > 5) {
+								String message = "The device is reporting many transfer errors - the connection is closed. Please check the hardware!";
+								for (IImuReaderStatusNotifier notifier : notifiers) {
+									notifier.notifyImuReaderError(message);
+								}
+							} else {
+								LOGGER.debug("Transfer error #: "
+										+ errorCounter);
+							}
+							break;
+						}
+						tokenList.add(token);
 					}
 
 					if (tokenList.size() >= ((9 * numberOfIMUs) + 1)) {
@@ -170,6 +195,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 						eventManager.fireEvent(new ImuEvent(imuData));
 
 					} else {
+						LOGGER.warn("Incomplete command: \n" + transferedData);
 						// Ignore incomplete or wrong transfered data
 					}
 					break;
@@ -230,6 +256,18 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 	@Override
 	public boolean isConnected() {
 		return (portName != null);
+	}
+
+	@Override
+	public void registerStatusNotifier(IImuReaderStatusNotifier notifier) {
+		if (!notifiers.contains(notifier)) {
+			notifiers.add(notifier);
+		}
+	}
+
+	@Override
+	public void deregisterStatusNotifier(IImuReaderStatusNotifier notifier) {
+		notifiers.remove(notifier);
 	}
 
 }
