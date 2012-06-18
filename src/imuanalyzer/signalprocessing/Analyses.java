@@ -6,8 +6,8 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.tools.parallel.LoopBody;
-import imuanalyzer.tools.parallel.Parallel;
+import imuanalyzer.utils.parallel.LoopBody;
+import imuanalyzer.utils.parallel.Parallel;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

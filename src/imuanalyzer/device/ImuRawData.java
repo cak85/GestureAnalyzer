@@ -2,7 +2,7 @@ package imuanalyzer.device;
 
 import java.util.Date;
 
-import imuanalyzer.tools.SensorVector;
+import imuanalyzer.utils.SensorVector;
 
 /**
  * This class is only a container for raw data of one Imu

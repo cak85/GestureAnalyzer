@@ -9,7 +9,7 @@ import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.FilterFactory;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
-import imuanalyzer.tools.SensorVector;
+import imuanalyzer.utils.SensorVector;
 
 import java.util.Comparator;
 import java.util.Date;

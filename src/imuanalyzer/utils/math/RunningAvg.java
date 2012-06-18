@@ -1,4 +1,4 @@
-package imuanalyzer.filter;
+package imuanalyzer.utils.math;
 
 import java.util.ArrayDeque;
 
@@ -16,6 +16,9 @@ public class RunningAvg {
 	}
 
 	public void add(double value) {
+		if(Double.isNaN(value)){
+			return;
+		}
 
 		if (buffer.size() > size) {
 			Double last = buffer.pollLast();

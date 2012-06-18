@@ -1,4 +1,6 @@
-package imuanalyzer.filter;
+package imuanalyzer.utils.math;
+
+import imuanalyzer.filter.Quaternion;
 
 /**
  * 

@@ -1,7 +1,7 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.filter.LowPass;
 import imuanalyzer.filter.Quaternion;
+import imuanalyzer.utils.math.LowPass;
 
 import java.util.ArrayList;
 

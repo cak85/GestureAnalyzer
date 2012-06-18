@@ -1,6 +1,6 @@
 package imuanalyzer.device;
 
-import imuanalyzer.tools.SensorVector;
+import imuanalyzer.utils.SensorVector;
 
 import java.util.Hashtable;
 

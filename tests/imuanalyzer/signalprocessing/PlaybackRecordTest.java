@@ -14,7 +14,7 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.tools.SensorVector;
+import imuanalyzer.utils.SensorVector;
 
 import java.util.ArrayList;
 import java.util.Date;

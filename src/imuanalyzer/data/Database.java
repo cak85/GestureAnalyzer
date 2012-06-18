@@ -5,7 +5,7 @@ import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.tools.SensorVector;
+import imuanalyzer.utils.SensorVector;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

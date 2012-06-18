@@ -1,4 +1,4 @@
-package imuanalyzer.tools.parallel;
+package imuanalyzer.utils.parallel;
 
 /**
  *    Partition Parallel.For into Parallel.ForEach

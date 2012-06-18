@@ -2,6 +2,11 @@ package imuanalyzer.signalprocessing;
 
 import imuanalyzer.filter.Quaternion;
 
+/**
+ * Relationship to another joint
+ * @author "Christopher-Eyk Hrabia"
+ *
+ */
 public class JointRelation {
 
 	protected Joint other;
@@ -13,8 +18,10 @@ public class JointRelation {
 	}
 
 	public void update(Quaternion quat) {
-		quat = quat.times(factor);
-		quat.normalizeLocal();
-		other.carryOrientationFromOther(quat, false);
+		if (!other.isActive()) {
+			quat = quat.times(factor);
+			quat.normalizeLocal();
+			other.carryOrientationFromOther(quat, false);
+		}
 	}
 }

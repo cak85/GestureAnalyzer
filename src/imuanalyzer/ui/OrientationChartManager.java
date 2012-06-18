@@ -5,6 +5,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.ITrace2D;
+import info.monitorenter.gui.chart.IAxis.AxisTitle;
 import info.monitorenter.gui.chart.controls.LayoutFactory;
 import info.monitorenter.gui.chart.traces.Trace2DLtd;
 import info.monitorenter.gui.chart.views.ChartPanel;
@@ -45,6 +46,9 @@ public class OrientationChartManager {
 		if (charts.get(type) == null) {
 
 			Chart2D chart = new Chart2D();
+			
+			chart.getAxisX().setAxisTitle(new AxisTitle("Angle in degree"));
+			chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
 
 			LayoutFactory lfct = LayoutFactory.getInstance();
 			ChartPanel chartpanel = new ChartPanel(chart);

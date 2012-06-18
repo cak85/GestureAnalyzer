@@ -35,6 +35,8 @@ package imuanalyzer.ui.swing.extensions;
  * inventing predecessor languages C and C++ is also gratefully acknowledged.
  */
 
+import imuanalyzer.ui.swing.extensions.RelativeLayout.Tracker;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -96,7 +98,7 @@ public class RelativeLayout implements LayoutManager {
   protected int curHgt;
 
   /** to track Components added by named add form. */
-  protected Vector curComps = new Vector();
+  protected Vector<Tracker> curComps = new Vector<Tracker>();
 
   /**
    * Constructs an RelativeLayout, given original hard-coded size of panel.

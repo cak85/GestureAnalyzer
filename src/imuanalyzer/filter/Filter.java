@@ -1,5 +1,8 @@
 package imuanalyzer.filter;
 
+import imuanalyzer.utils.math.LowPass;
+import imuanalyzer.utils.math.RunningAvg;
+
 import org.apache.log4j.Logger;
 
 import Jama.Matrix;

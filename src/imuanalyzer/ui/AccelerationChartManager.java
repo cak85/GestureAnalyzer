@@ -5,6 +5,7 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.ITrace2D;
+import info.monitorenter.gui.chart.IAxis.AxisTitle;
 import info.monitorenter.gui.chart.controls.LayoutFactory;
 import info.monitorenter.gui.chart.traces.Trace2DLtd;
 import info.monitorenter.gui.chart.views.ChartPanel;
@@ -45,6 +46,9 @@ public class AccelerationChartManager {
 		if (charts.get(type) == null) {
 
 			Chart2D chart = new Chart2D();
+			
+			chart.getAxisX().setAxisTitle(new AxisTitle("Acceleration in m/s^2"));
+			chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
 
 			ITrace2D traceX = new Trace2DLtd(VALUES_LIMIT);
 			traceX.setName("X");

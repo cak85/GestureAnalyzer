@@ -1,4 +1,4 @@
-package imuanalyzer.tools;
+package imuanalyzer.utils;
 
 
 public class SensorVector {
