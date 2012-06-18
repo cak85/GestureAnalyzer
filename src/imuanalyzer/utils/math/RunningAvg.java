@@ -4,23 +4,23 @@ import java.util.ArrayDeque;
 
 public class RunningAvg {
 
-	int size;
+	int sizeLimit;
 
 	ArrayDeque<Double> buffer;
 
 	double sum = 0;
 
 	public RunningAvg(int size) {
-		this.size = size;
+		sizeLimit = size - 1;
 		buffer = new ArrayDeque<Double>();
 	}
 
 	public void add(double value) {
-		if(Double.isNaN(value)){
+		if (Double.isNaN(value)) {
 			return;
 		}
 
-		if (buffer.size() > size) {
+		if (buffer.size() > sizeLimit) {
 			Double last = buffer.pollLast();
 			if (last != null) {
 				sum -= last;
