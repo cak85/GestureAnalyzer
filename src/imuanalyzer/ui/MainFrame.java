@@ -5,6 +5,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -30,7 +31,6 @@ public class MainFrame extends JFrame {
 
 	private static final Logger LOGGER = Logger.getLogger(MainFrame.class
 			.getName());
-
 
 	public static void main(String[] args) {
 
@@ -83,9 +83,9 @@ public class MainFrame extends JFrame {
 	protected Hand hand;
 
 	public MainFrame() {
-		
+
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-		
+
 		HelpManager.getInstance().enableHelpKey(this.getRootPane(), "start");
 
 		configureFrame();
@@ -115,7 +115,7 @@ public class MainFrame extends JFrame {
 		this.setVisible(true);
 
 		pack();
-		
+
 	}
 
 	private void createTabs() {
@@ -126,7 +126,7 @@ public class MainFrame extends JFrame {
 		mainPanel = new JPanel(new GridBagLayout());
 		jtp.addTab("Main", mainPanel);
 
-		settingsPanel = new JPanel(new GridBagLayout());
+		settingsPanel = new JPanel(new BorderLayout());
 		jtp.addTab("Settings", settingsPanel);
 	}
 
@@ -158,7 +158,7 @@ public class MainFrame extends JFrame {
 		c.gridy = 2;
 		c.insets = new Insets(10, 0, 0, 0);
 		visual3d = new Visual3d(hand);
-				
+
 		JPanel jme3Panel = visual3d.get3dPanel();
 		mainPanel.add(jme3Panel, c);
 	}
@@ -179,14 +179,7 @@ public class MainFrame extends JFrame {
 		fingerSensorMapping = new FingerSensorMapping(hand,
 				OrientationSensorManagerFactory.NUMBER_OF_SENSORS);
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.BOTH;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
-		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 0;
-		settingsPanel.add(fingerSensorMapping, c);
+		settingsPanel.add(fingerSensorMapping, BorderLayout.CENTER);
 	}
 
 	protected void createToolbars() {

@@ -2,9 +2,11 @@ package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.swing.extensions.RelativeLayout;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -15,9 +17,11 @@ import java.util.EnumMap;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -45,7 +49,7 @@ public class FingerSensorMapping extends JPanel {
 	public FingerSensorMapping(Hand hand, int numberOfSensors) {
 		this.numberOfSensors = numberOfSensors;
 		this.hand = hand;
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "jointsensormapping");
 
 		BufferedImage img = null;
@@ -55,16 +59,25 @@ public class FingerSensorMapping extends JPanel {
 		}
 		background = new BackgroundPanel(img, BackgroundPanel.SCALED, 0.0f,
 				0.0f);
-		background.setLayout(null);
+		background.setLayout(new RelativeLayout(img.getWidth(),img.getHeight()));
+		
+		JPanel scrollContent = new JPanel();
+		
+		scrollContent.setLayout(new FlowLayout());
 
-		this.setLayout(new BorderLayout());
-
-		this.add(background, BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(scrollContent);
+				
+		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		
 
 		JLabel infoText = new JLabel(
 				"<html><h2>Select sensor-id's for hand links</h2></html>");
 
-		this.add(infoText, BorderLayout.NORTH);
+		this.add(infoText);
+		
+		this.add(scrollPane);
+		
+		scrollContent.add(background);
 
 		addHandSpinner(JointType.HAND_ROOT, 245, 350);
 
@@ -113,7 +126,7 @@ public class FingerSensorMapping extends JPanel {
 
 		buttonPanel.add(resetButton);
 
-		this.add(buttonPanel, BorderLayout.SOUTH);
+		this.add(buttonPanel);
 
 	}
 
@@ -130,9 +143,9 @@ public class FingerSensorMapping extends JPanel {
 		spinner.addChangeListener(new SensorChangeListener(finger, hand));
 
 		spinners.put(finger, spinner);
-		background.add(spinner);
+		background.add(""+xOffset+","+yOffset,spinner);
 
-		updateSpinnerColor(defaultValue-1, spinner);
+		updateSpinnerColor(defaultValue - 1, spinner);
 		return spinner;
 	}
 
