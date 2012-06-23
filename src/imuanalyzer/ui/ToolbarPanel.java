@@ -39,7 +39,7 @@ public class ToolbarPanel extends JPanel {
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
-		c.weighty = 0.5; // request any extra vertical space
+		c.weighty = 1; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
 		c.gridy = 0;

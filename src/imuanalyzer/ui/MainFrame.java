@@ -6,6 +6,7 @@ import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -132,6 +133,7 @@ public class MainFrame extends JFrame {
 
 	private void configureFrame() {
 		this.setTitle("IMUAnalyzer");
+		this.setMinimumSize(new Dimension(250, 250));
 		this.setSize(1024, 768);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
@@ -195,7 +197,8 @@ public class MainFrame extends JFrame {
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
-		JPanel rightToolBarPanel = new ToolbarPanel(hand, sensors, this,visual3d);
+		JPanel rightToolBarPanel = new ToolbarPanel(hand, sensors, this,
+				visual3d);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
