@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -41,6 +42,7 @@ public class InfoBox extends JPanel {
 	Updater updater;
 
 	public InfoBox() {
+		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
 		JScrollPane scrollPane;
 

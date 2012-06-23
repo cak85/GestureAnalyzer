@@ -2,9 +2,11 @@ package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 
@@ -33,51 +35,31 @@ public class FeelingSliders extends JPanel {
 	protected Hand hand;
 
 	protected JPanel sliderPanel;
-	
+
 	protected MainFrame mainFrame;
 
 	public FeelingSliders(Hand _hand) {
 		this.hand = _hand;
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "feeling");
 
-		GridBagLayout layout = new GridBagLayout();
-		this.setLayout(layout);
+		this.setLayout(new BorderLayout());
 
 		// comfort slider
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
-		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 0;
-		c.gridheight = 1;
-		c.insets = new Insets(10, 10, 0, 0);
 
 		sliderDescription = new JTextField("Feeling:");
-		this.add(sliderDescription, c);
-
-		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.VERTICAL;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
-		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 1;
-		c.gridheight = 2;
-		c.insets = new Insets(0, 10, 0, 0);
+		this.add(sliderDescription, BorderLayout.NORTH);
 
 		sliderPanel = new JPanel();
 
-		sliderPanel.setLayout(new FlowLayout());
+		sliderPanel.setLayout(new GridBagLayout());
 
 		addSlider();
 
-		this.add(sliderPanel, c);
+		this.add(sliderPanel, BorderLayout.CENTER);
 		// slider min/max configuration
 		JPanel sliderConfigPanel = new JPanel();
-		sliderConfigPanel.setLayout(new FlowLayout());
+		sliderConfigPanel.setLayout(new GridLayout(1, 0));
 
 		sliderConfigPanel.add(new JLabel("Min"));
 
@@ -144,16 +126,7 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(countSpinner);
 
-		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.VERTICAL;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
-		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 3;
-		c.gridheight = 1;
-		c.insets = new Insets(0, 10, 0, 0);
-		this.add(sliderConfigPanel, c);
+		this.add(sliderConfigPanel, BorderLayout.SOUTH);
 	}
 
 	private void addSlider() {
@@ -174,11 +147,22 @@ public class FeelingSliders extends JPanel {
 			}
 		});
 
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.ipady = 0;
+		c.weighty = 1;
+		c.weightx = 1;
+		c.gridx = comfortSliders.size();
+		c.gridwidth = 1;
+		c.gridy = 0;
+		c.gridheight = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+
 		comfortSliders.add(comfortSlider);
-		sliderPanel.add(comfortSlider);
+		sliderPanel.add(comfortSlider, c);
 		this.updateUI();
 	}
-	
+
 	private void writeBackSliderValues() {
 		ArrayList<Integer> values = new ArrayList<Integer>();
 

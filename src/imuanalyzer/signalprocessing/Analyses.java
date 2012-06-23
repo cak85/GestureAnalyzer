@@ -6,6 +6,7 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.NonDynamicChartFiller;
 import imuanalyzer.utils.parallel.LoopBody;
 import imuanalyzer.utils.parallel.Parallel;
 
@@ -51,12 +52,15 @@ public class Analyses {
 	 */
 	ArrayList<VectorLine> touchResultAvg;
 
-	Collection<Marker> markers;
+	ArrayList<Marker> markers;
 	FilterTypes filterType;
 	ArrayList<JointType> saveMotionJoints;
 	ArrayList<JointType> saveTouchJoints;
 
 	ArrayList<Float> specialPercentPoints;
+
+	// TODO improve wrapp into interface
+	NonDynamicChartFiller chartFiller;
 
 	/**
 	 * touch analysis statistics Data
@@ -91,29 +95,15 @@ public class Analyses {
 		LOGGER.info("Calculation complete");
 	}
 
-	public void calculateAvg(Collection<Marker> _markers,
+	public void calculate(AnalysesMode mode, ArrayList<Marker> _markers,
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
 			ArrayList<JointType> _touchJoint,
-			ArrayList<Float> specialPercentPoints) {
-		calculate(AnalysesMode.AVG, _markers, _filterType, _movementStartJoint,
-				_touchJoint, specialPercentPoints);
-	}
-
-	public void calculateSUM(Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
-			ArrayList<JointType> _touchJoint,
-			ArrayList<Float> specialPercentPoints) {
-		calculate(AnalysesMode.SUM, _markers, _filterType, _movementStartJoint,
-				_touchJoint, specialPercentPoints);
-	}
-
-	public void calculate(AnalysesMode mode, Collection<Marker> _markers,
-			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
-			ArrayList<JointType> _touchJoint,
-			ArrayList<Float> specialPercentPoints) {
+			ArrayList<Float> specialPercentPoints,
+			NonDynamicChartFiller chartFiller) {
 
 		this.mode = mode;
 		this.specialPercentPoints = specialPercentPoints;
+		this.chartFiller = chartFiller;
 		prepare(_markers, _filterType, _movementStartJoint, _touchJoint);
 
 		switch (mode) {
@@ -131,7 +121,7 @@ public class Analyses {
 		LOGGER.info("Calculation complete");
 	}
 
-	private void prepare(Collection<Marker> _markers, FilterTypes _filterType,
+	private void prepare(ArrayList<Marker> _markers, FilterTypes _filterType,
 			ArrayList<JointType> _saveMotionJoints,
 			ArrayList<JointType> _touchJoints) {
 
@@ -145,10 +135,12 @@ public class Analyses {
 
 		hands.clear();
 
-		Parallel.ForEach(markers, new LoopBody<Marker>() {
+		Parallel.For(0, markers.size(), new LoopBody<Integer>() {
 
 			@Override
-			public void run(Marker marker) {
+			public void run(Integer markerIdx) {
+
+				Marker marker = markers.get(markerIdx);
 
 				ArrayList<ImuRawData> rawData = db.getImuData(marker);
 
@@ -188,6 +180,7 @@ public class Analyses {
 						Date currentPeriod = rawData.get(0).getTimeStamp();
 						ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
 
+						Double sumSamplePeriod = new Double(0);
 						for (int i = 0; i < rawData.size(); i++) {
 
 							ImuRawData newData = rawData.get(i);
@@ -198,14 +191,21 @@ public class Analyses {
 								// order array by id
 								currentSet[newData.getId()] = newData;
 							} else {
+
+								double samplePeriod = newData.getSamplePeriod();
+								sumSamplePeriod += samplePeriod;
 								db.selectFeelingData(currentPeriod,
 										hand.getComfortScale());
 								orientationManager.processImuData(
-										currentSet.clone(),
-										newData.getSamplePeriod());
+										currentSet.clone(), samplePeriod);
 								currentPeriod = newData.getTimeStamp();
 								// do not forget to process current item
 								currentSet[newData.getId()] = newData;
+
+								if (chartFiller != null) {
+									chartFiller.update(hand, markerIdx,
+											sumSamplePeriod);
+								}
 							}
 						}
 					}

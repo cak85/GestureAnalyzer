@@ -219,7 +219,7 @@ public class MainMenuBar extends JMenuBar {
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					chartOrientation.addChart(type);
+					chartOrientation.addDynamicChart(type);
 				}
 			});
 			jointMenuAdd.add(submenuitemAddOrientation);
@@ -239,7 +239,7 @@ public class MainMenuBar extends JMenuBar {
 
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
-						chartsRelation.addChart(type, secondType);
+						chartsRelation.addDynamicChart(type, secondType);
 					}
 				});
 

@@ -3,6 +3,7 @@ package imuanalyzer.ui;
 import imuanalyzer.device.CommPortLister;
 import imuanalyzer.device.IImuReaderStatusNotifier;
 import imuanalyzer.signalprocessing.IOrientationSensors;
+import imuanalyzer.utils.os.OSValidator;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -130,6 +131,12 @@ public class ConnectionPanel extends JPanel {
 
 		for (int i = 0; i < items.size(); i++) {
 			cbPort.addItem(items.get(i));
+		}
+		
+		//select last index of comports on windows because of upcounting com order
+		//on unix based OS the USB comport is before ttyS**
+		if (OSValidator.isWindows()) {
+			cbPort.setSelectedIndex(items.size() - 1);
 		}
 	}
 }

@@ -84,14 +84,28 @@ public class MarkerControl extends JPanel {
 
 	JToggleButton buttonRepeat;
 
+	protected OrientationChartManager chartOrientation;
+	protected AccelerationChartManager chartsAcceleration;
+	protected FeelingChartManager feelingChart;
+	protected JointRelationChartManager chartsRelation;
+
 	public MarkerControl(MainFrame _frame, Visual3d _visual3d,
-			IOrientationSensors _sensor, Hand hand) {
+			IOrientationSensors _sensor, Hand hand,
+			OrientationChartManager _chartOrientation,
+			AccelerationChartManager _chartsAcceleration,
+			FeelingChartManager _feelingChart,
+			JointRelationChartManager _chartsRelation) {
 		this.sensor = _sensor;
 		this.hand = hand;
 		this.frame = _frame;
 		this.visual3d = _visual3d;
+		chartOrientation = _chartOrientation;
+		chartsAcceleration = _chartsAcceleration;
+		feelingChart = _feelingChart;
+		chartsRelation = _chartsRelation;
+
 		myInstance = this;
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "datasettoolbar");
 
 		playback = new Playback(hand, sensor);
@@ -108,7 +122,8 @@ public class MarkerControl extends JPanel {
 				"/Icons/sq_br_prev.png"));
 
 		JButton buttonBack = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_prev_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_prev_select.png"));
 		buttonBack.setRolloverIcon(icon);
 		buttonBack.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonBack.setContentAreaFilled(false);
@@ -129,7 +144,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass()
 				.getResource("/Icons/sq_br_stop_red.png"));
 		buttonRec.setSelectedIcon(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_rec_select.png"));
 		buttonRec.setRolloverIcon(icon);
 		buttonRec.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRec.setContentAreaFilled(false);
@@ -183,7 +199,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/sq_br_stop_green.png"));
 		buttonPlay.setSelectedIcon(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_next_select.png"));
+		icon = new ImageIcon(getClass()
+				.getResource("/Icons/sq_next_select.png"));
 		buttonPlay.setRolloverIcon(icon);
 		buttonPlay.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonPlay.setContentAreaFilled(false);
@@ -221,7 +238,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/playback_reloaded_button_transparent.png"));
 		buttonRepeat.setSelectedIcon(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/playback_reloaded_button_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/playback_reloaded_button_select.png"));
 		buttonRepeat.setRolloverIcon(icon);
 		buttonRepeat.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRepeat.setContentAreaFilled(false);
@@ -232,7 +250,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
 
 		JButton buttonForward = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_next_select.png"));
 		buttonForward.setRolloverIcon(icon);
 
 		buttonForward.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -252,7 +271,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
 
 		JButton buttonAnalysis = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/chart_line_2_select.png"));
 		buttonAnalysis.setRolloverIcon(icon);
 		buttonAnalysis.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonAnalysis.setContentAreaFilled(false);
@@ -260,7 +280,7 @@ public class MarkerControl extends JPanel {
 		buttonAnalysis.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				startAnaylses();
+				startAnaylsis();
 			}
 		});
 
@@ -289,7 +309,8 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
 
 		JButton buttonCSV = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/csv_text_select.png"));
+		icon = new ImageIcon(getClass().getResource(
+				"/Icons/csv_text_select.png"));
 		buttonCSV.setRolloverIcon(icon);
 		buttonCSV.setContentAreaFilled(false);
 		buttonCSV.setToolTipText("Save current dataset's raw data to csv");
@@ -478,7 +499,7 @@ public class MarkerControl extends JPanel {
 		playback.stop();
 	}
 
-	private void startAnaylses() {
+	private void startAnaylsis() {
 		if (hand.getRunningMotionAnalysis().size() == 0
 				&& hand.getRunningTouchAnalysis().size() == 0) {
 			JOptionPane
@@ -518,18 +539,25 @@ public class MarkerControl extends JPanel {
 					currentSavedTouchJoints.add(t.getObservedJoint().getType());
 				}
 
-				//start calculation
+				// start calculation
+				NonDynamicChartFiller filler = null;
+				if (selector.isAssumeDynamicCharts()) {
+					// todo get max size
+					filler = new NonDynamicChartFiller(chartOrientation,
+							chartsAcceleration, feelingChart, chartsRelation,
+							selectedMarkers.size(), 10000);
+				}
 				newAnalyses.calculate(selector.getSelectedCalculationMode(),
 						selectedMarkers, sensor.getCurrentFilter(),
 						currentSavedMotionJoints, currentSavedTouchJoints,
-						selector.getSpecialPoints());
-				
+						selector.getSpecialPoints(), filler);
+
 				visual3d.setAnalyses(newAnalyses);
-				
+
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",
 						JOptionPane.INFORMATION_MESSAGE);
-				
+
 				if (selector.isShowBoxplot2d()) {
 					new Boxplot2d("Analysis statistics",
 							newAnalyses.getStatistics());

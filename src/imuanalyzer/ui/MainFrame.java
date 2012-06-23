@@ -195,37 +195,24 @@ public class MainFrame extends JFrame {
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
-		infoBox = new InfoBox();
+		JPanel rightToolBarPanel = new ToolbarPanel(hand, sensors, this,visual3d);
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1; // request any extra vertical space
+		c.weightx = 1; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
 		c.gridy = 2;
-		c.gridheight = 1;
-		c.insets = new Insets(10, 0, 0, 0);
+		c.gridheight = 4;
+		c.insets = new Insets(10, 10, 10, 10);
 
-		mainPanel.add(infoBox, c);
-		visual3d.setInfoBox(infoBox);
-
-		JPanel toolBarPanel = new ToolbarPanel(hand, sensors, this);
-
-		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
-		c.gridx = 3; // aligned with button 2
-		c.gridwidth = 2; // 1 columns wide
-		c.gridy = 3;
-		c.gridheight = 3;
-
-		mainPanel.add(toolBarPanel, c);
+		mainPanel.add(rightToolBarPanel, c);
 
 		// marker panel
 		MarkerControl markerControl = new MarkerControl(this, visual3d,
-				sensors, hand);
+				sensors, hand, chartOrientation, chartsAcceleration,
+				chartsFeeling, chartsRelation);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;

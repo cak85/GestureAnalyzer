@@ -1,24 +1,11 @@
 package imuanalyzer.ui;
 
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import info.monitorenter.gui.chart.Chart2D;
-import info.monitorenter.gui.chart.ITrace2D;
-import info.monitorenter.gui.chart.IAxis.AxisTitle;
-import info.monitorenter.gui.chart.controls.LayoutFactory;
-import info.monitorenter.gui.chart.traces.Trace2DLtd;
-import info.monitorenter.gui.chart.views.ChartPanel;
+import imuanalyzer.ui.swing.OrientationChartFrame;
 
-import java.awt.Color;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.EnumMap;
 import java.util.Map.Entry;
-import java.util.SortedSet;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 
 public class OrientationChartManager {
 
@@ -30,7 +17,7 @@ public class OrientationChartManager {
 	private static final long SLEEP_TIME = 250;
 	private static final int VALUES_LIMIT = 50;
 
-	private EnumMap<JointType, Chart2D> charts = new EnumMap<JointType, Chart2D>(
+	private EnumMap<JointType, OrientationChartFrame> charts = new EnumMap<JointType, OrientationChartFrame>(
 			JointType.class);
 
 	protected Hand hand;
@@ -41,65 +28,34 @@ public class OrientationChartManager {
 		this.hand = hand;
 	}
 
-	public void addChart(final JointType type) {
+	public void addDynamicChart(final JointType type) {
 
 		if (charts.get(type) == null) {
 
-			Chart2D chart = new Chart2D();
-			
-			chart.getAxisX().setAxisTitle(new AxisTitle("Angle in degree"));
-			chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
-
-			LayoutFactory lfct = LayoutFactory.getInstance();
-			ChartPanel chartpanel = new ChartPanel(chart);
-
-			ITrace2D traceX = new Trace2DLtd(VALUES_LIMIT);
-			traceX.setName("Pitch");
-			traceX.setColor(Color.RED);
-			chart.addTrace(traceX);
-
-			ITrace2D traceY = new Trace2DLtd(VALUES_LIMIT);
-			traceY.setName("Roll");
-			traceY.setColor(Color.BLUE);
-			chart.addTrace(traceY);
-
-			ITrace2D traceZ = new Trace2DLtd(VALUES_LIMIT);
-			traceZ.setName("Yaw");
-			traceZ.setColor(Color.GREEN);
-			chart.addTrace(traceZ);
-
-			final JFrame frame = new JFrame("Orientation " + type);
-
-			ImageIcon icon = new ImageIcon(getClass().getResource(
-					"/Icons/hand.png"));
-			frame.setIconImage(icon.getImage());
-			// add the chart to the frame:
-			frame.getContentPane().add(chartpanel);
-			frame.setSize(400, 200);
-			frame.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
-			// Enable the termination button [cross on the upper right edge]:
-			frame.addWindowListener(new WindowAdapter() {
-				public void windowClosing(WindowEvent e) {
-					frame.setVisible(false);
-					frame.dispose();
-					removeChart(type);
-				}
-			});
-
-			frame.setVisible(true);
-
-			charts.put(type, chart);
+			charts.put(type, new OrientationChartFrame(this, hand, type, 1,
+					VALUES_LIMIT));
 
 			if (charts.size() == 1) {
-				thread = new UpdaterOrientation(charts, hand);
+				thread = new UpdaterOrientation(charts);
 				thread.start();
 			}
-
 		}
 	}
 
+	public OrientationChartFrame getStaticChart(final JointType type,
+			int nrOfTraceGroups, int valueLimit) {
+
+		if (charts.get(type) == null) {
+
+			return new OrientationChartFrame(this, hand, type, nrOfTraceGroups,
+					valueLimit);
+		}
+
+		return null;
+	}
+
 	public void removeChart(JointType type) {
-		Chart2D chart = charts.get(type);
+		OrientationChartFrame chart = charts.get(type);
 		if (chart != null) {
 			charts.remove(type);
 		}
@@ -108,19 +64,19 @@ public class OrientationChartManager {
 		}
 	}
 
+	public EnumMap<JointType, OrientationChartFrame> getCharts() {
+		return charts;
+	}
+
 	private static class UpdaterOrientation extends Thread {
 
-		protected Hand hand;
-
-		private EnumMap<JointType, Chart2D> charts;
-
-		private long starttime = System.currentTimeMillis();
+		private EnumMap<JointType, OrientationChartFrame> charts;
 
 		private boolean stop = false;
 
-		public UpdaterOrientation(EnumMap<JointType, Chart2D> charts, Hand hand) {
+		public UpdaterOrientation(
+				EnumMap<JointType, OrientationChartFrame> charts) {
 			this.charts = charts;
-			this.hand = hand;
 		}
 
 		public void run() {
@@ -130,27 +86,13 @@ public class OrientationChartManager {
 				}
 				try {
 
-					for (Entry<JointType, Chart2D> entry : charts.entrySet()) {
+					for (Entry<JointType, OrientationChartFrame> entry : charts
+							.entrySet()) {
 
-						Chart2D chart = entry.getValue();
+						OrientationChartFrame chart = entry.getValue();
 
-						if (entry.getValue() != null) {
-
-							Quaternion orientation = hand.getJoint(
-									entry.getKey()).getLocalOrientation();
-
-							double[] angles = orientation
-									.getAnglesRadFromQuaternion();
-
-							SortedSet<ITrace2D> traces = chart.getTraces();
-							int i = 0;
-							for (ITrace2D trace : traces) {
-								trace.addPoint(
-										((double) System.currentTimeMillis() - this.starttime),
-										angles[i] * 180 / Math.PI);
-								i++;
-							}
-
+						if (chart != null) {
+							chart.update(0);
 						}
 					}
 					Thread.sleep(SLEEP_TIME);

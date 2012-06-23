@@ -60,14 +60,17 @@ public class AnalysisUi extends JDialog {
 
 	boolean showBoxplot2d = false;
 
+	boolean assumeDynamicCharts = false;
+
 	JComboBox specialPointsList;
 
 	public AnalysisUi(Frame parent, ArrayList<Marker> markers) {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
-		
-		HelpManager.getInstance().enableHelpKey(this.getRootPane(), "analysisselection");
+
+		HelpManager.getInstance().enableHelpKey(this.getRootPane(),
+				"analysisselection");
 
 		try {
 			db = Database.getInstance();
@@ -99,6 +102,18 @@ public class AnalysisUi extends JDialog {
 			public void stateChanged(ChangeEvent arg0) {
 				JCheckBox source = (JCheckBox) arg0.getSource();
 				showBoxplot2d = source.isSelected();
+			}
+		});
+
+		JCheckBox checkAssumeCharts = new JCheckBox(
+				"Assume dynamic chart setting ");
+		checkAssumeCharts.setSelected(false);
+		checkAssumeCharts.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				assumeDynamicCharts = source.isSelected();
 			}
 		});
 
@@ -152,11 +167,12 @@ public class AnalysisUi extends JDialog {
 
 		specialPointsPanel.add(removePoint);
 
-		optionsPanel.add(specialPointsPanel);
-
 		optionsPanel.add(checkShowBoxplot2d);
+		optionsPanel.add(checkAssumeCharts);
 
 		bottomPanel.add(optionsPanel);
+		
+		bottomPanel.add(specialPointsPanel);
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
@@ -252,6 +268,10 @@ public class AnalysisUi extends JDialog {
 		}
 
 		return specialPoints;
+	}
+
+	public boolean isAssumeDynamicCharts() {
+		return assumeDynamicCharts;
 	}
 
 }

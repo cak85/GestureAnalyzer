@@ -1,8 +1,5 @@
 package imuanalyzer.utils.math;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.log4j.Logger;
 
 /**

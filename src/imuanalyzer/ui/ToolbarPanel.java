@@ -27,22 +27,38 @@ public class ToolbarPanel extends JPanel {
 	protected IOrientationSensors sensors;
 
 	public ToolbarPanel(Hand _hand, IOrientationSensors _sensors,
-			MainFrame mainFrame) {
+			MainFrame mainFrame, Visual3d visual3d) {
 		this.hand = _hand;
 		this.sensors = _sensors;
 
 		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
 
+		InfoBox infoBox = new InfoBox();
+
 		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
+		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
-		c.weighty = 0; // request any extra vertical space
+		c.weighty = 0.5; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridwidth = 2; // 1 columns wide
+		c.gridy = 0;
+		c.gridheight = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+
+		this.add(infoBox, c);
+		visual3d.setInfoBox(infoBox);
+
+		 c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.ipady = 0; // reset to default
+		c.weighty = 1; // request any extra vertical space
+		c.weightx = 1;
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 0;
+		c.gridy = 1;
 		c.gridheight = 3;
-		c.insets = new Insets(0, 10, 0, 0);
+		c.insets = new Insets(0, 0, 0, 0);
 
 		JPanel subjectivePanel = new FeelingSliders(hand);
 
@@ -56,7 +72,7 @@ public class ToolbarPanel extends JPanel {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 4;
+		c.gridy = 5;
 		c.gridheight = 1;
 		c.insets = new Insets(20, 10, 0, 0);
 
@@ -90,7 +106,7 @@ public class ToolbarPanel extends JPanel {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 5;
+		c.gridy = 6;
 		c.insets = new Insets(0, 10, 0, 0);
 
 		this.add(filterTypes, c);
@@ -104,7 +120,7 @@ public class ToolbarPanel extends JPanel {
 		c.weighty = 0; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
-		c.gridy = 6;
+		c.gridy = 7;
 		c.insets = new Insets(20, 10, 0, 0);
 
 		this.add(connectionLabel, c);
@@ -114,7 +130,7 @@ public class ToolbarPanel extends JPanel {
 		c.weightx = 1; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
-		c.gridy = 7;
+		c.gridy = 8;
 		c.insets = new Insets(0, 10, 0, 0);
 
 		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
