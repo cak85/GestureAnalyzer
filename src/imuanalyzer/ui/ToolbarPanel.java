@@ -49,7 +49,7 @@ public class ToolbarPanel extends JPanel {
 		this.add(infoBox, c);
 		visual3d.setInfoBox(infoBox);
 
-		 c = new GridBagConstraints();
+		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
 		c.weighty = 1; // request any extra vertical space
@@ -58,7 +58,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 1;
 		c.gridheight = 3;
-		c.insets = new Insets(0, 0, 0, 0);
+		c.insets = new Insets(20, 0, 0, 0);
 
 		JPanel subjectivePanel = new FeelingSliders(hand);
 
@@ -74,11 +74,12 @@ public class ToolbarPanel extends JPanel {
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 5;
 		c.gridheight = 1;
-		c.insets = new Insets(20, 10, 0, 0);
+		c.insets = new Insets(20, 0, 0, 0);
 
 		JLabel filterLabel = new JLabel("Sensor-Fusion-Algorithm:");
-		
-		HelpManager.getInstance().enableHelpKey(filterLabel, "sensorfusionalgorithm");
+
+		HelpManager.getInstance().enableHelpKey(filterLabel,
+				"sensorfusionalgorithm");
 
 		this.add(filterLabel, c);
 
@@ -99,7 +100,8 @@ public class ToolbarPanel extends JPanel {
 				Configuration.getInstance().setFilterType(filterType);
 			}
 		});
-		HelpManager.getInstance().enableHelpKey(filterTypes, "sensorfusionalgorithm");
+		HelpManager.getInstance().enableHelpKey(filterTypes,
+				"sensorfusionalgorithm");
 
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
@@ -107,7 +109,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 6;
-		c.insets = new Insets(0, 10, 0, 0);
+		c.insets = new Insets(0, 0, 0, 0);
 
 		this.add(filterTypes, c);
 
@@ -121,7 +123,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 7;
-		c.insets = new Insets(20, 10, 0, 0);
+		c.insets = new Insets(20, 0, 0, 0);
 
 		this.add(connectionLabel, c);
 
@@ -131,7 +133,7 @@ public class ToolbarPanel extends JPanel {
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
 		c.gridy = 8;
-		c.insets = new Insets(0, 10, 0, 0);
+		c.insets = new Insets(0, 0, 0, 0);
 
 		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
 

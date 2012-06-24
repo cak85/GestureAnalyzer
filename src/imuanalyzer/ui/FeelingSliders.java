@@ -61,7 +61,7 @@ public class FeelingSliders extends JPanel {
 		JPanel sliderConfigPanel = new JPanel();
 		sliderConfigPanel.setLayout(new GridLayout(1, 0));
 
-		sliderConfigPanel.add(new JLabel("Min"));
+		sliderConfigPanel.add(new JLabel("Min", SwingConstants.RIGHT));
 
 		SpinnerModel minSpinnerModel = new SpinnerNumberModel(hand
 				.getComfortScale().getMin(), -100, 100, 1);
@@ -82,7 +82,7 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(minSpinner);
 
-		sliderConfigPanel.add(new JLabel("Max"));
+		sliderConfigPanel.add(new JLabel("Max", SwingConstants.RIGHT));
 
 		SpinnerModel maxSpinnerModel = new SpinnerNumberModel(hand
 				.getComfortScale().getMax(), -100, 100, 1);
@@ -103,7 +103,7 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(maxSpinner);
 
-		sliderConfigPanel.add(new JLabel("#"));
+		sliderConfigPanel.add(new JLabel("#", SwingConstants.RIGHT));
 
 		SpinnerModel countSpinnerModel = new SpinnerNumberModel(1, 1, 10, 1);
 		JSpinner countSpinner = new JSpinner(countSpinnerModel);
