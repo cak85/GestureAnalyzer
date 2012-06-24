@@ -4,6 +4,10 @@ import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
+import imuanalyzer.ui.swing.charts.AccelerationChartManager;
+import imuanalyzer.ui.swing.charts.FeelingChartManager;
+import imuanalyzer.ui.swing.charts.JointRelationChartManager;
+import imuanalyzer.ui.swing.charts.OrientationChartManager;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

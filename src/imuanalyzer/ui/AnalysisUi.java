@@ -64,7 +64,8 @@ public class AnalysisUi extends JDialog {
 
 	JComboBox specialPointsList;
 
-	public AnalysisUi(Frame parent, ArrayList<Marker> markers) {
+	public AnalysisUi(Frame parent, ArrayList<Marker> markers,
+			boolean showNonChartAnalysis, boolean showChartAnalysis) {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
@@ -104,6 +105,9 @@ public class AnalysisUi extends JDialog {
 				showBoxplot2d = source.isSelected();
 			}
 		});
+		if (!showNonChartAnalysis) {
+			checkShowBoxplot2d.setEnabled(false);
+		}
 
 		JCheckBox checkAssumeCharts = new JCheckBox(
 				"Assume dynamic chart setting ");
@@ -116,6 +120,9 @@ public class AnalysisUi extends JDialog {
 				assumeDynamicCharts = source.isSelected();
 			}
 		});
+		if (!showChartAnalysis) {
+			checkAssumeCharts.setEnabled(false);
+		}
 
 		JPanel specialPointsPanel = new JPanel(new FlowLayout());
 
@@ -167,11 +174,18 @@ public class AnalysisUi extends JDialog {
 
 		specialPointsPanel.add(removePoint);
 
+		if (!showNonChartAnalysis) {
+			specialPointsList.setEnabled(false);
+			removePoint.setEnabled(false);
+			addPoint.setEnabled(false);
+			percentSpinner.setEnabled(false);
+		}
+
 		optionsPanel.add(checkShowBoxplot2d);
 		optionsPanel.add(checkAssumeCharts);
 
 		bottomPanel.add(optionsPanel);
-		
+
 		bottomPanel.add(specialPointsPanel);
 
 		JPanel buttonPanel = new JPanel();
@@ -182,18 +196,12 @@ public class AnalysisUi extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				collectSelection();
-				if (selectedMarkers.size() > 0) {
-					selectedCalculationMode = AnalysesMode.SUM;
-					returnCode = ReturnCode.OK;
-					setVisible(false);
-				} else {
-					JOptionPane.showMessageDialog(myInstance,
-							"You need to select at least one element",
-							"Information", JOptionPane.WARNING_MESSAGE);
-				}
+				handleButton(AnalysesMode.SUM);
 			}
 		});
+		if (!showNonChartAnalysis) {
+			boxplotButton.setEnabled(false);
+		}
 		buttonPanel.add(boxplotButton);
 
 		JButton avgButton = new JButton("Motion Average");
@@ -201,19 +209,26 @@ public class AnalysisUi extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				collectSelection();
-				if (selectedMarkers.size() > 0) {
-					selectedCalculationMode = AnalysesMode.AVG;
-					returnCode = ReturnCode.OK;
-					setVisible(false);
-				} else {
-					JOptionPane.showMessageDialog(myInstance,
-							"You need to select at least one element",
-							"Information", JOptionPane.WARNING_MESSAGE);
-				}
+				handleButton(AnalysesMode.AVG);
 			}
 		});
+		if (!showNonChartAnalysis) {
+			avgButton.setEnabled(false);
+		}
 		buttonPanel.add(avgButton);
+
+		JButton graphButton = new JButton("Graphs only");
+		graphButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				handleButton(AnalysesMode.GRAPH);
+			}
+		});
+		if (!showChartAnalysis) {
+			graphButton.setEnabled(false);
+		}
+		buttonPanel.add(graphButton);
 
 		JButton deleteButton = new JButton("Delete");
 		deleteButton.addActionListener(new ActionListener() {
@@ -235,6 +250,19 @@ public class AnalysisUi extends JDialog {
 
 		this.setVisible(true);
 
+	}
+
+	private void handleButton(AnalysesMode mode) {
+		collectSelection();
+		if (selectedMarkers.size() > 0) {
+			selectedCalculationMode = mode;
+			returnCode = ReturnCode.OK;
+			setVisible(false);
+		} else {
+			JOptionPane.showMessageDialog(myInstance,
+					"You need to select at least one element", "Information",
+					JOptionPane.WARNING_MESSAGE);
+		}
 	}
 
 	public AnalysesMode getSelectedCalculationMode() {

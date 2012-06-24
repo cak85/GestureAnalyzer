@@ -6,13 +6,12 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.NonDynamicChartFiller;
+import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
 import imuanalyzer.utils.parallel.LoopBody;
 import imuanalyzer.utils.parallel.Parallel;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -26,7 +25,7 @@ public class Analyses {
 			.getName());
 
 	public enum AnalysesMode {
-		AVG, SUM, NONE
+		AVG, SUM, GRAPH ,NONE
 	};
 
 	private AnalysesMode mode = AnalysesMode.SUM;
@@ -114,7 +113,7 @@ public class Analyses {
 			calculateMotionSum();
 			calculateSum(specialPercentPoints);
 			break;
-
+		case GRAPH:
 		default:
 			break;
 		}

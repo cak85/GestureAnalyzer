@@ -1,8 +1,7 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.swing.OrientationChartFrame;
 
 import java.util.EnumMap;
 import java.util.Map.Entry;
@@ -14,7 +13,7 @@ public class OrientationChartManager {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final long SLEEP_TIME = 250;
+	public static final long UPDATE_CYCLE = 250;
 	private static final int VALUES_LIMIT = 50;
 
 	private EnumMap<JointType, OrientationChartFrame> charts = new EnumMap<JointType, OrientationChartFrame>(
@@ -45,13 +44,9 @@ public class OrientationChartManager {
 	public OrientationChartFrame getStaticChart(final JointType type,
 			int nrOfTraceGroups, int valueLimit) {
 
-		if (charts.get(type) == null) {
+		return new OrientationChartFrame(null, hand, type, nrOfTraceGroups,
+				valueLimit);
 
-			return new OrientationChartFrame(this, hand, type, nrOfTraceGroups,
-					valueLimit);
-		}
-
-		return null;
 	}
 
 	public void removeChart(JointType type) {
@@ -95,7 +90,7 @@ public class OrientationChartManager {
 							chart.update(0);
 						}
 					}
-					Thread.sleep(SLEEP_TIME);
+					Thread.sleep(UPDATE_CYCLE);
 				} catch (Exception e) {
 					e.printStackTrace(System.err);
 				}

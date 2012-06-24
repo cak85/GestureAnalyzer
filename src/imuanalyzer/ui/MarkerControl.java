@@ -3,6 +3,7 @@ package imuanalyzer.ui;
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Analyses;
+import imuanalyzer.signalprocessing.Analyses.AnalysesMode;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
@@ -12,6 +13,11 @@ import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.Playback;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.AnalysisUi.ReturnCode;
+import imuanalyzer.ui.swing.charts.AccelerationChartManager;
+import imuanalyzer.ui.swing.charts.FeelingChartManager;
+import imuanalyzer.ui.swing.charts.JointRelationChartManager;
+import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
+import imuanalyzer.ui.swing.charts.OrientationChartManager;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -45,7 +51,7 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 
 /**
- * TODO seperate logic and gui into different classes
+ * Control dataset handling and analysis
  * 
  */
 public class MarkerControl extends JPanel {
@@ -500,12 +506,32 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void startAnaylsis() {
+
+		boolean showChartAnalysis;
+		boolean showNonChartAnalyis;
+
 		if (hand.getRunningMotionAnalysis().size() == 0
 				&& hand.getRunningTouchAnalysis().size() == 0) {
+			showNonChartAnalyis = false;
+		} else {
+			showNonChartAnalyis = true;
+		}
+
+		// check if we should show chart options
+		if (chartOrientation.getCharts().size() == 0
+				&& chartsAcceleration.getCharts().size() == 0
+				&& chartsRelation.getCharts().size() == 0
+				&& !feelingChart.isEnabled()) {
+			showChartAnalysis = false;
+		} else {
+			showChartAnalysis = true;
+		}
+		// check if we should show 3d analysis options
+		if (!showChartAnalysis && !showNonChartAnalyis) {
 			JOptionPane
 					.showMessageDialog(
 							myInstance,
-							"You need to specify a analysis on actual model before performing analysis",
+							"You need to specify an analysis (3D analysis or graph) on actual model before performing analysis",
 							"Error", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
@@ -513,7 +539,8 @@ public class MarkerControl extends JPanel {
 		ArrayList<Marker> markers = db.getAvailableMarkers();
 		if (markers.size() > 0) {
 
-			AnalysisUi selector = new AnalysisUi(frame, markers);
+			AnalysisUi selector = new AnalysisUi(frame, markers,
+					showNonChartAnalyis, showChartAnalysis);
 
 			if (selector.getReturnCode() == ReturnCode.CANCEL) {
 				updateMarkers();
@@ -541,18 +568,22 @@ public class MarkerControl extends JPanel {
 
 				// start calculation
 				NonDynamicChartFiller filler = null;
-				if (selector.isAssumeDynamicCharts()) {
-					// todo get max size
+				AnalysesMode mode = selector.getSelectedCalculationMode();
+				if (selector.isAssumeDynamicCharts()
+						|| mode.equals(AnalysesMode.GRAPH)) {
+					// TODO get max size
 					filler = new NonDynamicChartFiller(chartOrientation,
 							chartsAcceleration, feelingChart, chartsRelation,
 							selectedMarkers.size(), 10000);
 				}
-				newAnalyses.calculate(selector.getSelectedCalculationMode(),
-						selectedMarkers, sensor.getCurrentFilter(),
-						currentSavedMotionJoints, currentSavedTouchJoints,
-						selector.getSpecialPoints(), filler);
+				newAnalyses.calculate(mode, selectedMarkers,
+						sensor.getCurrentFilter(), currentSavedMotionJoints,
+						currentSavedTouchJoints, selector.getSpecialPoints(),
+						filler);
 
-				visual3d.setAnalyses(newAnalyses);
+				if (!mode.equals(AnalysesMode.GRAPH)) {
+					visual3d.setAnalyses(newAnalyses);
+				}
 
 				JOptionPane.showMessageDialog(myInstance,
 						"Calculation complete", "Information",

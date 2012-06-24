@@ -1,15 +1,14 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.swing.OrientationChartFrame;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Creates and manages non dynamic charts
+ * Creates and manages non dynamic charts for analysis chart output
  * 
  * @author "Christopher-Eyk Hrabia"
  * 
@@ -24,6 +23,8 @@ public class NonDynamicChartFiller {
 
 	ArrayList<JointRelationChartFrame> staticRelationCharts = new ArrayList<JointRelationChartFrame>();
 	ArrayList<OrientationChartFrame> staticOrientationCharts = new ArrayList<OrientationChartFrame>();
+	ArrayList<AccelerationChartFrame> staticAccelerationCharts = new ArrayList<AccelerationChartFrame>();
+	FeelingChartFrame staticFeelingChart = null;
 
 	public NonDynamicChartFiller(OrientationChartManager _chartOrientation,
 			AccelerationChartManager _chartsAcceleration,
@@ -35,28 +36,54 @@ public class NonDynamicChartFiller {
 		feelingChart = _feelingChart;
 		chartsRelation = _chartsRelation;
 
-		//relations
-		for (JointRelationChartFrame chart : chartsRelation.getRelations()) {
+		// relations
+		for (JointRelationChartFrame chart : chartsRelation.getCharts()) {
 			staticRelationCharts.add(chartsRelation.getStaticChart(chart.type1,
 					chart.type2, maxData));
 		}
-		
-		//orientations
+
+		// orientations
 		Set<Entry<JointType, OrientationChartFrame>> orientationCharts = chartOrientation
 				.getCharts().entrySet();
 		for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
 			staticOrientationCharts.add(chartOrientation.getStaticChart(
 					chart.getKey(), orientationCharts.size(), maxData));
 		}
-		// TODO same for other chart types
+		// acceleration
+		for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
+			staticAccelerationCharts.add(chartsAcceleration.getStaticChart(
+					chart.getType(), maxData));
+		}
+		// feeling
+		if (feelingChart.isEnabled()) {
+			staticFeelingChart = feelingChart.getStaticChart(maxData);
+		}
 	}
 
 	public void update(Hand hand, int idx, Double sumSamplePeriod) {
 
-		if (sumSamplePeriod % JointRelationChartManager.UPDATE_CYCLE < 10)
+		if (sumSamplePeriod % JointRelationChartManager.UPDATE_CYCLE < 10) {
 			for (JointRelationChartFrame chart : staticRelationCharts) {
 				chart.setHand(hand);
 				chart.update();
 			}
+		}
+		if (sumSamplePeriod % OrientationChartManager.UPDATE_CYCLE < 10) {
+			for (OrientationChartFrame chart : staticOrientationCharts) {
+				chart.setHand(hand);
+				chart.update(idx);
+			}
+		}
+		if (sumSamplePeriod % AccelerationChartManager.UPDATE_CYCLE < 10) {
+			for (AccelerationChartFrame chart : staticAccelerationCharts) {
+				chart.setHand(hand);
+				chart.update();
+			}
+		}
+		if (staticFeelingChart != null) {
+			staticFeelingChart.setHand(hand);
+			staticFeelingChart.update();
+		}
+
 	}
 }

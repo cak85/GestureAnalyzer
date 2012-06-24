@@ -35,8 +35,6 @@ package imuanalyzer.ui.swing.extensions;
  * inventing predecessor languages C and C++ is also gratefully acknowledged.
  */
 
-import imuanalyzer.ui.swing.extensions.RelativeLayout.Tracker;
-
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;

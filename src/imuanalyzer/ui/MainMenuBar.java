@@ -1,16 +1,20 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.Joint;
-import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.swing.charts.AccelerationChartManager;
+import imuanalyzer.ui.swing.charts.FeelingChartManager;
+import imuanalyzer.ui.swing.charts.JointRelationChartManager;
+import imuanalyzer.ui.swing.charts.OrientationChartManager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Comparator;
-import java.util.TreeSet;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;

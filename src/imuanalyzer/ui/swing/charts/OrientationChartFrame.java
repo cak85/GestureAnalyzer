@@ -1,12 +1,11 @@
-package imuanalyzer.ui.swing;
+package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.OrientationChartManager;
 import info.monitorenter.gui.chart.Chart2D;
-import info.monitorenter.gui.chart.ITrace2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
+import info.monitorenter.gui.chart.ITrace2D;
 import info.monitorenter.gui.chart.controls.LayoutFactory;
 import info.monitorenter.gui.chart.traces.Trace2DLtd;
 import info.monitorenter.gui.chart.views.ChartPanel;
@@ -87,7 +86,9 @@ public class OrientationChartFrame extends JFrame {
 			public void windowClosing(WindowEvent e) {
 				instance.setVisible(false);
 				instance.dispose();
-				manager.removeChart(type);
+				if (manager != null) {
+					manager.removeChart(type);
+				}
 			}
 		});
 
@@ -110,5 +111,13 @@ public class OrientationChartFrame extends JFrame {
 					angles[i] * 180 / Math.PI);
 			i++;
 		}
+	}
+
+	public Hand getHand() {
+		return hand;
+	}
+
+	public void setHand(Hand hand) {
+		this.hand = hand;
 	}
 }

@@ -1,7 +1,9 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.utils.parallel.IIntervalUpdate;
+import imuanalyzer.utils.parallel.IntervalUpdater;
 
 import java.util.ArrayList;
 
@@ -15,11 +17,11 @@ public class JointRelationChartManager {
 	public static final long UPDATE_CYCLE = 250;
 	private static final int VALUES_LIMIT = 250;
 
-	private ArrayList<JointRelationChartFrame> relations = new ArrayList<JointRelationChartFrame>();
+	private ArrayList<IIntervalUpdate> relations = new ArrayList<IIntervalUpdate>();
 
 	protected Hand hand;
 
-	protected UpdaterRelation thread;
+	protected IntervalUpdater thread;
 
 	public JointRelationChartManager(Hand hand) {
 		this.hand = hand;
@@ -27,8 +29,9 @@ public class JointRelationChartManager {
 
 	public void addDynamicChart(final JointType type1, final JointType type2) {
 
-		for (JointRelationChartFrame jR : relations) {
-			if (jR.equals(type1, type2)) {
+		for (IIntervalUpdate jR : relations) {
+			JointRelationChartFrame frame = (JointRelationChartFrame) jR;
+			if (frame.equals(type1, type2)) {
 				return;
 			}
 		}
@@ -37,14 +40,15 @@ public class JointRelationChartManager {
 				VALUES_LIMIT));
 
 		if (relations.size() == 1) {
-			thread = new UpdaterRelation(relations);
+			thread = new IntervalUpdater(relations, UPDATE_CYCLE);
 			thread.start();
 		}
 	}
 
 	public void removeDynamicChart(final JointType type1, final JointType type2) {
-		for (JointRelationChartFrame jR : relations) {
-			if (jR.equals(type1, type2)) {
+		for (IIntervalUpdate jR : relations) {
+			JointRelationChartFrame frame = (JointRelationChartFrame) jR;
+			if (frame.equals(type1, type2)) {
 				relations.remove(jR);
 				return;
 			}
@@ -69,42 +73,15 @@ public class JointRelationChartManager {
 		return (new JointRelationChartFrame(this, hand, type1, type2, valueMax));
 	}
 
-	public ArrayList<JointRelationChartFrame> getRelations() {
-		return relations;
-	}
+	public ArrayList<JointRelationChartFrame> getCharts() {
+		ArrayList<JointRelationChartFrame> relationFrames = new ArrayList<JointRelationChartFrame>();
 
-	private static class UpdaterRelation extends Thread {
-
-		private ArrayList<JointRelationChartFrame> relations;
-
-		private boolean stop = false;
-
-		public UpdaterRelation(ArrayList<JointRelationChartFrame> relations) {
-			this.relations = relations;
+		for (IIntervalUpdate jR : relations) {
+			JointRelationChartFrame frame = (JointRelationChartFrame) jR;
+			relationFrames.add(frame);
 		}
 
-		public void run() {
-			while (true) {
-				if (stop) {
-					break;
-				}
-				try {
-
-					for (JointRelationChartFrame jR : relations) {
-						jR.update();
-					}
-
-					Thread.sleep(UPDATE_CYCLE);
-				} catch (Exception e) {
-					e.printStackTrace(System.err);
-				}
-			}
-		}
-
-		public void setStop(boolean stop) {
-			this.stop = stop;
-		}
-
+		return relationFrames;
 	}
 
 }

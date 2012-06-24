@@ -1,14 +1,15 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.Restriction;
-import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.utils.math.LinearRegression;
 import imuanalyzer.utils.math.RunningAvg;
+import imuanalyzer.utils.parallel.IIntervalUpdate;
 import info.monitorenter.gui.chart.Chart2D;
-import info.monitorenter.gui.chart.ITrace2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
+import info.monitorenter.gui.chart.ITrace2D;
 import info.monitorenter.gui.chart.controls.LayoutFactory;
 import info.monitorenter.gui.chart.traces.Trace2DLtd;
 import info.monitorenter.gui.chart.traces.painters.TracePainterDisc;
@@ -27,7 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public  class JointRelationChartFrame extends JFrame {
+public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 
 	/**
 	 * 
