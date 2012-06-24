@@ -1,4 +1,7 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.menu;
+
+import imuanalyzer.ui.DeviceDummy;
+import imuanalyzer.ui.Visual3d;
 
 import java.awt.event.ActionEvent;
 
@@ -22,7 +25,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 		JMenuItem anItem;
 
 		// move
-		if (device.isMoving) {
+		if (device.isMoving()) {
 			anItem = new JMenuItem("Finish Moving");
 			anItem.addActionListener(new java.awt.event.ActionListener() {
 				@Override
@@ -42,7 +45,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 			add(anItem);
 		}
 
-		if (device.isRotating) {
+		if (device.isRotating()) {
 			anItem = new JMenuItem("Finish rotating");
 			anItem.addActionListener(new java.awt.event.ActionListener() {
 				@Override

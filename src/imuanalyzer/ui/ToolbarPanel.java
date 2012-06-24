@@ -25,6 +25,8 @@ public class ToolbarPanel extends JPanel {
 	protected Hand hand;
 
 	protected IOrientationSensors sensors;
+	
+	InfoBox infoBox;
 
 	public ToolbarPanel(Hand _hand, IOrientationSensors _sensors,
 			MainFrame mainFrame, Visual3d visual3d) {
@@ -34,7 +36,7 @@ public class ToolbarPanel extends JPanel {
 		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
 
-		InfoBox infoBox = new InfoBox();
+		infoBox = new InfoBox();
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -47,7 +49,6 @@ public class ToolbarPanel extends JPanel {
 		c.insets = new Insets(0, 0, 0, 0);
 
 		this.add(infoBox, c);
-		visual3d.setInfoBox(infoBox);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -138,5 +139,9 @@ public class ToolbarPanel extends JPanel {
 		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
 
 		this.add(connectionPanel, c);
+	}
+
+	public InfoBox getInfoBox() {
+		return infoBox;
 	}
 }

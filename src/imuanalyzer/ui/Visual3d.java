@@ -10,6 +10,7 @@ import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
+import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -41,10 +42,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.BloomFilter;
-import com.jme3.post.filters.ColorOverlayFilter;
-import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -56,7 +53,6 @@ import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
 import com.jme3.system.JmeSystem;
-import com.jme3.water.WaterFilter;
 
 public class Visual3d extends SimpleApplication {
 
@@ -147,7 +143,7 @@ public class Visual3d extends SimpleApplication {
 	 */
 	private Vector2f deviceClickStart;
 
-	private InfoBox infoBox;
+	private MenuFactory menuFactory;
 
 	/**
 	 * Constructor, needs handmodel
@@ -188,26 +184,28 @@ public class Visual3d extends SimpleApplication {
 	public void simpleInitApp() {
 
 		// optional
-//		FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//		fpp.setNumSamples(4);
-//		SSAOFilter ssaoFilter = new SSAOFilter(0.92f, 2.2f, 0.46f, 0.2f);
-//		final WaterFilter water=new WaterFilter(rootNode,new Vector3f(-0.4790551f, -0.39247334f, -0.7851566f));
-//		water.setWaterHeight(-6);
-//		
-//		final BloomFilter bloom = new BloomFilter();
-//		final ColorOverlayFilter overlay = new ColorOverlayFilter(ColorRGBA.LightGray);
-		//fpp.addFilter(bloom) ;
-		//fpp.addFilter(overlay) ;
-		//fpp.addFilter(water) ;
+		// FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+		// fpp.setNumSamples(4);
+		// SSAOFilter ssaoFilter = new SSAOFilter(0.92f, 2.2f, 0.46f, 0.2f);
+		// final WaterFilter water=new WaterFilter(rootNode,new
+		// Vector3f(-0.4790551f, -0.39247334f, -0.7851566f));
+		// water.setWaterHeight(-6);
+		//
+		// final BloomFilter bloom = new BloomFilter();
+		// final ColorOverlayFilter overlay = new
+		// ColorOverlayFilter(ColorRGBA.LightGray);
+		// fpp.addFilter(bloom) ;
+		// fpp.addFilter(overlay) ;
+		// fpp.addFilter(water) ;
 		// only add the ssao filter
-		//fpp.addFilter(ssaoFilter);
-		//FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+		// fpp.addFilter(ssaoFilter);
+		// FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 		// BloomFilter bloom = new BloomFilter(GlowMode.Objects);
 		// fpp.addFilter(bloom);
 
-//		fpp.addFilter(ssaoFilter);
-//		viewPort.addProcessor(fpp);
-		
+		// fpp.addFilter(ssaoFilter);
+		// viewPort.addProcessor(fpp);
+
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
 		}
@@ -405,12 +403,12 @@ public class Visual3d extends SimpleApplication {
 					JPopupMenu menu = null;
 					if (targetName.contains("myIpad")) {
 						// create popUp with further options
-						menu = new Visual3dDevicePopUpMenu(myInstance,
+						menu = menuFactory.getDevicePopUpMenu(myInstance,
 								deviceDummy);
 					} else {
 						// create popUp with further options
-						menu = new Visual3dHandPopUpMenu(myInstance, hand,
-								Utils.getJointTypeFromGeometry(target), infoBox);
+						menu = menuFactory.getHandPopUpMenu(myInstance,
+								Utils.getJointTypeFromGeometry(target));
 
 					}
 					if (menu != null) {
@@ -954,12 +952,12 @@ public class Visual3d extends SimpleApplication {
 		});
 	}
 
-	public InfoBox getInfoBox() {
-		return infoBox;
+	public MenuFactory getMenuFactory() {
+		return menuFactory;
 	}
 
-	public void setInfoBox(InfoBox infoBox) {
-		this.infoBox = infoBox;
+	public void setMenuFactory(MenuFactory menuFactory) {
+		this.menuFactory = menuFactory;
 	}
 
 	public void showSettings() {

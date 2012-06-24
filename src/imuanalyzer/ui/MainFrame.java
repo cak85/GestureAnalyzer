@@ -8,6 +8,7 @@ import imuanalyzer.ui.swing.charts.AccelerationChartManager;
 import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
 import imuanalyzer.ui.swing.charts.OrientationChartManager;
+import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -76,6 +77,7 @@ public class MainFrame extends JFrame {
 	protected JPanel settingsPanel;
 	protected JPanel fingerSensorMapping;
 	protected InfoBox infoBox;
+	protected ToolbarPanel rightToolBarPanel;
 
 	protected Visual3d visual3d;
 	protected IOrientationSensors sensors;
@@ -86,6 +88,8 @@ public class MainFrame extends JFrame {
 	protected JointRelationChartManager chartsRelation;
 
 	protected Hand hand;
+
+	protected MenuFactory menuFactory;
 
 	public MainFrame() {
 
@@ -111,9 +115,16 @@ public class MainFrame extends JFrame {
 
 		createChartManager();
 
-		createMenu();
+		menuFactory = new MenuFactory(hand, chartOrientation,
+				chartsAcceleration, chartsFeeling, chartsRelation);
+		
+		visual3d.setMenuFactory(menuFactory);
+
+		createMenu(menuFactory);
 
 		createToolbars();
+		
+		menuFactory.setInfoBox(rightToolBarPanel.getInfoBox());
 
 		createSettingsTab();
 
@@ -145,10 +156,8 @@ public class MainFrame extends JFrame {
 		this.setIconImage(icon.getImage());
 	}
 
-	protected void createMenu() {
-		JMenuBar menuBar = new MainMenuBar(hand, visual3d, sensors,
-				chartOrientation, chartsAcceleration, chartsFeeling,
-				chartsRelation);
+	protected void createMenu(MenuFactory menuFactory) {
+		JMenuBar menuBar = new MainMenuBar(hand, visual3d, sensors, menuFactory);
 
 		this.setJMenuBar(menuBar);
 	}
@@ -201,7 +210,7 @@ public class MainFrame extends JFrame {
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
-		JPanel rightToolBarPanel = new ToolbarPanel(hand, sensors, this,
+		rightToolBarPanel = new ToolbarPanel(hand, sensors, this,
 				visual3d);
 
 		c = new GridBagConstraints();

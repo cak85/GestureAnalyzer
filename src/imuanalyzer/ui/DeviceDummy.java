@@ -14,9 +14,9 @@ import com.jme3.scene.Spatial;
 
 public class DeviceDummy extends Node {
 
-	boolean isRotating = false;
+	protected boolean isRotating = false;
 
-	boolean isMoving = false;
+	protected boolean isMoving = false;
 
 	protected Node model;
 

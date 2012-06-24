@@ -1,7 +1,11 @@
-package imuanalyzer.ui;
+package imuanalyzer.ui.swing.menu;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.ColorSettingsDialog;
+import imuanalyzer.ui.InfoBox;
+import imuanalyzer.ui.JointSetting;
+import imuanalyzer.ui.Visual3d;
 
 import java.awt.event.ActionEvent;
 
@@ -30,7 +34,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 	InfoBox infoBox;
 
 	public Visual3dHandPopUpMenu(Visual3d visual3d, Hand hand,
-			JointType jointType, InfoBox infoBox) {
+			JointType jointType, InfoBox infoBox, MenuFactory menuFactory) {
 		this.visual3d = visual3d;
 		this.jointType = jointType;
 		this.hand = hand;
@@ -113,6 +117,10 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 		});
 		add(anItem);
 
+		// charts
+		add(menuFactory.createJointGraphMenu(hand.getJoint(jointType),
+				"Show chart"));
+
 		// manipulate
 		anItem = new JMenuItem("Manual manipulation");
 		anItem.addActionListener(new java.awt.event.ActionListener() {
@@ -132,7 +140,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			}
 		});
 		add(anItem);
-		
+
 	}
 
 	private void addInfo() {

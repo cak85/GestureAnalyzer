@@ -1,20 +1,12 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.Hand;
-import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IOrientationSensors;
-import imuanalyzer.signalprocessing.Joint;
-import imuanalyzer.ui.swing.charts.AccelerationChartManager;
-import imuanalyzer.ui.swing.charts.FeelingChartManager;
-import imuanalyzer.ui.swing.charts.JointRelationChartManager;
-import imuanalyzer.ui.swing.charts.OrientationChartManager;
+import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Comparator;
-import java.util.Map.Entry;
-import java.util.TreeSet;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -36,41 +28,20 @@ public class MainMenuBar extends JMenuBar {
 	protected Visual3d visual3d;
 	protected IOrientationSensors sensors;
 
-	protected OrientationChartManager chartOrientation;
-	protected AccelerationChartManager chartsAcceleration;
-	protected FeelingChartManager feelingChart;
-	protected JointRelationChartManager chartsRelation;
-
 	protected Hand hand;
 
 	private JMenuBar instance;
-
-	/**
-	 * compares FilterMapping by priority of its listener
-	 */
-	class JMenuItemComparator implements Comparator<JMenuItem> {
-
-		@Override
-		public int compare(JMenuItem o1, JMenuItem o2) {
-			return o1.getText().compareTo(o2.getText());
-		}
-
-	}
+	
+	protected MenuFactory menuFactory;
 
 	public MainMenuBar(Hand _hand, Visual3d _visual3d,
 			IOrientationSensors _sensors,
-			OrientationChartManager _chartOrientation,
-			AccelerationChartManager _chartsAcceleration,
-			FeelingChartManager _feelingChart,
-			JointRelationChartManager _chartsRelation) {
+			MenuFactory _menuFactory) {
 		instance = this;
 		hand = _hand;
 		visual3d = _visual3d;
 		sensors = _sensors;
-		chartOrientation = _chartOrientation;
-		chartsAcceleration = _chartsAcceleration;
-		feelingChart = _feelingChart;
-		chartsRelation = _chartsRelation;
+		this.menuFactory=_menuFactory;
 
 		JMenu menu;
 		JMenuItem menuItem;
@@ -182,87 +153,7 @@ public class MainMenuBar extends JMenuBar {
 
 		HelpManager.getInstance().enableHelpKey(menu, "viewmenu");
 
-		JMenu submenuChart = new JMenu("Show chart");
-
-		menu.add(submenuChart);
-
-		JMenuItem menuitemFeeling = new JMenuItem("Feeling chart");
-		menuitemFeeling.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				feelingChart.enable();
-			}
-		});
-		submenuChart.add(menuitemFeeling);
-
-		TreeSet<JMenuItem> menuSet = new TreeSet<JMenuItem>(
-				new JMenuItemComparator());
-
-		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
-
-			Joint j = entry.getValue();
-			final JointType type = entry.getKey();
-
-			JMenu jointMenuAdd = new JMenu(j.getInfoName());
-
-			JMenuItem submenuitemAddAccelerartion = new JMenuItem(
-					"Acceleration");
-			submenuitemAddAccelerartion.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					chartsAcceleration.addChart(type);
-				}
-			});
-
-			jointMenuAdd.add(submenuitemAddAccelerartion);
-
-			JMenuItem submenuitemAddOrientation = new JMenuItem("Orientation");
-			submenuitemAddOrientation.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					chartOrientation.addDynamicChart(type);
-				}
-			});
-			jointMenuAdd.add(submenuitemAddOrientation);
-
-			JMenu subMenuRelation = new JMenu("Relation to ...");
-
-			TreeSet<JMenuItem> menuItemSet = new TreeSet<JMenuItem>(
-					new JMenuItemComparator());
-			for (Entry<JointType, Joint> secondStageEntry : hand.getJointSet()) {
-				final JointType secondType = secondStageEntry.getKey();
-				if (type.equals(secondType)) {
-					continue;
-				}
-				JMenuItem submenuitemRelation = new JMenuItem(secondStageEntry
-						.getValue().getInfoName());
-				submenuitemRelation.addActionListener(new ActionListener() {
-
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						chartsRelation.addDynamicChart(type, secondType);
-					}
-				});
-
-				menuItemSet.add(submenuitemRelation);
-			}
-			for (JMenuItem item : menuItemSet) {
-				subMenuRelation.add(item);
-			}
-
-			jointMenuAdd.add(submenuitemAddAccelerartion);
-
-			jointMenuAdd.add(subMenuRelation);
-
-			menuSet.add(jointMenuAdd);
-
-		}
-		for (JMenuItem item : menuSet) {
-			submenuChart.add(item);
-		}
+		menu.add(menuFactory.createChartMenu());
 
 		JCheckBoxMenuItem checkMenuItem = new JCheckBoxMenuItem("Right Hand");
 		checkMenuItem.addChangeListener(new ChangeListener() {

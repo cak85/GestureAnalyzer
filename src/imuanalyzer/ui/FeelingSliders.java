@@ -3,7 +3,6 @@ package imuanalyzer.ui;
 import imuanalyzer.signalprocessing.Hand;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
