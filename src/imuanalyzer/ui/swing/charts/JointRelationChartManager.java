@@ -27,7 +27,8 @@ public class JointRelationChartManager {
 		this.hand = hand;
 	}
 
-	public void addDynamicChart(final JointType type1, final JointType type2) {
+	public void addDynamicChart(final JointType type1, final JointType type2,
+			boolean visible) {
 
 		for (IIntervalUpdate jR : relations) {
 			JointRelationChartFrame frame = (JointRelationChartFrame) jR;
@@ -35,9 +36,10 @@ public class JointRelationChartManager {
 				return;
 			}
 		}
-
-		relations.add(new JointRelationChartFrame(this, hand, type1, type2,
-				VALUES_LIMIT));
+		JointRelationChartFrame frame = new JointRelationChartFrame(this, hand,
+				type1, type2, VALUES_LIMIT);
+		frame.setVisible(visible);
+		relations.add(frame);
 
 		if (relations.size() == 1) {
 			thread = new IntervalUpdater(relations, UPDATE_CYCLE);

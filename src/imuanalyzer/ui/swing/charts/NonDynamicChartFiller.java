@@ -38,25 +38,31 @@ public class NonDynamicChartFiller {
 
 		// relations
 		for (JointRelationChartFrame chart : chartsRelation.getCharts()) {
-			staticRelationCharts.add(chartsRelation.getStaticChart(chart.type1,
-					chart.type2, maxData));
+			JointRelationChartFrame frame = chartsRelation.getStaticChart(
+					chart.type1, chart.type2, maxData);
+			staticRelationCharts.add(frame);
 		}
 
 		// orientations
 		Set<Entry<JointType, OrientationChartFrame>> orientationCharts = chartOrientation
 				.getCharts().entrySet();
 		for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
-			staticOrientationCharts.add(chartOrientation.getStaticChart(
-					chart.getKey(), orientationCharts.size(), maxData));
+			OrientationChartFrame frame = chartOrientation.getStaticChart(
+					chart.getKey(), orientationCharts.size(), maxData);
+			frame.setVisible(true);
+			staticOrientationCharts.add(frame);
 		}
 		// acceleration
 		for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
-			staticAccelerationCharts.add(chartsAcceleration.getStaticChart(
-					chart.getType(), maxData));
+			AccelerationChartFrame frame = chartsAcceleration.getStaticChart(
+					chart.getType(), maxData);
+			frame.setVisible(true);
+			staticAccelerationCharts.add(frame);
 		}
 		// feeling
 		if (feelingChart.isEnabled()) {
 			staticFeelingChart = feelingChart.getStaticChart(maxData);
+			staticFeelingChart.setVisible(true);
 		}
 	}
 

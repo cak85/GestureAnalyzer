@@ -23,13 +23,13 @@ import javax.swing.JPopupMenu;
 
 /**
  * factory for creating some often used specific menus
+ * 
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class MenuFactory {
 
 	protected OrientationChartManager chartOrientation;
-
 	protected AccelerationChartManager chartsAcceleration;
 	protected FeelingChartManager feelingChart;
 	protected JointRelationChartManager chartsRelation;
@@ -38,15 +38,18 @@ public class MenuFactory {
 
 	protected InfoBox infoBox = null;
 
+	protected boolean newFramesVisible;
+
 	public MenuFactory(Hand hand, OrientationChartManager _chartOrientation,
 			AccelerationChartManager _chartsAcceleration,
 			FeelingChartManager _feelingChart,
-			JointRelationChartManager _chartsRelation) {
+			JointRelationChartManager _chartsRelation, boolean newFramesVisible) {
 		this.hand = hand;
 		chartOrientation = _chartOrientation;
 		chartsAcceleration = _chartsAcceleration;
 		feelingChart = _feelingChart;
 		chartsRelation = _chartsRelation;
+		this.newFramesVisible = newFramesVisible;
 	}
 
 	public JPopupMenu getDevicePopUpMenu(Visual3d visual3d,
@@ -61,7 +64,23 @@ public class MenuFactory {
 		return menu;
 	}
 
+	public JPopupMenu getChartPopUpMenu() {
+		JPopupMenu popUp = new JPopupMenu();
+		popUp.add(createChartMenu(null));
+		return popUp;
+	}
+
+	public JPopupMenu getChartPopUpMenu(FinishListenerHandler finishHandler) {
+		JPopupMenu popUp = new JPopupMenu();
+		popUp.add(createChartMenu(finishHandler));
+		return popUp;
+	}
+
 	public JMenu createChartMenu() {
+		return createChartMenu(null);
+	}
+
+	public JMenu createChartMenu(final FinishListenerHandler finishHandler) {
 		JMenu submenuChart = new JMenu("Show chart");
 
 		JMenuItem menuitemFeeling = new JMenuItem("Feeling chart");
@@ -69,7 +88,10 @@ public class MenuFactory {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				feelingChart.enable();
+				feelingChart.enable(newFramesVisible);
+				if (finishHandler != null) {
+					finishHandler.notifyFinished();
+				}
 			}
 		});
 		submenuChart.add(menuitemFeeling);
@@ -81,7 +103,7 @@ public class MenuFactory {
 
 			Joint j = entry.getValue();
 
-			menuSet.add(createJointGraphMenu(j));
+			menuSet.add(createJointGraphMenu(j, finishHandler));
 
 		}
 		for (JMenuItem item : menuSet) {
@@ -91,10 +113,20 @@ public class MenuFactory {
 	}
 
 	public JMenu createJointGraphMenu(Joint joint) {
-		return createJointGraphMenu(joint, joint.getInfoName());
+		return createJointGraphMenu(joint, joint.getInfoName(), null);
+	}
+
+	public JMenu createJointGraphMenu(Joint joint,
+			FinishListenerHandler finishHandler) {
+		return createJointGraphMenu(joint, joint.getInfoName(), finishHandler);
 	}
 
 	public JMenu createJointGraphMenu(Joint joint, String title) {
+		return createJointGraphMenu(joint, title, null);
+	}
+
+	public JMenu createJointGraphMenu(Joint joint, String title,
+			final FinishListenerHandler finishHandler) {
 
 		final JointType type = joint.getType();
 		JMenu chartMenu = new JMenu(title);
@@ -104,7 +136,10 @@ public class MenuFactory {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				chartsAcceleration.addChart(type);
+				chartsAcceleration.addChart(type, newFramesVisible);
+				if (finishHandler != null) {
+					finishHandler.notifyFinished();
+				}
 			}
 		});
 
@@ -115,7 +150,10 @@ public class MenuFactory {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				chartOrientation.addDynamicChart(type);
+				chartOrientation.addDynamicChart(type, newFramesVisible);
+				if (finishHandler != null) {
+					finishHandler.notifyFinished();
+				}
 			}
 		});
 		chartMenu.add(submenuitemAddOrientation);
@@ -135,7 +173,11 @@ public class MenuFactory {
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					chartsRelation.addDynamicChart(type, secondType);
+					chartsRelation.addDynamicChart(type, secondType,
+							newFramesVisible);
+					if (finishHandler != null) {
+						finishHandler.notifyFinished();
+					}
 				}
 			});
 
@@ -158,6 +200,22 @@ public class MenuFactory {
 
 	public void setInfoBox(InfoBox infoBox) {
 		this.infoBox = infoBox;
+	}
+
+	public OrientationChartManager getChartOrientation() {
+		return chartOrientation;
+	}
+
+	public AccelerationChartManager getChartsAcceleration() {
+		return chartsAcceleration;
+	}
+
+	public FeelingChartManager getFeelingChart() {
+		return feelingChart;
+	}
+
+	public JointRelationChartManager getChartsRelation() {
+		return chartsRelation;
 	}
 
 	/**

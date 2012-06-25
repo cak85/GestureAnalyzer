@@ -84,8 +84,6 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 				manager.removeChart(type);
 			}
 		});
-
-		this.setVisible(true);
 	}
 
 	@Override

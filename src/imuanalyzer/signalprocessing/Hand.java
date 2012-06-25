@@ -103,14 +103,13 @@ public class Hand {
 		Joint elemDD = new Joint(this, JointType.THUMB_BOTTOM, sensors);
 
 		Joint elemHR = new Joint(this, JointType.HAND_ROOT, sensors);
-		
-		//define relation between joints		
-		elemKM.addRelation(new JointRelation(elemKT, 2f/3f));
-		elemRM.addRelation(new JointRelation(elemRT, 2f/3f));
-		elemMM.addRelation(new JointRelation(elemMT, 2f/3f));
-		elemZM.addRelation(new JointRelation(elemZT, 2f/3f));
-		
-		
+
+		// define relation between joints
+		elemKM.addRelation(new JointRelation(elemKT, 2f / 3f));
+		elemRM.addRelation(new JointRelation(elemRT, 2f / 3f));
+		elemMM.addRelation(new JointRelation(elemMT, 2f / 3f));
+		elemZM.addRelation(new JointRelation(elemZT, 2f / 3f));
+
 		elemHR.addChild(elemKD);
 		elemHR.addChild(elemRD);
 		elemHR.addChild(elemMD);

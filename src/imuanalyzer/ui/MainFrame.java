@@ -4,6 +4,7 @@ import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
+import imuanalyzer.ui.swing.SettingsPanel;
 import imuanalyzer.ui.swing.charts.AccelerationChartManager;
 import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
@@ -74,6 +75,7 @@ public class MainFrame extends JFrame {
 	}
 
 	protected JPanel mainPanel;
+	protected JPanel jointMappingSettingsPanel;
 	protected JPanel settingsPanel;
 	protected JPanel fingerSensorMapping;
 	protected InfoBox infoBox;
@@ -116,14 +118,14 @@ public class MainFrame extends JFrame {
 		createChartManager();
 
 		menuFactory = new MenuFactory(hand, chartOrientation,
-				chartsAcceleration, chartsFeeling, chartsRelation);
-		
+				chartsAcceleration, chartsFeeling, chartsRelation,true);
+
 		visual3d.setMenuFactory(menuFactory);
 
 		createMenu(menuFactory);
 
 		createToolbars();
-		
+
 		menuFactory.setInfoBox(rightToolBarPanel.getInfoBox());
 
 		createSettingsTab();
@@ -142,14 +144,17 @@ public class MainFrame extends JFrame {
 		mainPanel = new JPanel(new GridBagLayout());
 		jtp.addTab("Main", mainPanel);
 
-		settingsPanel = new JPanel(new BorderLayout());
+		jointMappingSettingsPanel = new JPanel(new BorderLayout());
+		jtp.addTab("Mapping", jointMappingSettingsPanel);
+
+		settingsPanel = new SettingsPanel(sensors);
 		jtp.addTab("Settings", settingsPanel);
 	}
 
 	private void configureFrame() {
 		this.setTitle("IMUAnalyzer");
 		this.setMinimumSize(new Dimension(250, 250));
-		this.setSize(1024, 768);
+		this.setSize(1024, 600);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
@@ -194,7 +199,7 @@ public class MainFrame extends JFrame {
 		fingerSensorMapping = new FingerSensorMapping(hand,
 				OrientationSensorManagerFactory.NUMBER_OF_SENSORS);
 
-		settingsPanel.add(fingerSensorMapping, BorderLayout.CENTER);
+		jointMappingSettingsPanel.add(fingerSensorMapping, BorderLayout.CENTER);
 	}
 
 	protected void createToolbars() {
@@ -203,15 +208,14 @@ public class MainFrame extends JFrame {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 0.0;
 		c.gridwidth = 5;
-		c.gridheight = 2;
+		c.gridheight = 3;
 		c.gridx = 0;
 		c.gridy = 0;
 		c.insets = new Insets(10, 0, 0, 0);
 		TopToolbar topBar = new TopToolbar(visual3d);
 		mainPanel.add(topBar, c);
 
-		rightToolBarPanel = new ToolbarPanel(hand, sensors, this,
-				visual3d);
+		rightToolBarPanel = new ToolbarPanel(hand, sensors, this, visual3d);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;

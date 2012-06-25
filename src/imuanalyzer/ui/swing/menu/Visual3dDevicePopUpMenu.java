@@ -17,6 +17,8 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 
 	Visual3d visual3d;
 	DeviceDummy device;
+	
+	FinishListenerHandler finishHandler = new FinishListenerHandler();
 
 	public Visual3dDevicePopUpMenu(Visual3d visual3d, final DeviceDummy device) {
 		this.visual3d = visual3d;
@@ -31,6 +33,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					device.setMoving(false);
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -40,6 +43,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					device.setMoving(true);
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -51,6 +55,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					device.setRotating(false);
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -60,6 +65,7 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					device.setRotating(true);
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -72,11 +78,16 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					device.setVisible(false);
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
 		}
 
+	}
+
+	public FinishListenerHandler getFinishHandler() {
+		return finishHandler;
 	}
 
 }

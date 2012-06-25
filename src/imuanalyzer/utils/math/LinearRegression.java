@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
  * squares) line y = ax + b through the set of points. Also computes the
  * correlation coefficient and the standard errror of the regression
  * coefficients.
- * 
+ * Based on http://introcs.cs.princeton.edu/java/97data/LinearRegression.java.html
  */
 public class LinearRegression {
 	

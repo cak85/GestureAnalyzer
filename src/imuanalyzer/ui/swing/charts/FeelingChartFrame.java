@@ -39,11 +39,15 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 
 	Hand hand;
 
+	FeelingChartFrame instance;
+
 	public FeelingChartFrame(FeelingChartManager _manager, Hand hand,
 			int valueLimit) {
+		super("Feelings");
 		this.manager = _manager;
 		this.valuesLimit = valueLimit;
 		this.hand = hand;
+		instance = this;
 
 		chart = new Chart2D();
 		LayoutFactory lfct = LayoutFactory.getInstance();
@@ -55,31 +59,27 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 			traceX.setColor(COLOR_LOCK_UP_TABLE[i % COLOR_LOCK_UP_TABLE.length]);
 			chart.addTrace(traceX);
 		}
-		
+
 		chart.getAxisX().setAxisTitle(new AxisTitle("Feeling value"));
 		chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
 
-		final JFrame frame = new JFrame("Feelings ");
-
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
-		frame.setIconImage(icon.getImage());
+		this.setIconImage(icon.getImage());
 		// add the chart to the frame:
-		frame.getContentPane().add(chartpanel);
-		frame.setSize(400, 200);
-		frame.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
+		this.getContentPane().add(chartpanel);
+		this.setSize(400, 200);
+		this.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
 		// Enable the termination button [cross on the upper right edge]:
-		frame.addWindowListener(new WindowAdapter() {
+		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				frame.setVisible(false);
-				frame.dispose();
+				instance.setVisible(false);
+				instance.dispose();
 				if (manager != null) {
 					manager.disable();
 				}
 			}
 		});
-
-		frame.setVisible(true);
 	}
 
 	public void update() {

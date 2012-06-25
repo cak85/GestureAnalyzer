@@ -10,6 +10,7 @@ import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.IPlaybackNotify;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
+import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 import imuanalyzer.signalprocessing.Playback;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.AnalysisUi.ReturnCode;
@@ -18,6 +19,7 @@ import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
 import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
 import imuanalyzer.ui.swing.charts.OrientationChartManager;
+import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -526,28 +528,25 @@ public class MarkerControl extends JPanel {
 		} else {
 			showChartAnalysis = true;
 		}
-		// check if we should show 3d analysis options
-		if (!showChartAnalysis && !showNonChartAnalyis) {
-			JOptionPane
-					.showMessageDialog(
-							myInstance,
-							"You need to specify an analysis (3D analysis or graph) on actual model before performing analysis",
-							"Error", JOptionPane.WARNING_MESSAGE);
-			return;
-		}
 
 		ArrayList<Marker> markers = db.getAvailableMarkers();
 		if (markers.size() > 0) {
 
+			MenuFactory menuFactory = new MenuFactory(hand,
+					new OrientationChartManager(hand),
+					new AccelerationChartManager(hand),
+					new FeelingChartManager(hand),
+					new JointRelationChartManager(hand), false);
+
 			AnalysisUi selector = new AnalysisUi(frame, markers,
-					showNonChartAnalyis, showChartAnalysis);
+					showNonChartAnalyis, showChartAnalysis, menuFactory);
 
 			if (selector.getReturnCode() == ReturnCode.CANCEL) {
 				updateMarkers();
 				return;
 			}
 
-			Analyses newAnalyses = new Analyses();
+			Analyses newAnalysis = new Analyses();
 
 			ArrayList<Marker> selectedMarkers = selector.getSelectedMarkers();
 
@@ -569,20 +568,31 @@ public class MarkerControl extends JPanel {
 				// start calculation
 				NonDynamicChartFiller filler = null;
 				AnalysesMode mode = selector.getSelectedCalculationMode();
-				if (selector.isAssumeDynamicCharts()
-						|| mode.equals(AnalysesMode.GRAPH)) {
-					// TODO get max size
+
+				int maxSize = getMaxDataLength(selectedMarkers)
+						/ OrientationSensorManagerFactory.NUMBER_OF_SENSORS;
+				LOGGER.debug("Max size = " + maxSize);
+
+				if (selector.isAssumeDynamicCharts()) {
 					filler = new NonDynamicChartFiller(chartOrientation,
 							chartsAcceleration, feelingChart, chartsRelation,
-							selectedMarkers.size(), 10000);
+							selectedMarkers.size(), maxSize);
+				} else {
+					filler = new NonDynamicChartFiller(
+							menuFactory.getChartOrientation(),
+							menuFactory.getChartsAcceleration(),
+							menuFactory.getFeelingChart(),
+							menuFactory.getChartsRelation(),
+							selectedMarkers.size(), maxSize);
 				}
-				newAnalyses.calculate(mode, selectedMarkers,
+
+				newAnalysis.calculate(mode, selectedMarkers,
 						sensor.getCurrentFilter(), currentSavedMotionJoints,
 						currentSavedTouchJoints, selector.getSpecialPoints(),
 						filler);
 
 				if (!mode.equals(AnalysesMode.GRAPH)) {
-					visual3d.setAnalyses(newAnalyses);
+					visual3d.setAnalyses(newAnalysis);
 				}
 
 				JOptionPane.showMessageDialog(myInstance,
@@ -591,13 +601,21 @@ public class MarkerControl extends JPanel {
 
 				if (selector.isShowBoxplot2d()) {
 					new Boxplot2d("Analysis statistics",
-							newAnalyses.getStatistics());
+							newAnalysis.getStatistics());
 				}
 			}
 		} else {
 			JOptionPane.showMessageDialog(myInstance, "No markers available",
 					"Information", JOptionPane.OK_OPTION);
 		}
+	}
+
+	protected int getMaxDataLength(ArrayList<Marker> selectedMarkers) {
+		int maxCount = 0;
+		for (Marker m : selectedMarkers) {
+			maxCount = Math.max(maxCount, db.getCount(m));
+		}
+		return maxCount;
 	}
 
 	private void increaseSelectedMarker() {

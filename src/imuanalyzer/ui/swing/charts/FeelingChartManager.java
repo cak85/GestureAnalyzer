@@ -28,12 +28,13 @@ public class FeelingChartManager {
 		this.hand = hand;
 	}
 
-	public void enable() {
+	public void enable(boolean visible) {
 		if (!enabled) {
 			enabled = true;
-			addChart();
 
 			ArrayList<IIntervalUpdate> list = new ArrayList<IIntervalUpdate>();
+			frame = new FeelingChartFrame(this, hand, VALUES_LIMIT);
+			frame.setVisible(visible);
 			list.add(frame);
 			updateThread = new IntervalUpdater(list, SLEEP_TIME);
 			updateThread.start();
@@ -47,10 +48,6 @@ public class FeelingChartManager {
 		}
 	}
 
-	protected void addChart() {
-		frame = new FeelingChartFrame(this, hand, VALUES_LIMIT);
-	}
-	
 	public FeelingChartFrame getStaticChart(int valueLimit){
 		return  new FeelingChartFrame(null, hand,valueLimit);
 	}

@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -46,14 +47,26 @@ public class ConnectionPanel extends JPanel {
 				});
 
 		setLayout(new GridBagLayout());
-
-		HelpManager.getInstance().enableHelpKey(this, "connection");
-
+		
+		JLabel connectionLabel = new JLabel("Connection:");
+		
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy = 0;
+		c.weightx = 1;
+		c.weighty = 1;
+		
+		this.add(connectionLabel,c);
+
+		HelpManager.getInstance().enableHelpKey(this, "connection");
+
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy = 1;
 		c.weightx = 1;
 		c.weighty = 1;
 
@@ -66,7 +79,7 @@ public class ConnectionPanel extends JPanel {
 		c.weighty = 1; // request any extra vertical space
 		c.gridx = 1; // aligned with button 2
 		c.gridwidth = 1;
-		c.gridy = 1; // third row
+		c.gridy = 2; // third row
 
 		connectButton = new JButton("Connect");
 		connectButton.setToolTipText("Connect with IMU-Reader device");
@@ -91,7 +104,7 @@ public class ConnectionPanel extends JPanel {
 		// c.anchor = GridBagConstraints.PAGE_END; // bottom of space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 2 columns wide
-		c.gridy = 1; // third row
+		c.gridy = 2; // third row
 
 		JButton refreshButton = new JButton("Refresh");
 		refreshButton.setToolTipText("Refresh available COM-Ports");

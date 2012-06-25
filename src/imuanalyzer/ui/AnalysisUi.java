@@ -2,7 +2,15 @@ package imuanalyzer.ui;
 
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
+import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Analyses.AnalysesMode;
+import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.swing.charts.AccelerationChartFrame;
+import imuanalyzer.ui.swing.charts.JointRelationChartFrame;
+import imuanalyzer.ui.swing.charts.OrientationChartFrame;
+import imuanalyzer.ui.swing.menu.FinishListenerHandler;
+import imuanalyzer.ui.swing.menu.IPopUpFinished;
+import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -12,6 +20,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -22,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -62,13 +73,20 @@ public class AnalysisUi extends JDialog {
 
 	boolean assumeDynamicCharts = false;
 
-	JComboBox specialPointsList;
+	JComboBox chartList = null;
+	JComboBox pointList = null;
+
+	JButton addChart = null;
+
+	MenuFactory menuFactory = null;
 
 	public AnalysisUi(Frame parent, ArrayList<Marker> markers,
-			boolean showNonChartAnalysis, boolean showChartAnalysis) {
+			boolean showNonChartAnalysis, boolean showChartAnalysis,
+			MenuFactory menuFactory) {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
+		this.menuFactory = menuFactory;
 
 		HelpManager.getInstance().enableHelpKey(this.getRootPane(),
 				"analysisselection");
@@ -118,68 +136,17 @@ public class AnalysisUi extends JDialog {
 			public void stateChanged(ChangeEvent arg0) {
 				JCheckBox source = (JCheckBox) arg0.getSource();
 				assumeDynamicCharts = source.isSelected();
+				if (addChart != null) {
+					addChart.setEnabled(!assumeDynamicCharts);
+					chartList.setEnabled(!assumeDynamicCharts);
+				}
 			}
 		});
 		if (!showChartAnalysis) {
 			checkAssumeCharts.setEnabled(false);
 		}
 
-		JPanel specialPointsPanel = new JPanel(new FlowLayout());
-
-		specialPointsPanel.add(new JLabel("Custom % "));
-
-		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(25, 0, 100, 1);
-		final JSpinner percentSpinner = new JSpinner(percentSpinnerModel);
-
-		specialPointsPanel.add(percentSpinner);
-
-		specialPointsList = new JComboBox();
-		specialPointsList.setEditable(false);
-
-		specialPointsPanel.add(specialPointsList);
-
-		JButton addPoint = new JButton("Add");
-
-		addPoint.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int newValue = (Integer) percentSpinner.getValue();
-				for (int i = 0; i < specialPointsList.getItemCount(); i++) {
-					if (newValue == ((Integer) specialPointsList.getItemAt(i))) {
-						return;
-					}
-
-				}
-				specialPointsList.addItem(newValue);
-				specialPointsList.setSelectedIndex(specialPointsList
-						.getItemCount() - 1);
-			}
-		});
-
-		specialPointsPanel.add(addPoint);
-
-		JButton removePoint = new JButton("Remove");
-
-		removePoint.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int index = specialPointsList.getSelectedIndex();
-				if (index > -1) {
-					specialPointsList.removeItemAt(index);
-				}
-			}
-		});
-
-		specialPointsPanel.add(removePoint);
-
-		if (!showNonChartAnalysis) {
-			specialPointsList.setEnabled(false);
-			removePoint.setEnabled(false);
-			addPoint.setEnabled(false);
-			percentSpinner.setEnabled(false);
-		}
+		JPanel specialPointsPanel = createSpecialPointsPanel(showNonChartAnalysis);
 
 		optionsPanel.add(checkShowBoxplot2d);
 		optionsPanel.add(checkAssumeCharts);
@@ -187,6 +154,8 @@ public class AnalysisUi extends JDialog {
 		bottomPanel.add(optionsPanel);
 
 		bottomPanel.add(specialPointsPanel);
+
+		bottomPanel.add(createChartsPanel());
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
@@ -217,7 +186,7 @@ public class AnalysisUi extends JDialog {
 		}
 		buttonPanel.add(avgButton);
 
-		JButton graphButton = new JButton("Graphs only");
+		JButton graphButton = new JButton("Charts only");
 		graphButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -250,6 +219,131 @@ public class AnalysisUi extends JDialog {
 
 		this.setVisible(true);
 
+	}
+
+	protected JPanel createSpecialPointsPanel(boolean showNonChartAnalysis) {
+		JPanel specialPointsPanel = new JPanel(new FlowLayout());
+
+		specialPointsPanel.add(new JLabel("Custom % "));
+
+		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(25, 0, 100, 1);
+		final JSpinner percentSpinner = new JSpinner(percentSpinnerModel);
+
+		specialPointsPanel.add(percentSpinner);
+
+		pointList = new JComboBox();
+		pointList.setEditable(false);
+
+		specialPointsPanel.add(pointList);
+
+		JButton addPoint = new JButton("Add");
+
+		addPoint.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int newValue = (Integer) percentSpinner.getValue();
+				for (int i = 0; i < pointList.getItemCount(); i++) {
+					if (newValue == ((Integer) pointList.getItemAt(i))) {
+						return;
+					}
+				}
+				pointList.addItem(newValue);
+				pointList.setSelectedIndex(pointList.getItemCount() - 1);
+			}
+		});
+
+		specialPointsPanel.add(addPoint);
+
+		JButton removePoint = new JButton("Remove");
+
+		removePoint.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int index = chartList.getSelectedIndex();
+				if (index > -1) {
+					pointList.removeItemAt(index);
+				}
+			}
+		});
+
+		specialPointsPanel.add(removePoint);
+
+		if (!showNonChartAnalysis) {
+			pointList.setEnabled(false);
+			removePoint.setEnabled(false);
+			addPoint.setEnabled(false);
+			percentSpinner.setEnabled(false);
+		}
+		return specialPointsPanel;
+	}
+
+	protected JPanel createChartsPanel() {
+		final JPanel chartPanel = new JPanel(new FlowLayout());
+
+		chartPanel.add(new JLabel("Charts: "));
+
+		chartList = new JComboBox();
+		chartList.setEditable(false);
+
+		chartPanel.add(chartList);
+
+		addChart = new JButton("Add");
+
+		addChart.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				FinishListenerHandler finishHandler = new FinishListenerHandler();
+				finishHandler.addFinishListener(new IPopUpFinished() {
+
+					@Override
+					public void notifyFinished() {
+						refreshChartList();
+					}
+				});
+				JPopupMenu popUp = menuFactory.getChartPopUpMenu(finishHandler);
+				popUp.show(chartPanel, addChart.getLocation().x,
+						addChart.getLocation().y);
+			}
+		});
+
+		chartPanel.add(addChart);
+
+		return chartPanel;
+	}
+
+	private void refreshChartList() {
+		chartList.removeAllItems();
+
+		// acceleration
+		for (AccelerationChartFrame chart : menuFactory.getChartsAcceleration()
+				.getCharts()) {
+			chartList.addItem("Acceleration "
+					+ Hand.jointTypeToName(chart.getType()));
+			LOGGER.debug("accel");
+		}
+		// feeling
+		if (menuFactory.getFeelingChart().isEnabled()) {
+			chartList.addItem("Feeling");
+		}
+
+		// orientations
+		Set<Entry<JointType, OrientationChartFrame>> orientationCharts = menuFactory
+				.getChartOrientation().getCharts().entrySet();
+		for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
+			chartList.addItem("Orientation "
+					+ Hand.jointTypeToName(chart.getKey()));
+		}
+
+		// relations
+		for (JointRelationChartFrame chart : menuFactory.getChartsRelation()
+				.getCharts()) {
+			chartList.addItem("Relation "
+					+ Hand.jointTypeToName(chart.getType1()) + " / "
+					+ Hand.jointTypeToName(chart.getType2()));
+		}
 	}
 
 	private void handleButton(AnalysesMode mode) {
@@ -289,9 +383,8 @@ public class AnalysisUi extends JDialog {
 
 	public ArrayList<Float> getSpecialPoints() {
 		ArrayList<Float> specialPoints = new ArrayList<Float>();
-		for (int i = 0; i < specialPointsList.getItemCount(); i++) {
-			specialPoints
-					.add(((Integer) specialPointsList.getItemAt(i)) / 100f);
+		for (int i = 0; i < chartList.getItemCount(); i++) {
+			specialPoints.add(((Integer) chartList.getItemAt(i)) / 100f);
 
 		}
 

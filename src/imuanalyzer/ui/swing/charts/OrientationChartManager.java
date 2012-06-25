@@ -27,12 +27,14 @@ public class OrientationChartManager {
 		this.hand = hand;
 	}
 
-	public void addDynamicChart(final JointType type) {
+	public void addDynamicChart(final JointType type, boolean visible) {
 
 		if (charts.get(type) == null) {
 
-			charts.put(type, new OrientationChartFrame(this, hand, type, 1,
-					VALUES_LIMIT));
+			OrientationChartFrame frame = new OrientationChartFrame(this, hand, type, 1,
+					VALUES_LIMIT);
+			charts.put(type, frame);
+			frame.setVisible(visible);
 
 			if (charts.size() == 1) {
 				thread = new UpdaterOrientation(charts);

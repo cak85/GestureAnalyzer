@@ -91,8 +91,6 @@ public class OrientationChartFrame extends JFrame {
 				}
 			}
 		});
-
-		this.setVisible(true);
 	}
 
 	public void update(int traceGroup) {

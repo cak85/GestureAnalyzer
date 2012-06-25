@@ -155,8 +155,6 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 				manager.removeDynamicChart(type1, type2);
 			}
 		});
-
-		setVisible(true);
 	}
 
 	public boolean equals(final JointType type1, final JointType type2) {
@@ -229,5 +227,13 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 
 	public void setHand(Hand hand) {
 		this.hand = hand;
+	}
+
+	public JointType getType1() {
+		return type1;
+	}
+
+	public JointType getType2() {
+		return type2;
 	}
 }

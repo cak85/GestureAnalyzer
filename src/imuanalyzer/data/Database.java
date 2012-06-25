@@ -539,6 +539,49 @@ public class Database {
 		return data;
 	}
 
+	/**
+	 * get count of imu data entries in db
+	 * @param marker
+	 * @return
+	 */
+	public int getCount(Marker marker) {
+		int count = 0;
+
+		PreparedStatement statement = null;
+		try {
+			ResultSet rs = null;
+
+			StringBuilder select = new StringBuilder("select count(")
+					.append(IMU_DATA_TABLE_SENSOR_ID).append(")")
+					.append(" from ").append(IMU_DATA_TABLE_NAME)
+					.append(" where ").append(IMU_DATA_TABLE_TIME)
+					.append(" between ? and ?");
+
+			statement = conn.prepareStatement(select.toString());
+			statement.setTimestamp(1, new Timestamp(marker.start.getTime()));
+			statement.setTimestamp(2, new Timestamp(marker.end.getTime()));
+			rs = statement.executeQuery();
+
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+
+		} catch (final SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (final SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+
+		return count;
+
+	}
+
 	public void writeImuDataToCsv(Marker marker, String filename) {
 		PreparedStatement statement = null;
 		try {

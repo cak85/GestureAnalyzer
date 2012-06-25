@@ -27,7 +27,7 @@ public class AccelerationChartManager {
 		this.hand = hand;
 	}
 
-	public void addChart(final JointType type) {
+	public void addChart(final JointType type, boolean visible) {
 		for (IIntervalUpdate jR : charts) {
 			AccelerationChartFrame frame = (AccelerationChartFrame) jR;
 			if (frame.equals(type)) {
@@ -39,6 +39,7 @@ public class AccelerationChartManager {
 				type, VALUES_LIMIT);
 
 		charts.add(frame);
+		frame.setVisible(visible);
 		if (charts.size() == 1) {
 			thread = new IntervalUpdater(charts, UPDATE_CYCLE);
 			thread.start();

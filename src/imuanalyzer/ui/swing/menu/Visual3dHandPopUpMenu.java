@@ -15,7 +15,7 @@ import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
-class Visual3dHandPopUpMenu extends JPopupMenu {
+public class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	/**
 	 * 
@@ -33,6 +33,12 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	InfoBox infoBox;
 
+	FinishListenerHandler finishHandler = new FinishListenerHandler();
+
+	public FinishListenerHandler getFinishHandler() {
+		return finishHandler;
+	}
+
 	public Visual3dHandPopUpMenu(Visual3d visual3d, Hand hand,
 			JointType jointType, InfoBox infoBox, MenuFactory menuFactory) {
 		this.visual3d = visual3d;
@@ -49,6 +55,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					disableAnalyzeMovement();
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -59,6 +66,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					analyzeMovement();
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -70,6 +78,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					disableAnalyzeTouch();
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -79,6 +88,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					analyzeTouch();
+					finishHandler.notifyFinished();
 				}
 			});
 			add(anItem);
@@ -91,6 +101,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					removeInfo();
+					finishHandler.notifyFinished();
 				}
 
 			});
@@ -101,6 +112,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					addInfo();
+					finishHandler.notifyFinished();
 				}
 
 			});
@@ -113,6 +125,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				startColorSettings();
+				finishHandler.notifyFinished();
 			}
 		});
 		add(anItem);
@@ -127,6 +140,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setManualManipulatedJoint();
+				finishHandler.notifyFinished();
 			}
 		});
 		add(anItem);
@@ -137,6 +151,7 @@ class Visual3dHandPopUpMenu extends JPopupMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				switchVisibility();
+				finishHandler.notifyFinished();
 			}
 		});
 		add(anItem);
