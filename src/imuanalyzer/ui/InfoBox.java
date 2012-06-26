@@ -37,7 +37,7 @@ public class InfoBox extends JPanel {
 
 	ArrayList<IInfoContent> observedObjects = new ArrayList<IInfoContent>();
 
-	DefaultTableModel model;
+	DefaultTableModel tableModel;
 
 	Updater updater;
 
@@ -47,13 +47,21 @@ public class InfoBox extends JPanel {
 		JScrollPane scrollPane;
 
 		infoTable = new JTable(0, 2);
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "valuetable");
-		
+
 		infoTable.setCellSelectionEnabled(false);
 
-		model = (DefaultTableModel) infoTable.getModel();
-		model.setColumnIdentifiers(new String[] { "Element", "Values" });
+		tableModel = new DefaultTableModel() {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// all cells false
+				return false;
+			}
+		};
+
+		infoTable.setModel(tableModel);
+		tableModel.setColumnIdentifiers(new String[] { "Element", "Values" });
 
 		scrollPane = new JScrollPane(infoTable);
 		scrollPane.setPreferredSize(new Dimension(350, 180));
@@ -63,7 +71,7 @@ public class InfoBox extends JPanel {
 	}
 
 	private void startUpdateThread() {
-		updater = new Updater(observedObjects, model);
+		updater = new Updater(observedObjects, tableModel);
 		updater.start();
 	}
 
@@ -94,7 +102,7 @@ public class InfoBox extends JPanel {
 		DefaultTableModel tableModel;
 
 		boolean stop = false;
-		
+
 		private Updater(ArrayList<IInfoContent> observedObjects,
 				DefaultTableModel tableModel) {
 			this.observedObjects = observedObjects;

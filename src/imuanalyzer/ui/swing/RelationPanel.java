@@ -1,6 +1,7 @@
 package imuanalyzer.ui.swing;
 
 import imuanalyzer.configuration.Configuration;
+import imuanalyzer.data.Database;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Hand;
@@ -18,6 +19,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 
 import javax.swing.JButton;
@@ -48,12 +50,14 @@ public class RelationPanel extends JPanel {
 
 	Hand hand;
 
-	DefaultTableModel model;
+	DefaultTableModel tableModel;
 
 	JSpinner factorSpinner;
 
 	JComboBox jointOne;
 	JComboBox jointTwo;
+
+	Database db;
 
 	public RelationPanel(Hand hand) {
 		this.hand = hand;
@@ -89,6 +93,12 @@ public class RelationPanel extends JPanel {
 
 		this.add(listPanel, c);
 
+		try {
+			db = db.getInstance();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private JPanel createRelationsListing() {
@@ -96,8 +106,16 @@ public class RelationPanel extends JPanel {
 		JTable table = new JTable(0, 3);
 		table.setCellSelectionEnabled(false);
 
-		model = (DefaultTableModel) table.getModel();
-		model.setColumnIdentifiers(new String[] { "Joint 1", "Factor",
+		tableModel = new DefaultTableModel() {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// all cells false
+				return false;
+			}
+		};
+
+		table.setModel(tableModel);
+		tableModel.setColumnIdentifiers(new String[] { "Joint 1", "Factor",
 				"Joint 2" });
 
 		refreshTable();
@@ -137,15 +155,16 @@ public class RelationPanel extends JPanel {
 
 		// relation
 		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(new Float(0),
-				new Float(0), new Float(1), new Float(0.001));
+				new Float(0.000), new Float(1), new Float(0.001));
 		factorSpinner = new JSpinner(percentSpinnerModel);
-		JSpinner.NumberEditor editor = (JSpinner.NumberEditor)factorSpinner.getEditor();  
-        DecimalFormat format = editor.getFormat();  
-        format.setMinimumFractionDigits(3);  
-        editor.getTextField().setHorizontalAlignment(SwingConstants.CENTER); 
-        Dimension d = factorSpinner.getPreferredSize();  
-        d.width = 85;  
-        factorSpinner.setPreferredSize(d);  
+		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) factorSpinner
+				.getEditor();
+		DecimalFormat format = editor.getFormat();
+		format.setMinimumFractionDigits(3);
+		editor.getTextField().setHorizontalAlignment(SwingConstants.CENTER);
+		Dimension d = factorSpinner.getPreferredSize();
+		d.width = 85;
+		factorSpinner.setPreferredSize(d);
 
 		panel.add(factorSpinner);
 
@@ -188,11 +207,11 @@ public class RelationPanel extends JPanel {
 	}
 
 	private void refreshTable() {
-		model.setRowCount(0);
+		tableModel.setRowCount(0);
 		for (JointType type : JointType.values()) {
 			for (JointRelation relation : hand.getJoint(type)
 					.getRelationsToOtherJoints()) {
-				model.addRow(new Object[] { "" + relation.getOther(),
+				tableModel.addRow(new Object[] { "" + relation.getIndependent(),
 						"" + (relation.getFactor()),
 						"" + Hand.jointTypeToName(type) });
 			}
@@ -200,23 +219,29 @@ public class RelationPanel extends JPanel {
 	}
 
 	private void addRelation() {
-		
+
 		JointType joint1 = JointType.values()[jointOne.getSelectedIndex()];
 		JointType joint2 = JointType.values()[jointTwo.getSelectedIndex()];
 
-		if(joint1.equals(joint2)){
-			JOptionPane.showMessageDialog(this,
-					"It makes no sense setting a joint in relation with itself", "Information",
-					JOptionPane.INFORMATION_MESSAGE);
+		if (joint1.equals(joint2)) {
+			JOptionPane
+					.showMessageDialog(
+							this,
+							"It makes no sense setting a joint in relation with itself",
+							"Information", JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		
+
 		JointRelation existingRelation = hand.getJointRelation(joint2, joint1);
+
 		Float factor = (Float) factorSpinner.getValue();
 		if (existingRelation == null) {
-
-			hand.getJoint(joint2).addRelation(
-					new JointRelation(hand.getJoint(joint1), factor));
+			JointRelation relation = new JointRelation(hand.getJoint(joint1),
+					hand.getJoint(joint2), factor);
+			hand.getJoint(joint2).addRelation(relation);
+			if (db != null) {
+				db.setJointRelation(relation);
+			}
 		} else {
 			existingRelation.setFactor(factor);
 		}
@@ -227,15 +252,16 @@ public class RelationPanel extends JPanel {
 	private void removeRelation() {
 		JointType joint1 = JointType.values()[jointOne.getSelectedIndex()];
 		JointType joint2 = JointType.values()[jointTwo.getSelectedIndex()];
-		
 
-		if(joint1.equals(joint2)){
+		if (joint1.equals(joint2)) {
 			return;
 		}
 
 		Joint joint = hand.getJoint(joint2);
 
-		joint.removeRelation(hand.getJointRelation(joint2, joint1));
+		JointRelation relation = hand.getJointRelation(joint2, joint1);
+		db.deleteJointRelation(relation);
+		joint.removeRelation(relation);
 
 		refreshTable();
 	}

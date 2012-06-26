@@ -4,6 +4,9 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.FeelingScale;
+import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.signalprocessing.Joint;
+import imuanalyzer.signalprocessing.JointRelation;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.utils.SensorVector;
 
@@ -49,6 +52,12 @@ public class Database {
 	final static String IMU_JOINTMAPPING_TABLE_MARKER_ID = "MarkerId";
 	final static String IMU_JOINTMAPPING_TABLE_SENSOR_ID = "SensorId";
 	final static String IMU_JOINTMAPPING_TABLE_JOINT_ID = "JointId";
+
+	final static String IMU_RELATION_TABLE_NAME = "JointRelations";
+	final static String IMU_RELATION_TABLE_JOINT_ID_DEPT = "JointIdDept";
+	final static String IMU_RELATION_TABLE_FACTOR = "Factor";
+	final static String IMU_RELATION_TABLE_JOINT_ID_INDEPT = "JointIdIndept";
+	final static String IMU_RELATION_TABLE_ID = "ID";
 
 	final static String IMU_CONFIGURATION_TABLE_NAME = "Configuration";
 	final static String IMU_CONFIGURATION_TABLE_ID = "Id";
@@ -196,6 +205,7 @@ public class Database {
 			execute(createString.toString());
 			setMarker(defaultMarker);
 		}
+
 		if (!existsTable(IMU_JOINTMAPPING_TABLE_NAME)) {
 			// create joint mapping table
 			createString = new StringBuilder("create table ")
@@ -213,6 +223,38 @@ public class Database {
 			for (JointType j : JointType.values()) {
 				setJointSensorMapping(defaultMarker, j, -1);
 			}
+		}
+
+		if (!existsTable(IMU_RELATION_TABLE_NAME)) {
+			// create joint relation table
+			createString = new StringBuilder("create table ")
+					.append(IMU_RELATION_TABLE_NAME).append(" (")
+					.append(IMU_RELATION_TABLE_ID)
+					.append(" BIGINT IDENTITY PRIMARY KEY, ")
+					.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append(" INT, ")
+					.append(IMU_RELATION_TABLE_FACTOR).append(" REAL, ")
+					.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append(" INT ")
+					.append(");");
+			execute(createString.toString());
+			// init default
+			// define relation between joints
+			JointRelation relation = new JointRelation(new Joint(null,
+					JointType.INDEX_TOP, null), new Joint(null,
+					JointType.INDEX_MID, null), 2f / 3f);
+			setJointRelation(relation);
+			relation = new JointRelation(new Joint(null, JointType.MIDDLE_TOP,
+					null), new Joint(null, JointType.MIDDLE_MID, null), 2f / 3f);
+			setJointRelation(relation);
+			relation = new JointRelation(new Joint(null, JointType.RING_TOP,
+					null), new Joint(null, JointType.RING_MID, null), 2f / 3f);
+			setJointRelation(relation);
+			relation = new JointRelation(new Joint(null, JointType.LITTLE_TOP,
+					null), new Joint(null, JointType.LITTLE_MID, null), 2f / 3f);
+			setJointRelation(relation);
+			relation = new JointRelation(new Joint(null, JointType.THUMB_TOP,
+					null), new Joint(null, JointType.THUMB_MID, null), 2f / 3f);
+			setJointRelation(relation);
+
 		}
 
 		if (!existsTable(IMU_ORIENTATION_TABLE_NAME)) {
@@ -541,6 +583,7 @@ public class Database {
 
 	/**
 	 * get count of imu data entries in db
+	 * 
 	 * @param marker
 	 * @return
 	 */
@@ -1083,6 +1126,140 @@ public class Database {
 			}
 		}
 		return retID;
+	}
+
+	public ArrayList<JointRelation> getJointRelation(Hand hand, Joint jointDep) {
+
+		ArrayList<JointRelation> relations = new ArrayList<JointRelation>();
+
+		StringBuilder select = new StringBuilder("select ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append(", ")
+				.append(IMU_RELATION_TABLE_FACTOR).append(" from ")
+				.append(IMU_RELATION_TABLE_NAME).append(" where ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(select.toString());
+			stmt.setInt(1, jointDep.getType().ordinal());
+			ResultSet res = stmt.executeQuery();
+
+			while (res.next()) {
+				Joint jointIndept = hand.getJoint(JointType.values()[res
+						.getInt(IMU_RELATION_TABLE_JOINT_ID_INDEPT)]);
+				float factor = res.getFloat(IMU_RELATION_TABLE_FACTOR);
+				relations.add(new JointRelation(jointDep, jointIndept, factor));
+			}
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return relations;
+	}
+
+	private boolean updateJointRelation(JointRelation relation) {
+
+		boolean ret = false;
+
+		StringBuilder update = new StringBuilder("update ")
+				.append(IMU_RELATION_TABLE_NAME).append(" set ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append("=? ,")
+				.append(IMU_RELATION_TABLE_FACTOR).append("=?")
+				.append(" where ").append(IMU_RELATION_TABLE_JOINT_ID_DEPT)
+				.append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(update.toString());
+			stmt.setInt(1, relation.getIndependent().getType().ordinal());
+			stmt.setFloat(2, relation.getFactor());
+			stmt.setInt(3, relation.getDependent().getType().ordinal());
+			ret = stmt.executeUpdate() > 0; // updated or not
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return ret;
+	}
+
+	public void setJointRelation(JointRelation relation) {
+		if (updateJointRelation(relation)) {
+			return;
+		}
+
+		StringBuilder insert = new StringBuilder("insert into ")
+				.append(IMU_RELATION_TABLE_NAME).append(" (")
+				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append(",")
+				.append(IMU_RELATION_TABLE_FACTOR).append(",")
+				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT)
+				.append(") values (?,?,?)");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(insert.toString());
+			stmt.setInt(1, relation.getDependent().getType().ordinal());
+			stmt.setFloat(2, relation.getFactor());
+			stmt.setInt(3, relation.getIndependent().getType().ordinal());
+			stmt.execute();
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+	}
+
+	public boolean deleteJointRelation(JointRelation relation) {
+
+		boolean ret = false;
+
+		StringBuilder update = new StringBuilder("delete from ")
+				.append(IMU_RELATION_TABLE_NAME).append(" where ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append("=? and ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT)
+				.append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(update.toString());
+			stmt.setInt(1, relation.getIndependent().getType().ordinal());
+			stmt.setInt(2, relation.getDependent().getType().ordinal());
+			ret = stmt.executeUpdate() > 0; // updated or not
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return ret;
 	}
 
 }

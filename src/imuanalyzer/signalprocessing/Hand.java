@@ -104,12 +104,6 @@ public class Hand {
 
 		Joint elemHR = new Joint(this, JointType.HAND_ROOT, sensors);
 
-		// define relation between joints
-		elemKM.addRelation(new JointRelation(elemKT, 2f / 3f));
-		elemRM.addRelation(new JointRelation(elemRT, 2f / 3f));
-		elemMM.addRelation(new JointRelation(elemMT, 2f / 3f));
-		elemZM.addRelation(new JointRelation(elemZT, 2f / 3f));
-
 		elemHR.addChild(elemKD);
 		elemHR.addChild(elemRD);
 		elemHR.addChild(elemMD);
@@ -130,10 +124,13 @@ public class Hand {
 
 		elemDD.addChild(elemDM);
 		elemDM.addChild(elemDT);
+		
 
 		addAllElementsToMap(elemHR);
 
 		loadJointMappingFromMarker();
+		
+		loadJointRelations();
 	}
 
 	/**
@@ -144,6 +141,20 @@ public class Hand {
 			for (JointType j : JointType.values()) {
 				int id = db.getJointSensorMapping(currentMarker, j);
 				setSensorID(j, id);
+			}
+		}
+	}
+	
+	/**
+	 * refresh current sensor mapping from marker
+	 */
+	public void loadJointRelations() {
+		if (sensors != null) {
+			for (JointType j : JointType.values()) {
+				ArrayList<JointRelation> relations = db.getJointRelation(this, getJoint(j));
+				for(JointRelation relation: relations){
+					relation.getDependent().addRelation(relation);
+				}
 			}
 		}
 	}
@@ -336,7 +347,7 @@ public class Hand {
 	public JointRelation getJointRelation(JointType from, JointType regarding) {
 		Joint joint = getJoint(from);
 		for (JointRelation r : joint.getRelationsToOtherJoints()) {
-			if (r.getOther().getType().equals(regarding)) {
+			if (r.getIndependent().getType().equals(regarding)) {
 				return r;
 			}
 		}
