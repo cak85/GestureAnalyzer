@@ -145,6 +145,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 				SensorVector magneto = data[id].getMagnetometer();
 				SensorVector gyro = data[id].getGyroskope();
 
+				//degree to rad
 				fm.getFilter().filterStep(samplePeriod, gyro.x * Math.PI / 180,
 						gyro.y * Math.PI / 180, gyro.z * Math.PI / 180,
 						accel.x, accel.y, accel.z, magneto.x, magneto.y,

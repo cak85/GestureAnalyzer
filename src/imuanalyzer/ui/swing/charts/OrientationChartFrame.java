@@ -3,6 +3,7 @@ package imuanalyzer.ui.swing.charts;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.utils.math.AngleHelper;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
 import info.monitorenter.gui.chart.ITrace2D;
@@ -96,7 +97,7 @@ public class OrientationChartFrame extends JFrame {
 	public void update(int traceGroup) {
 		Quaternion orientation = hand.getJoint(type).getLocalOrientation();
 
-		double[] angles = orientation.getAnglesRadFromQuaternion();
+		double[] angles = orientation.getAnglesRad();
 
 		int i = 0;
 
@@ -106,7 +107,7 @@ public class OrientationChartFrame extends JFrame {
 
 			traces.get(j).addPoint(
 					((double) System.currentTimeMillis() - this.starttime),
-					angles[i] * 180 / Math.PI);
+					AngleHelper.degFromRad(angles[i]));
 			i++;
 		}
 	}

@@ -333,6 +333,16 @@ public class Hand {
 		return feelingScale;
 	}
 
+	public JointRelation getJointRelation(JointType from, JointType regarding) {
+		Joint joint = getJoint(from);
+		for (JointRelation r : joint.getRelationsToOtherJoints()) {
+			if (r.getOther().getType().equals(regarding)) {
+				return r;
+			}
+		}
+		return null;
+	}
+
 	public static String jointTypeToName(JointType type) {
 		String name = type.toString().replaceAll("_", " ").toLowerCase();
 		name = name.substring(0, 1).toUpperCase()

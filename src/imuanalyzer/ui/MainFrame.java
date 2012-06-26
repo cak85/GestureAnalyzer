@@ -4,6 +4,7 @@ import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
+import imuanalyzer.ui.swing.RelationPanel;
 import imuanalyzer.ui.swing.SettingsPanel;
 import imuanalyzer.ui.swing.charts.AccelerationChartManager;
 import imuanalyzer.ui.swing.charts.FeelingChartManager;
@@ -78,6 +79,7 @@ public class MainFrame extends JFrame {
 	protected JPanel jointMappingSettingsPanel;
 	protected JPanel settingsPanel;
 	protected JPanel fingerSensorMapping;
+	protected JPanel relationPanel;
 	protected InfoBox infoBox;
 	protected ToolbarPanel rightToolBarPanel;
 
@@ -146,6 +148,9 @@ public class MainFrame extends JFrame {
 
 		jointMappingSettingsPanel = new JPanel(new BorderLayout());
 		jtp.addTab("Mapping", jointMappingSettingsPanel);
+		
+		relationPanel = new RelationPanel(hand);
+		jtp.addTab("Relations",relationPanel);
 
 		settingsPanel = new SettingsPanel(sensors);
 		jtp.addTab("Settings", settingsPanel);
@@ -206,9 +211,9 @@ public class MainFrame extends JFrame {
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 0.0;
+		c.weightx = 1;
 		c.gridwidth = 5;
-		c.gridheight = 3;
+		c.gridheight = 1;
 		c.gridx = 0;
 		c.gridy = 0;
 		c.insets = new Insets(10, 0, 0, 0);

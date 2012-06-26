@@ -2,6 +2,7 @@ package imuanalyzer.signalprocessing;
 
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -133,7 +134,7 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 	}
 
 	public double[] getMaxAngle() {
-		double[] angles = getLocalOrientation().getAnglesRadFromQuaternion();
+		double[] angles = getLocalOrientation().getAnglesRad();
 		angles[0] = Math.abs(angles[0]);
 		angles[1] = Math.abs(angles[1]);
 		angles[2] = Math.abs(angles[2]);
@@ -156,7 +157,7 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 			}
 
 			LOGGER.debug("ChildAngleSum - " + type + ": " + childAngleSum
-					+ " - " + childAngleSum * 180 / Math.PI);
+					+ " - " + AngleHelper.degFromRad(childAngleSum));
 
 			angles[0] += Math.abs(childMaxAngles[0]);
 			angles[1] += Math.abs(childMaxAngles[1]);
@@ -177,7 +178,7 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 			Quaternion diff = worldOrientation.quaternionProduct(other
 					.getWorldOrientation().getConjugate());
 
-			double[] angles = diff.getAnglesRadFromQuaternion();
+			double[] angles = diff.getAnglesRad();
 
 			// LOGGER.debug("Diff: " + angles[0] + " " + angles[1] + " "
 			// + angles[2]);
@@ -294,10 +295,10 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 	public int compareTo(StoredJointState other) {
 
 		double[] anglesMe = this.getLocalOrientation()
-				.getAnglesRadFromQuaternion();
+				.getAnglesRad();
 
 		double[] anglesOther = other.getLocalOrientation()
-				.getAnglesRadFromQuaternion();
+				.getAnglesRad();
 
 		//we compare just x axis angles!!!
 		//otherwise it would be possibel to compare the sums of all angles

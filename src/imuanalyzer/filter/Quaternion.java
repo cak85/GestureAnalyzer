@@ -1,5 +1,6 @@
 package imuanalyzer.filter;
 
+import imuanalyzer.utils.math.AngleHelper;
 import Jama.Matrix;
 
 public class Quaternion implements Comparable<Quaternion> {
@@ -112,7 +113,7 @@ public class Quaternion implements Comparable<Quaternion> {
 		z = c1 * s2 * c3 - s1 * c2 * s3;
 
 	}
-	
+
 	public void set(double real, double i, double j, double k) {
 		this.w = real;
 		this.x = i;
@@ -220,12 +221,13 @@ public class Quaternion implements Comparable<Quaternion> {
 		return norm;
 	}
 
-	public void normalizeLocal() {
+	public Quaternion normalized() {
 		double norm = getNorm();
 		w /= norm;
 		x /= norm;
 		y /= norm;
 		z /= norm;
+		return this;
 	}
 
 	public double get(int index) {
@@ -254,8 +256,60 @@ public class Quaternion implements Comparable<Quaternion> {
 		return new Quaternion(this.w, -this.x, -this.y, -this.z);
 	}
 
-	public double[] getAnglesRadFromQuaternion() {
-		return getAnglesRadFromQuaternion(this);
+	public Quaternion pow(double power) {
+		return pow(this, power);
+	}
+
+	public static Quaternion pow(Quaternion q, double exponent) {
+
+		if (Math.abs(q.w) > .9999f) {
+			return q;
+		}
+
+		// Extract the half angle alpha (alpha = theta/2)
+
+		double alpha = Math.acos(q.w);
+
+		// Compute new alpha value
+
+		double newAlpha = alpha * exponent;
+
+		double mult = Math.sin(newAlpha) / Math.sin(alpha);
+
+		// Compute new wxyz values
+
+		return new Quaternion(Math.cos(newAlpha), q.x * mult, q.y * mult, q.z
+				* mult);
+	}
+
+	public Quaternion exp() {
+		return exp(this);
+	}
+
+	public static Quaternion exp(Quaternion input) {
+		double inputA = input.w;
+		Quaternion inputV = new Quaternion(0, input.x, input.y, input.z);
+		double outputA = Math.exp(inputA) * Math.cos(inputV.getNorm());
+		Quaternion outputV = (inputV.normalized().times(Math.sin(inputV
+				.getNorm()))).times(Math.exp(inputA));
+		return new Quaternion(outputA, outputV.x, outputV.y, outputV.z);
+	}
+
+	public double[] getAnglesRad() {
+		return getAnglesRad(this);
+	}
+
+	public double[] getAnglesDeg() {
+		return getAnglesDeg(this);
+	}
+
+	public static double[] getAnglesDeg(Quaternion q) {
+		double[] result = q.getAnglesRad();
+
+		for (int i = 0; i < result.length; i++) {
+			result[i] = AngleHelper.degFromRad(result[i]);
+		}
+		return result;
 	}
 
 	/**
@@ -263,7 +317,7 @@ public class Quaternion implements Comparable<Quaternion> {
 	 * @param q
 	 * @return double array with roll,pitch,yaw
 	 */
-	public static double[] getAnglesRadFromQuaternion(Quaternion q) {
+	public static double[] getAnglesRad(Quaternion q) {
 
 		double[] angles = new double[3];
 

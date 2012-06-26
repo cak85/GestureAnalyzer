@@ -133,7 +133,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	}
 
 	private Quaternion getRestrictionOffset(Quaternion rotDiff) {
-		double[] angles = rotDiff.getAnglesRadFromQuaternion();
+		double[] angles = rotDiff.getAnglesRad();
 
 		double roll = angles[0];
 		double pitch = angles[1];
@@ -458,21 +458,21 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		Quaternion quat = getRotationBetweenParent();
 
-		double[] angles = quat.getAnglesRadFromQuaternion();
+		double[] angles = quat.getAnglesDeg();
 		Restriction restriction = getRestriction();
 
 		StringBuffer values = new StringBuffer("");
 		if (restriction.isRollAllowed()) {
 			values.append("x:");
-			values.append(String.format("%.1f", angles[0] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[0]));
 		}
 		if (restriction.isPitchAllowed()) {
 			values.append("y:");
-			values.append(String.format("%.1f", angles[1] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[1]));
 		}
 		if (restriction.isYawAllowed()) {
 			values.append("z:");
-			values.append(String.format("%.1f", angles[2] * 180 / Math.PI));
+			values.append(String.format("%.1f", angles[2]));
 		}
 
 		return values.toString();
@@ -491,6 +491,10 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	public void removeRelation(JointRelation relation) {
 		relationsToOtherJoints.remove(relation);
+	}
+
+	public ArrayList<JointRelation> getRelationsToOtherJoints() {
+		return relationsToOtherJoints;
 	}
 
 }

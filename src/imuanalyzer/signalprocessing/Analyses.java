@@ -293,7 +293,7 @@ public class Analyses {
 						avgJoint.setLocalOrientation(avgJoint
 								.getLocalOrientation().times(
 										1 / (double) (hands.size())));
-						avgJoint.getLocalOrientation().normalizeLocal();
+						avgJoint.getLocalOrientation().normalized();
 					}
 					avgElement.setCount(Math.round(avgElement.getCount()
 							/ (float) hands.size()));

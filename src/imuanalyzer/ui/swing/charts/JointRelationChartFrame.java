@@ -4,6 +4,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.Restriction;
+import imuanalyzer.utils.math.AngleHelper;
 import imuanalyzer.utils.math.LinearRegression;
 import imuanalyzer.utils.math.RunningAvg;
 import imuanalyzer.utils.parallel.IIntervalUpdate;
@@ -164,10 +165,10 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 	public void update() {
 
 		double[] angles1 = hand.getJoint(type1).getRotationBetweenParent()
-				.getAnglesRadFromQuaternion();
+				.getAnglesRad();
 
 		double[] angles2 = hand.getJoint(type2).getRotationBetweenParent()
-				.getAnglesRadFromQuaternion();
+				.getAnglesRad();
 
 		double[] newReleation = { angles1[0] / angles2[0],
 				angles1[1] / angles2[1], angles1[2] / angles2[2] };
@@ -178,8 +179,8 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 			currentRelation = newReleation;
 			int i = 0;
 			for (ITrace2D trace : rawPoints) {
-				double x = Math.abs(angles1[i]) * 180 / Math.PI;
-				double y = Math.abs(angles2[i]) * 180 / Math.PI;
+				double x = Math.abs(AngleHelper.degFromRad(angles1[i]));
+				double y = Math.abs(AngleHelper.degFromRad(angles2[i]));
 				maxX = Math.max(x, maxX);
 				minX = Math.min(x, minX);
 				trace.addPoint(x, y);

@@ -351,7 +351,7 @@ public class Visual3d extends SimpleApplication {
 	private void manualAddToQuat(JointType joint, Axis axis, double value) {
 		Quaternion quat = hand.getLocalJointOrientation(joint);
 
-		double[] angles = quat.getAnglesRadFromQuaternion();
+		double[] angles = quat.getAnglesRad();
 
 		int i = axis.ordinal();
 		angles[i] += value;

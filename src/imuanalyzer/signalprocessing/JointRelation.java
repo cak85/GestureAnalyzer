@@ -4,8 +4,9 @@ import imuanalyzer.filter.Quaternion;
 
 /**
  * Relationship to another joint
+ * 
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class JointRelation {
 
@@ -19,9 +20,24 @@ public class JointRelation {
 
 	public void update(Quaternion quat) {
 		if (!other.isActive()) {
-			quat = quat.times(factor);
-			quat.normalizeLocal();
+			quat = quat.pow(factor);
 			other.carryOrientationFromOther(quat, false);
 		}
+	}
+
+	public Joint getOther() {
+		return other;
+	}
+
+	public void setOther(Joint other) {
+		this.other = other;
+	}
+
+	public float getFactor() {
+		return factor;
+	}
+
+	public void setFactor(float factor) {
+		this.factor = factor;
 	}
 }

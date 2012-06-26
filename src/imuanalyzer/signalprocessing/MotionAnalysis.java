@@ -3,6 +3,7 @@ package imuanalyzer.signalprocessing;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.Utils;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,7 +17,7 @@ public class MotionAnalysis {
 	private static final Logger LOGGER = Logger.getLogger(MotionAnalysis.class
 			.getName());
 
-	private static final double MIN_ANGLE_DIFFERENCE = 10 * (Math.PI / 180);
+	private static final double MIN_ANGLE_DIFFERENCE = AngleHelper.radFromDeg(10);
 
 	Hand hand;
 	Joint observedJoint;
