@@ -19,10 +19,20 @@ public class FeelingScale implements IRecordDataNotify {
 
 	Database db;
 
-	public FeelingScale(int min, int max, ArrayList<Integer> currentValues) {
+	String description;
+
+	public FeelingScale() {
+		this("Feeling", -5, 5, 1);
+	}
+
+	public FeelingScale(String description, int min, int max, int nrOfValues) {
+		this.description = description;
 		this.min = min;
 		this.max = max;
-		this.currentValues = currentValues;
+		this.currentValues = new ArrayList<Integer>();
+		for (int i = 0; i < nrOfValues; i++) {
+			currentValues.add(0);
+		}
 
 		try {
 			db = Database.getInstance();
@@ -31,12 +41,24 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
+	public void setNrOfValues(int count) {
+		// adjust item size
+		while (currentValues.size() < count) {
+			currentValues.add(0);
+		}
+		while (currentValues.size() > count) {
+			currentValues.remove(currentValues.size() - 1);
+		}
+		db.setFeeling(this);
+	}
+
 	public int getMin() {
 		return min;
 	}
 
 	public void setMin(int min) {
 		this.min = min;
+		db.setFeeling(this);
 	}
 
 	public int getMax() {
@@ -45,6 +67,7 @@ public class FeelingScale implements IRecordDataNotify {
 
 	public void setMax(int max) {
 		this.max = max;
+		db.setFeeling(this);
 	}
 
 	public double getPercentValue(int index) {
@@ -82,5 +105,15 @@ public class FeelingScale implements IRecordDataNotify {
 		} else {
 			currentValues.set(i, percentToValue(value));
 		}
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+		LOGGER.debug("new feeling description: " + description);
+		db.setFeeling(this);
 	}
 }

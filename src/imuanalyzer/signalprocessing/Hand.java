@@ -55,7 +55,7 @@ public class Hand {
 
 		ArrayList<Integer> values = new ArrayList<Integer>();
 		values.add(0);
-		feelingScale = new FeelingScale(-5, +5, values);
+		feelingScale = db.getFeelingScale();
 
 		if (sensors != null) {
 			// register for record notification

@@ -1,21 +1,16 @@
 package imuanalyzer.ui.swing;
 
-import imuanalyzer.configuration.Configuration;
 import imuanalyzer.data.Database;
-import imuanalyzer.filter.FilterFactory.FilterTypes;
-import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Hand;
-import imuanalyzer.signalprocessing.IOrientationSensors;
+import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.JointRelation;
 import imuanalyzer.ui.HelpManager;
-import imuanalyzer.ui.IInfoContent;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -94,13 +89,14 @@ public class RelationPanel extends JPanel {
 		this.add(listPanel, c);
 
 		try {
-			db = db.getInstance();
+			db = Database.getInstance();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
 	}
 
+	@SuppressWarnings("serial")
 	private JPanel createRelationsListing() {
 
 		JTable table = new JTable(0, 3);

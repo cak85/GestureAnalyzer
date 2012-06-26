@@ -1,5 +1,6 @@
 package imuanalyzer.ui;
 
+import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.Hand;
 
 import java.awt.BorderLayout;
@@ -19,6 +20,9 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 
 public class FeelingSliders extends JPanel {
 
@@ -40,20 +44,61 @@ public class FeelingSliders extends JPanel {
 	public FeelingSliders(Hand _hand) {
 		this.hand = _hand;
 
-		HelpManager.getInstance().enableHelpKey(this, "feeling");
+		FeelingScale feeling = hand.getComfortScale();
+
+		HelpManager.getInstance().enableHelpKey(this,"feeling") ;
 
 		this.setLayout(new BorderLayout());
 
-		// comfort slider
+		//slider description
+		sliderDescription = new JTextField(feeling.getDescription());
+		sliderDescription.getDocument().addDocumentListener(
+				new DocumentListener() {
 
-		sliderDescription = new JTextField("Feeling:");
+					@Override
+					public void removeUpdate(DocumentEvent e) {
+						try {
+							hand.getComfortScale().setDescription(
+									e.getDocument().getText(0,
+											e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+
+					@Override
+					public void insertUpdate(DocumentEvent e) {
+						try {
+							hand.getComfortScale().setDescription(
+									e.getDocument().getText(0,
+											e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+
+					@Override
+					public void changedUpdate(DocumentEvent e) {
+						try {
+							hand.getComfortScale().setDescription(
+									e.getDocument().getText(0,
+											e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+				});
+
 		this.add(sliderDescription, BorderLayout.NORTH);
 
 		sliderPanel = new JPanel();
 
 		sliderPanel.setLayout(new GridBagLayout());
 
-		addSlider();
+		// add sliders
+		for (int i = 0; i < feeling.getCurrentValues().size(); i++) {
+			addSlider();
+		}
 
 		this.add(sliderPanel, BorderLayout.CENTER);
 		// slider min/max configuration
@@ -62,8 +107,8 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(new JLabel("Min", SwingConstants.RIGHT));
 
-		SpinnerModel minSpinnerModel = new SpinnerNumberModel(hand
-				.getComfortScale().getMin(), -100, 100, 1);
+		SpinnerModel minSpinnerModel = new SpinnerNumberModel(feeling.getMin(),
+				-100, 100, 1);
 		JSpinner minSpinner = new JSpinner(minSpinnerModel);
 		minSpinner.addChangeListener(new ChangeListener() {
 
@@ -83,8 +128,8 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(new JLabel("Max", SwingConstants.RIGHT));
 
-		SpinnerModel maxSpinnerModel = new SpinnerNumberModel(hand
-				.getComfortScale().getMax(), -100, 100, 1);
+		SpinnerModel maxSpinnerModel = new SpinnerNumberModel(feeling.getMax(),
+				-100, 100, 1);
 		JSpinner maxSpinner = new JSpinner(maxSpinnerModel);
 		maxSpinner.addChangeListener(new ChangeListener() {
 
@@ -104,7 +149,8 @@ public class FeelingSliders extends JPanel {
 
 		sliderConfigPanel.add(new JLabel("#", SwingConstants.RIGHT));
 
-		SpinnerModel countSpinnerModel = new SpinnerNumberModel(1, 1, 10, 1);
+		SpinnerModel countSpinnerModel = new SpinnerNumberModel(Math.max(
+				feeling.getCurrentValues().size(), 1), 1, 10, 1);
 		JSpinner countSpinner = new JSpinner(countSpinnerModel);
 		countSpinner.addChangeListener(new ChangeListener() {
 
@@ -119,6 +165,7 @@ public class FeelingSliders extends JPanel {
 				if (comfortSliders.size() < value) {
 					addSlider();
 				}
+				hand.getComfortScale().setNrOfValues(value);
 				writeBackSliderValues();
 			}
 		});

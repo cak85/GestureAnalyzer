@@ -41,6 +41,7 @@ public class InfoBox extends JPanel {
 
 	Updater updater;
 
+	@SuppressWarnings("serial")
 	public InfoBox() {
 		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 

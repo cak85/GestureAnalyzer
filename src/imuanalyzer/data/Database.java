@@ -36,7 +36,7 @@ public class Database {
 	final static String IMU_DATA_TABLE_GYROSCOPE_PRE = "Gyro_";
 	final static String IMU_DATA_TABLE_MAGNETOMETER_PRE = "Magneto_";
 
-	final static String COMFORT_TABLE_NAME = "Comfort";
+	final static String COMFORT_TABLE_NAME = "FeelingData";
 	final static String COMFORT_TABLE_TIME = "Time";
 	final static String COMFORT_TABLE_VALUE = "Value";
 	final static String COMFORT_TABLE_NUMBER = "Number";
@@ -62,6 +62,13 @@ public class Database {
 	final static String IMU_CONFIGURATION_TABLE_NAME = "Configuration";
 	final static String IMU_CONFIGURATION_TABLE_ID = "Id";
 	final static String IMU_CONFIGURATION_TABLE_FILTER_ID = "FilterId";
+
+	final static String FEELING_CONFIGURATION_TABLE_NAME = "FeelingConfig";
+	final static String FEELING_CONFIGURATION_TABLE_ID = "Id";
+	final static String FEELING_CONFIGURATION_DESCRIPTION = "Description";
+	final static String FEELING_CONFIGURATION_NR_VALUES = "ValueNumber";
+	final static String FEELING_CONFIGURATION_MAX_VALUES = "Max";
+	final static String FEELING_CONFIGURATION_MIN_VALUES = "Min";
 
 	// OP stands for Orierntation and Position because these tables are quite
 	// similar
@@ -303,6 +310,22 @@ public class Database {
 					.append(");");
 			execute(createString.toString());
 			setFilterType(FilterTypes.QUATERNION_COMPLEMENTARY);
+		}
+
+		if (!existsTable(FEELING_CONFIGURATION_TABLE_NAME)) {
+			// create configuration table
+			createString = new StringBuilder("create table ")
+					.append(FEELING_CONFIGURATION_TABLE_NAME).append(" (")
+					.append(FEELING_CONFIGURATION_TABLE_ID)
+					.append(" BIGINT IDENTITY PRIMARY KEY, ")
+					.append(FEELING_CONFIGURATION_DESCRIPTION)
+					.append(" VARCHAR, ")
+					.append(FEELING_CONFIGURATION_NR_VALUES).append(" INT, ")
+					.append(FEELING_CONFIGURATION_MIN_VALUES).append(" INT, ")
+					.append(FEELING_CONFIGURATION_MAX_VALUES).append(" INT, ")
+					.append(");");
+			execute(createString.toString());
+			setFeeling(new FeelingScale());// default
 		}
 	}
 
@@ -1238,8 +1261,7 @@ public class Database {
 		StringBuilder update = new StringBuilder("delete from ")
 				.append(IMU_RELATION_TABLE_NAME).append(" where ")
 				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append("=? and ")
-				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT)
-				.append("=?");
+				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append("=?");
 
 		PreparedStatement stmt = null;
 		try {
@@ -1260,6 +1282,124 @@ public class Database {
 			}
 		}
 		return ret;
+	}
+
+	public FeelingScale getFeelingScale() {
+		FeelingScale feeling = null;
+
+		PreparedStatement statement = null;
+		ResultSet rs = null;
+
+		StringBuilder select = new StringBuilder("select ")
+				.append(FEELING_CONFIGURATION_DESCRIPTION).append(",")
+				.append(FEELING_CONFIGURATION_NR_VALUES).append(",")
+				.append(FEELING_CONFIGURATION_MIN_VALUES).append(",")
+				.append(FEELING_CONFIGURATION_MAX_VALUES).append(" from ")
+				.append(FEELING_CONFIGURATION_TABLE_NAME).append(" where ")
+				.append(FEELING_CONFIGURATION_TABLE_ID).append(" =? ");
+
+		try {
+			statement = conn.prepareStatement(select.toString());
+			statement.setInt(1, 1);// default id 1
+			rs = statement.executeQuery();
+			if (rs.next()) {
+				String description = rs
+						.getString(FEELING_CONFIGURATION_DESCRIPTION);
+				int max = rs.getInt(FEELING_CONFIGURATION_MAX_VALUES);
+				int min = rs.getInt(FEELING_CONFIGURATION_MIN_VALUES);
+				int nrValues = rs.getInt(FEELING_CONFIGURATION_NR_VALUES);
+				
+				feeling = new FeelingScale(description, min, max, nrValues);
+			} else {
+				feeling = new FeelingScale();
+			}
+		} catch (final SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (final SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+
+		return feeling;
+	}
+
+	private boolean updateFeelingScale(FeelingScale feeling) {
+
+		boolean ret = false;
+
+		StringBuilder update = new StringBuilder("update ")
+				.append(FEELING_CONFIGURATION_TABLE_NAME).append(" set ")
+				.append(FEELING_CONFIGURATION_NR_VALUES).append("=? ,")
+				.append(FEELING_CONFIGURATION_MIN_VALUES).append("=? ,")
+				.append(FEELING_CONFIGURATION_MAX_VALUES).append("=? ,")
+				.append(FEELING_CONFIGURATION_DESCRIPTION).append("=?")
+				.append(" where ").append(FEELING_CONFIGURATION_TABLE_ID)
+				.append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(update.toString());
+			stmt.setInt(1, feeling.getCurrentValues().size());
+			stmt.setInt(2, feeling.getMin());
+			stmt.setInt(3, feeling.getMax());
+			stmt.setString(4, feeling.getDescription());
+			stmt.setInt(5, 1); // at the moment we will not have more than one
+								// entry
+			ret = stmt.executeUpdate() > 0; // updated or not
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return ret;
+	}
+
+	public void setFeeling(FeelingScale feeling) {
+
+		if (updateFeelingScale(feeling)) {
+			return;
+		}
+
+		StringBuilder insert = new StringBuilder("insert into ")
+				.append(FEELING_CONFIGURATION_TABLE_NAME).append(" (")
+				.append(FEELING_CONFIGURATION_NR_VALUES).append(",")
+				.append(FEELING_CONFIGURATION_MIN_VALUES).append(",")
+				.append(FEELING_CONFIGURATION_MAX_VALUES).append(",")
+				.append(FEELING_CONFIGURATION_DESCRIPTION)
+				.append(") values (?,?,?,?)");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(insert.toString());
+			stmt.setInt(1, feeling.getCurrentValues().size());
+			stmt.setInt(2, feeling.getMin());
+			stmt.setInt(3, feeling.getMax());
+			stmt.setString(4, feeling.getDescription());
+			stmt.execute();
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
 	}
 
 }
