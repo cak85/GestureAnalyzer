@@ -124,12 +124,11 @@ public class Hand {
 
 		elemDD.addChild(elemDM);
 		elemDM.addChild(elemDT);
-		
 
 		addAllElementsToMap(elemHR);
 
 		loadJointMappingFromMarker();
-		
+
 		loadJointRelations();
 	}
 
@@ -144,15 +143,16 @@ public class Hand {
 			}
 		}
 	}
-	
+
 	/**
 	 * refresh current sensor mapping from marker
 	 */
 	public void loadJointRelations() {
 		if (sensors != null) {
 			for (JointType j : JointType.values()) {
-				ArrayList<JointRelation> relations = db.getJointRelation(this, getJoint(j));
-				for(JointRelation relation: relations){
+				ArrayList<JointRelation> relations = db.getJointRelation(this,
+						getJoint(j));
+				for (JointRelation relation : relations) {
 					relation.getDependent().addRelation(relation);
 				}
 			}
@@ -344,10 +344,10 @@ public class Hand {
 		return feelingScale;
 	}
 
-	public JointRelation getJointRelation(JointType from, JointType regarding) {
-		Joint joint = getJoint(from);
+	public JointRelation getJointRelation(JointType indipendent, JointType dependent) {
+		Joint joint = getJoint(indipendent);
 		for (JointRelation r : joint.getRelationsToOtherJoints()) {
-			if (r.getIndependent().getType().equals(regarding)) {
+			if (r.getDependent().getType().equals(dependent)) {
 				return r;
 			}
 		}
@@ -359,6 +359,12 @@ public class Hand {
 		name = name.substring(0, 1).toUpperCase()
 				+ name.substring(1, name.length());
 		return name;
+	}
+
+	public static JointType nameToJointType(String name) {
+		name = name.replace(" ", "_");
+
+		return JointType.valueOf(name.toUpperCase());
 	}
 
 }

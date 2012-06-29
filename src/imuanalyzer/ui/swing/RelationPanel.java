@@ -14,14 +14,18 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
@@ -49,8 +53,8 @@ public class RelationPanel extends JPanel {
 
 	JSpinner factorSpinner;
 
-	JComboBox jointOne;
-	JComboBox jointTwo;
+	JComboBox jointDependent;
+	JComboBox jointIndependent;
 
 	Database db;
 
@@ -99,7 +103,7 @@ public class RelationPanel extends JPanel {
 	@SuppressWarnings("serial")
 	private JPanel createRelationsListing() {
 
-		JTable table = new JTable(0, 3);
+		final JTable table = new JTable(0, 3);
 		table.setCellSelectionEnabled(false);
 
 		tableModel = new DefaultTableModel() {
@@ -111,8 +115,42 @@ public class RelationPanel extends JPanel {
 		};
 
 		table.setModel(tableModel);
-		tableModel.setColumnIdentifiers(new String[] { "Joint 1", "Factor",
+		tableModel.setColumnIdentifiers(new String[] { "Joint 1", "", "Factor",
 				"Joint 2" });
+
+		table.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					handlePopUp(e);
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				handlePopUp(e);
+			}
+
+			public void handlePopUp(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					int r = table.rowAtPoint(e.getPoint());
+					if (r >= 0 && r < table.getRowCount()) {
+						table.setRowSelectionInterval(r, r);
+					} else {
+						table.clearSelection();
+					}
+
+					int rowindex = table.getSelectedRow();
+					if (rowindex < 0) {
+						return;
+					}
+
+					JPopupMenu popup = createYourPopUp(rowindex);
+					popup.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+		});
 
 		refreshTable();
 
@@ -134,18 +172,18 @@ public class RelationPanel extends JPanel {
 		panel.add(filterLabel);
 
 		// joint 1
-		jointOne = new JComboBox();
+		jointDependent = new JComboBox();
 
 		for (JointType type : JointType.values()) {
-			jointOne.addItem(Hand.jointTypeToName(type));
+			jointDependent.addItem(Hand.jointTypeToName(type));
 		}
 
-		jointOne.setToolTipText("Select joint");
+		jointDependent.setToolTipText("Select joint");
 
-		HelpManager.getInstance().enableHelpKey(jointOne,
+		HelpManager.getInstance().enableHelpKey(jointDependent,
 				"sensorfusionalgorithm");
 
-		panel.add(jointOne);
+		panel.add(jointDependent);
 
 		panel.add(new JLabel(" = "));
 
@@ -167,18 +205,18 @@ public class RelationPanel extends JPanel {
 		panel.add(new JLabel(" * "));
 
 		// joint 2
-		jointTwo = new JComboBox();
+		jointIndependent = new JComboBox();
 
 		for (JointType type : JointType.values()) {
-			jointTwo.addItem(Hand.jointTypeToName(type));
+			jointIndependent.addItem(Hand.jointTypeToName(type));
 		}
 
-		jointTwo.setToolTipText("Select joint");
+		jointIndependent.setToolTipText("Select joint");
 
-		HelpManager.getInstance().enableHelpKey(jointTwo,
+		HelpManager.getInstance().enableHelpKey(jointIndependent,
 				"sensorfusionalgorithm");
 
-		panel.add(jointTwo);
+		panel.add(jointIndependent);
 
 		JButton addRelation = new JButton("Add");
 		panel.add(addRelation);
@@ -202,12 +240,61 @@ public class RelationPanel extends JPanel {
 		return panel;
 	}
 
+	private JPopupMenu createYourPopUp(final int rowIndex) {
+		JPopupMenu menu = new JPopupMenu();
+
+		JMenuItem item = new JMenuItem("Edit");
+		item.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String str1 = (String) tableModel.getValueAt(rowIndex, 0);
+				String str2 = (String) tableModel.getValueAt(rowIndex, 3);
+
+				JointType jointType1 = Hand.nameToJointType(str1);
+				float factor = Float.valueOf((String) tableModel.getValueAt(
+						rowIndex, 1));
+				JointType jointType2 = Hand.nameToJointType(str2);
+
+				factorSpinner.setValue(factor);
+				jointDependent.setSelectedIndex(jointType1.ordinal());
+				jointIndependent.setSelectedIndex(jointType2.ordinal());
+			}
+		});
+		menu.add(item);
+
+		item = new JMenuItem("Delete");
+		item.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String str1 = (String) tableModel.getValueAt(rowIndex, 0);
+				String str2 = (String) tableModel.getValueAt(rowIndex, 3);
+
+				JointType jointType1 = Hand.nameToJointType(str1);
+				JointType jointType2 = Hand.nameToJointType(str2);
+
+				removeRelation(jointType1, jointType2);
+
+			}
+		});
+		menu.add(item);
+
+		return menu;
+	}
+
 	private void refreshTable() {
 		tableModel.setRowCount(0);
 		for (JointType type : JointType.values()) {
 			for (JointRelation relation : hand.getJoint(type)
 					.getRelationsToOtherJoints()) {
-				tableModel.addRow(new Object[] { "" + relation.getIndependent(),
+				System.out.println(type + " "
+						+ relation.getDependent().getType());
+
+				tableModel.addRow(new Object[] {
+						""
+								+ Hand.jointTypeToName(relation.getDependent()
+										.getType()), " = ",
 						"" + (relation.getFactor()),
 						"" + Hand.jointTypeToName(type) });
 			}
@@ -216,10 +303,14 @@ public class RelationPanel extends JPanel {
 
 	private void addRelation() {
 
-		JointType joint1 = JointType.values()[jointOne.getSelectedIndex()];
-		JointType joint2 = JointType.values()[jointTwo.getSelectedIndex()];
+		JointType dependent = JointType.values()[jointDependent.getSelectedIndex()];
+		JointType independent = JointType.values()[jointIndependent.getSelectedIndex()];
 
-		if (joint1.equals(joint2)) {
+		addRelation(dependent, independent);
+	}
+
+	protected void addRelation(JointType dependent, JointType independent) {
+		if (dependent.equals(independent)) {
 			JOptionPane
 					.showMessageDialog(
 							this,
@@ -228,27 +319,33 @@ public class RelationPanel extends JPanel {
 			return;
 		}
 
-		JointRelation existingRelation = hand.getJointRelation(joint2, joint1);
+		JointRelation relation = hand.getJointRelation(independent, dependent);
 
 		Float factor = (Float) factorSpinner.getValue();
-		if (existingRelation == null) {
-			JointRelation relation = new JointRelation(hand.getJoint(joint1),
-					hand.getJoint(joint2), factor);
-			hand.getJoint(joint2).addRelation(relation);
-			if (db != null) {
-				db.setJointRelation(relation);
-			}
+		if (relation == null) {
+			relation = new JointRelation(hand.getJoint(dependent),
+					hand.getJoint(independent), factor);
+			hand.getJoint(independent).addRelation(relation);
+
 		} else {
-			existingRelation.setFactor(factor);
+			relation.setFactor(factor);
+		}
+
+		if (db != null) {
+			db.setJointRelation(relation);
 		}
 
 		refreshTable();
 	}
 
 	private void removeRelation() {
-		JointType joint1 = JointType.values()[jointOne.getSelectedIndex()];
-		JointType joint2 = JointType.values()[jointTwo.getSelectedIndex()];
+		JointType joint1 = JointType.values()[jointDependent.getSelectedIndex()];
+		JointType joint2 = JointType.values()[jointIndependent.getSelectedIndex()];
 
+		removeRelation(joint1, joint2);
+	}
+
+	protected void removeRelation(JointType joint1, JointType joint2) {
 		if (joint1.equals(joint2)) {
 			return;
 		}

@@ -3,11 +3,17 @@ package imuanalyzer.ui;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -60,6 +66,40 @@ public class InfoBox extends JPanel {
 				return false;
 			}
 		};
+		
+		infoTable.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					handlePopUp(e);
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				handlePopUp(e);
+			}
+
+			public void handlePopUp(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					int r = infoTable.rowAtPoint(e.getPoint());
+					if (r >= 0 && r < infoTable.getRowCount()) {
+						infoTable.setRowSelectionInterval(r, r);
+					} else {
+						infoTable.clearSelection();
+					}
+
+					int rowindex = infoTable.getSelectedRow();
+					if (rowindex < 0) {
+						return;
+					}
+
+					JPopupMenu popup = createYourPopUp(rowindex);
+					popup.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+		});
 
 		infoTable.setModel(tableModel);
 		tableModel.setColumnIdentifiers(new String[] { "Element", "Values" });
@@ -69,6 +109,22 @@ public class InfoBox extends JPanel {
 
 		this.add(scrollPane);
 
+	}
+	
+	private JPopupMenu createYourPopUp(final int rowIndex) {
+		JPopupMenu menu = new JPopupMenu();
+
+		JMenuItem item = new JMenuItem("Delete");
+		item.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				removeInfo(rowIndex);
+			}
+		});
+		menu.add(item);
+
+		return menu;
 	}
 
 	private void startUpdateThread() {
@@ -87,6 +143,10 @@ public class InfoBox extends JPanel {
 
 	public boolean isObserved(JointType type) {
 		return observedObjects.contains(type);
+	}
+	
+	private void removeInfo(int idx){
+		observedObjects.remove(idx);
 	}
 
 	public void removeInfo(IInfoContent type) {
