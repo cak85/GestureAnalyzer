@@ -13,7 +13,8 @@ public class AHRSFilterMadgwick extends Filter {
 
 	private Quaternion state_filtered;
 
-	private final double Beta = 0.01;// 0.005;
+	private final double Beta = 0.001;// 0.005;
+	private final double dT = 0.5;
 
 	public AHRSFilterMadgwick() {
 		super();
@@ -67,7 +68,7 @@ public class AHRSFilterMadgwick extends Filter {
 		// Normalise accelerometer measurement
 		norm = (double) Math.sqrt(ax * ax + ay * ay + az * az);
 		if (norm == 0f)
-			return state_filtered; // handle NaN
+			return updateAndAdjust(state_filtered); // handle NaN
 		norm = 1 / norm; // use reciprocal for division
 		ax *= norm;
 		ay *= norm;
@@ -76,7 +77,7 @@ public class AHRSFilterMadgwick extends Filter {
 		// Normalise magnetometer measurement
 		norm = (double) Math.sqrt(mx * mx + my * my + mz * mz);
 		if (norm == 0f)
-			return state_filtered; // handle NaN
+			return updateAndAdjust(state_filtered); // handle NaN
 		norm = 1 / norm; // use reciprocal for division
 		mx *= norm;
 		my *= norm;
@@ -137,10 +138,10 @@ public class AHRSFilterMadgwick extends Filter {
 		s4 *= norm;
 
 		// Compute rate of change of quaternion
-		qDot1 = 0.5f * (-q2 * gx - q3 * gy - q4 * gz) - Beta * s1;
-		qDot2 = 0.5f * (q1 * gx + q3 * gz - q4 * gy) - Beta * s2;
-		qDot3 = 0.5f * (q1 * gy - q2 * gz + q4 * gx) - Beta * s3;
-		qDot4 = 0.5f * (q1 * gz + q2 * gy - q3 * gx) - Beta * s4;
+		qDot1 = dT * (-q2 * gx - q3 * gy - q4 * gz) - Beta * s1;
+		qDot2 = dT * (q1 * gx + q3 * gz - q4 * gy) - Beta * s2;
+		qDot3 = dT * (q1 * gy - q2 * gz + q4 * gx) - Beta * s3;
+		qDot4 = dT * (q1 * gz + q2 * gy - q3 * gx) - Beta * s4;
 
 		// Integrate to yield quaternion
 		q1 += qDot1 * samplePeriod;

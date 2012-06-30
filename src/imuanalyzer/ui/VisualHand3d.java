@@ -37,7 +37,7 @@ public class VisualHand3d extends Node {
 			.getName());
 
 	public static final ColorRGBA SKELETON_COLOR = ColorRGBA.White;
-	
+
 	public enum HandOrientation {
 		LEFT, RIGHT
 	};
@@ -50,10 +50,10 @@ public class VisualHand3d extends Node {
 
 	EnumMap<JointType, Bone> bones = new EnumMap<JointType, Bone>(
 			JointType.class);
-	
-	EnumMap<JointType, ArrayList<Geometry>> geometries =   new EnumMap<JointType, ArrayList<Geometry>>(
+
+	EnumMap<JointType, ArrayList<Geometry>> geometries = new EnumMap<JointType, ArrayList<Geometry>>(
 			JointType.class);
-	
+
 	ArrayList<Geometry> geomtryList = new ArrayList<Geometry>();
 
 	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
@@ -81,9 +81,9 @@ public class VisualHand3d extends Node {
 		}
 
 		this.attachChild(model);
-		
-		for(JointType t: JointType.values()){
-			geometries.put(t,new ArrayList<Geometry>());
+
+		for (JointType t : JointType.values()) {
+			geometries.put(t, new ArrayList<Geometry>());
 		}
 
 		Future<?> geometryFuture = executor.submit(new Runnable() {
@@ -173,14 +173,12 @@ public class VisualHand3d extends Node {
 		}
 	}
 
-
-
 	public HandOrientation getOrientation() {
 		return orientation;
 	}
 
 	public void setOrientation(HandOrientation orientation) {
-		
+
 		if (this.orientation != orientation) {
 			this.scale(-1, 1, 1);
 		}
@@ -261,12 +259,38 @@ public class VisualHand3d extends Node {
 	public Node getModel() {
 		return model;
 	}
-	
+
 	public void setOpacity(float opaStep, int count) {
-		setOpacity(ColorRGBA.White,opaStep,count);
+		setOpacity(ColorRGBA.White, opaStep, count);
 	}
 
-	public void setOpacity(JointType type, ColorRGBA color, float opaStep, int count) {
+	public void setOpacity(JointType type, ColorRGBA color, float percentOfMax) {
+
+		ColorRGBA colorAmbient = color.clone();
+
+		ColorRGBA colorDiffuse = colorAmbient.clone();
+
+		colorDiffuse.a = 0.9f * percentOfMax;
+
+		if (colorDiffuse.a > 0.9f) {
+			colorDiffuse.a = 0.9f;
+		}
+
+		for (Geometry geo : geometries.get(type)) {
+			Material mat = geo.getMaterial();
+			mat.setColor("Diffuse", colorDiffuse);
+			mat.setColor("Ambient", colorAmbient);
+			mat.setBoolean("UseMaterialColors", true);
+			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+			mat.setFloat("Shininess", 0.5f);
+			geo.setMaterial(mat);
+			geo.setQueueBucket(Bucket.Transparent);
+
+		}
+	}
+
+	public void setOpacity(JointType type, ColorRGBA color, float opaStep,
+			int count) {
 
 		ColorRGBA colorAmbient = color.clone();
 
@@ -290,7 +314,7 @@ public class VisualHand3d extends Node {
 
 		}
 	}
-	
+
 	public void setOpacity(ColorRGBA color, float opaStep, int count) {
 
 		ColorRGBA colorAmbient = color.clone();

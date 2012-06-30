@@ -3,6 +3,7 @@ package imuanalyzer.filter.filterimpl;
 import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.IIRFilter;
 import imuanalyzer.filter.Quaternion;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +12,12 @@ import java.util.Stack;
 import Jama.Matrix;
 
 public class KalmanFilter extends Filter {
-	// the variance of the roll
-	private final double sigmaRoll = Math.pow((0.5647 / 180 * Math.PI), 2);
-	// the variance of the pitch measure
-	private final double sigmaPitch = Math.pow((0.5674 / 180 * Math.PI), 2);
-	// the variance of the yaw measure
-
-	private final double sigmaYaw = Math.pow((0.5394 / 180 * Math.PI), 2);
+	// the variance of the roll, calculated as square of standardabweichung
+	private final double sigmaRoll = Math.pow(AngleHelper.radFromDeg((0.184814356)), 2); //original 0.5647
+	// the variance of the pitch measure, calculated as square of standardabweichung
+	private final double sigmaPitch = Math.pow(AngleHelper.radFromDeg((0.210655094)), 2); // original 0.5674
+	// the variance of the yaw measure, calculated as square of standardabweichung
+	private final double sigmaYaw = Math.pow(AngleHelper.radFromDeg((0.178495138)), 2); //original 0.5394
 
 	Matrix weOld;
 
@@ -205,12 +205,18 @@ public class KalmanFilter extends Filter {
 
 		// normalise the accelerometer measurement
 		norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
+		if(norm==0){
+			return updateAndAdjust(new Quaternion(state_filtered));
+		}
 		a_x /= norm;
 		a_y /= norm;
 		a_z /= norm;
 
 		// normalise the magnetometer measurement
 		norm = Math.sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
+		if(norm==0){
+			return updateAndAdjust(new Quaternion(state_filtered));
+		}
 		m_x /= norm;
 		m_y /= norm;
 		m_z /= norm;
@@ -261,12 +267,18 @@ public class KalmanFilter extends Filter {
 
 			// normalise the accelerometer measurement
 			norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
+			if(norm==0){
+				return updateAndAdjust(new Quaternion(state_filtered));
+			}
 			a_x /= norm;
 			a_y /= norm;
 			a_z /= norm;
 
 			// normalise the magnetometer measurement
 			norm = Math.sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
+			if(norm==0){
+				return updateAndAdjust(new Quaternion(state_filtered));
+			}
 			m_x /= norm;
 			m_y /= norm;
 			m_z /= norm;
@@ -285,6 +297,9 @@ public class KalmanFilter extends Filter {
 			norm = Math.sqrt(dq.get(0, 0) * dq.get(0, 0) + dq.get(1, 0)
 					* dq.get(1, 0) + dq.get(2, 0) * dq.get(2, 0) + dq.get(3, 0)
 					* dq.get(3, 0));
+			if(norm==0){
+				return updateAndAdjust(new Quaternion(state_filtered));
+			}
 			mu = 10 * norm * samplePeriod;
 			state_observed = GradientDescent(a_x, a_y, a_z, m_x, m_y, m_z, mu,
 					state_filtered);
@@ -344,7 +359,6 @@ public class KalmanFilter extends Filter {
 
 		state_filtered = state_filtered.times(1 / norm);
 
-		// this is a bit uggly because of double casting
 		Quaternion ret = updateAndAdjust(new Quaternion(state_filtered));
 
 		state_filtered = ret.getQuaternionAsVector();

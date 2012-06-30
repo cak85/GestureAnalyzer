@@ -434,7 +434,7 @@ public abstract class Filter {
 		}
 	}
 	
-	LowPass accelLowPass = new LowPass(0.5f);
+	LowPass accelLowPass = new LowPass(0.8f);
 
 	private Quaternion calculateDynAcceleration(double a_x, double a_y,
 			double a_z, Quaternion currentOrientation) {

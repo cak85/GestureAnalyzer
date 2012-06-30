@@ -30,6 +30,7 @@ public class NonDynamicChartFiller {
 			AccelerationChartManager _chartsAcceleration,
 			FeelingChartManager _feelingChart,
 			JointRelationChartManager _chartsRelation, int nrHands, int maxData) {
+		
 		this.nrHands = nrHands;
 		chartOrientation = _chartOrientation;
 		chartsAcceleration = _chartsAcceleration;
@@ -41,6 +42,7 @@ public class NonDynamicChartFiller {
 			JointRelationChartFrame frame = chartsRelation.getStaticChart(
 					chart.type1, chart.type2, maxData);
 			staticRelationCharts.add(frame);
+			frame.setVisible(true);
 		}
 
 		// orientations
@@ -52,6 +54,7 @@ public class NonDynamicChartFiller {
 			frame.setVisible(true);
 			staticOrientationCharts.add(frame);
 		}
+		
 		// acceleration
 		for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
 			AccelerationChartFrame frame = chartsAcceleration.getStaticChart(
@@ -59,6 +62,7 @@ public class NonDynamicChartFiller {
 			frame.setVisible(true);
 			staticAccelerationCharts.add(frame);
 		}
+		
 		// feeling
 		if (feelingChart.isEnabled()) {
 			staticFeelingChart = feelingChart.getStaticChart(maxData);

@@ -106,7 +106,7 @@ public class LinearRegression {
 	}
 
 	/**
-	 * corresponds to m in y=mx+n
+	 * corresponds to m in y = mx + n
 	 * @return
 	 */
 	public double getBeta1() {

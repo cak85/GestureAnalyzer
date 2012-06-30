@@ -43,7 +43,6 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FXAAFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -118,6 +117,8 @@ public class Visual3d extends SimpleApplication {
 
 	LinkedList<MovementStep> analysesMovementPositions = new LinkedList<MovementStep>();
 
+	int maxMotionCount = 0;
+
 	private Visual3d myInstance;
 
 	/**
@@ -186,12 +187,12 @@ public class Visual3d extends SimpleApplication {
 	public void simpleInitApp() {
 
 		// optional
-		 FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-		 
-		 //anitalasing
-//		 FXAAFilter fxaaFilter = new FXAAFilter();
-//		 fpp.addFilter(fxaaFilter);
-		 
+		FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+
+		// anitalasing
+		// FXAAFilter fxaaFilter = new FXAAFilter();
+		// fpp.addFilter(fxaaFilter);
+
 		// fpp.setNumSamples(4);
 		// SSAOFilter ssaoFilter = new SSAOFilter(0.92f, 2.2f, 0.46f, 0.2f);
 		// final WaterFilter water=new WaterFilter(rootNode,new
@@ -211,7 +212,7 @@ public class Visual3d extends SimpleApplication {
 		// fpp.addFilter(bloom);
 
 		// fpp.addFilter(ssaoFilter);
-		 viewPort.addProcessor(fpp);
+		viewPort.addProcessor(fpp);
 
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
@@ -246,13 +247,6 @@ public class Visual3d extends SimpleApplication {
 
 		state = new ScreenshotAppState();
 		this.stateManager.attach(state);
-
-		// debug TODO remove when not longer used
-		// ArrayList<TouchLineStatistics> stats = new
-		// ArrayList<TouchLineStatistics>();
-		// stats.add(new TouchLineStatistics(Helper.getExampleTouchlineEven()));
-		// touchLineStatistics.setStatistics(stats);
-
 	}
 
 	/** Custom Keybinding: Map named actions to inputs. */
@@ -574,8 +568,6 @@ public class Visual3d extends SimpleApplication {
 				visualHand.attachChild(newHand);
 			}
 
-			// TODO buggy/wrong remove
-			// visualHand.move(Utils.getPosition(hand.getJoint(JointType.HR).getLastMove()));
 			for (Entry<JointType, Joint> entry : handset) {
 
 				// update actual hand << non transparent one
@@ -607,7 +599,7 @@ public class Visual3d extends SimpleApplication {
 
 					hand3d.setOpacity(currentJointType,
 							currentSetting.getStoredMotionColor(),
-							OPACITY_STEP, moveStep.getCount());
+							moveStep.getCount() / maxMotionCount);
 
 					EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
 							.get(i).getJointSet();
@@ -823,6 +815,8 @@ public class Visual3d extends SimpleApplication {
 						.getParent());
 			}
 			this.analysesMovementPositions = analysesMovementPositions;
+
+			maxMotionCount = analyses.getMaxMotionCount();
 
 			touchLineStatistics.setStatistics(analyses.getStatistics());
 

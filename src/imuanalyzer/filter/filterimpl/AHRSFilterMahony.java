@@ -13,8 +13,9 @@ public class AHRSFilterMahony extends Filter {
 
 	Quaternion state_filtered;
 
-	final double Kp = 2;
+	final double Kp = 5;
 	final double Ki = 0;
+	final double dT = 0.5;
 
 	double[] eInt = { 0f, 0f, 0f };
 
@@ -63,7 +64,7 @@ public class AHRSFilterMahony extends Filter {
 		// Normalise accelerometer measurement
 		norm = (double) Math.sqrt(ax * ax + ay * ay + az * az);
 		if (norm == 0f)
-			return state_filtered; // handle NaN
+			return updateAndAdjust(state_filtered);; // handle NaN
 		norm = 1 / norm; // use reciprocal for division
 		ax *= norm;
 		ay *= norm;
@@ -72,7 +73,7 @@ public class AHRSFilterMahony extends Filter {
 		// Normalise magnetometer measurement
 		norm = (double) Math.sqrt(mx * mx + my * my + mz * mz);
 		if (norm == 0f)
-			return state_filtered; // handle NaN
+			return updateAndAdjust(state_filtered);; // handle NaN
 		norm = 1 / norm; // use reciprocal for division
 		mx *= norm;
 		my *= norm;
@@ -119,10 +120,10 @@ public class AHRSFilterMahony extends Filter {
 		pa = q2;
 		pb = q3;
 		pc = q4;
-		q1 = q1 + (-q2 * gx - q3 * gy - q4 * gz) * (0.5f * samplePeriod);
-		q2 = pa + (q1 * gx + pb * gz - pc * gy) * (0.5f * samplePeriod);
-		q3 = pb + (q1 * gy - pa * gz + pc * gx) * (0.5f * samplePeriod);
-		q4 = pc + (q1 * gz + pa * gy - pb * gx) * (0.5f * samplePeriod);
+		q1 = q1 + (-q2 * gx - q3 * gy - q4 * gz) * (dT * samplePeriod);
+		q2 = pa + (q1 * gx + pb * gz - pc * gy) * (dT * samplePeriod);
+		q3 = pb + (q1 * gy - pa * gz + pc * gx) * (dT * samplePeriod);
+		q4 = pc + (q1 * gz + pa * gy - pb * gx) * (dT * samplePeriod);
 
 		// Normalise quaternion
 		norm = (double) Math.sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);

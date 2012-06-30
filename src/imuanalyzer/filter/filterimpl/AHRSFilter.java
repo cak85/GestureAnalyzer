@@ -37,7 +37,7 @@ public class AHRSFilter extends Filter {
 	protected static final double Kp = 2.0; // proportional gain governs rate of
 											// convergence to
 											// accelerometer/magnetometer
-	protected static final double Ki = 0.005; // integral gain governs rate of
+	protected static final double Ki = 0.001; // integral gain governs rate of
 												// convergence of gyroscope
 												// biases
 
@@ -126,14 +126,16 @@ public class AHRSFilter extends Filter {
 
 		// TODO I got better results without that correction...??
 		// integral error scaled integral gain
-		// exInt = exInt + ex * Ki;
-		// eyInt = eyInt + ey * Ki;
-		// ezInt = ezInt + ez * Ki;
-		//
-		// // adjusted gyroscope measurements
-		// gx = gx + Kp * ex + exInt;
-		// gy = gy + Kp * ey + eyInt;
-		// gz = gz + Kp * ez + ezInt;
+//		exInt = exInt + ex * Ki;
+//		eyInt = eyInt + ey * Ki;
+//		ezInt = ezInt + ez * Ki;
+//
+//		//System.out.println("E  x:" + exInt + " y:" + eyInt + " z:" + ezInt);
+//
+//		// adjusted gyroscope measurements
+//		gx = gx + Kp * ex + exInt;
+//		gy = gy + Kp * ey + eyInt;
+//		gz = gz + Kp * ez + ezInt;
 
 		// integrate quaternion rate and normalise
 		q0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * halfT;

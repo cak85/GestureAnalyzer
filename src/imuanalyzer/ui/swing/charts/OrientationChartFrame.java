@@ -48,8 +48,8 @@ public class OrientationChartFrame extends JFrame {
 
 		chart = new Chart2D();
 
-		chart.getAxisX().setAxisTitle(new AxisTitle("Angle in degree"));
-		chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
+		chart.getAxisY().setAxisTitle(new AxisTitle("Angle in degree"));
+		chart.getAxisX().setAxisTitle(new AxisTitle("Time"));
 
 		LayoutFactory lfct = LayoutFactory.getInstance();
 		ChartPanel chartpanel = new ChartPanel(chart);

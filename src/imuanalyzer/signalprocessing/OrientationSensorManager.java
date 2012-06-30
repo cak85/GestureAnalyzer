@@ -10,6 +10,7 @@ import imuanalyzer.filter.FilterFactory;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
 import imuanalyzer.utils.SensorVector;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.Comparator;
 import java.util.Date;
@@ -146,8 +147,8 @@ public class OrientationSensorManager implements IOrientationSensors {
 				SensorVector gyro = data[id].getGyroskope();
 
 				//degree to rad
-				fm.getFilter().filterStep(samplePeriod, gyro.x * Math.PI / 180,
-						gyro.y * Math.PI / 180, gyro.z * Math.PI / 180,
+				fm.getFilter().filterStep(samplePeriod, AngleHelper.radFromDeg(gyro.x),
+						AngleHelper.radFromDeg(gyro.y), AngleHelper.radFromDeg(gyro.z),
 						accel.x, accel.y, accel.z, magneto.x, magneto.y,
 						magneto.z);
 			}

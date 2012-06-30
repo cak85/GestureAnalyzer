@@ -75,7 +75,7 @@ public class AnalysisUi extends JDialog {
 
 	JComboBox chartList = null;
 	JComboBox pointList = null;
-
+	JButton graphButton = null;
 	JButton addChart = null;
 
 	MenuFactory menuFactory = null;
@@ -186,7 +186,7 @@ public class AnalysisUi extends JDialog {
 		}
 		buttonPanel.add(avgButton);
 
-		JButton graphButton = new JButton("Charts only");
+		graphButton = new JButton("Charts only");
 		graphButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -267,7 +267,6 @@ public class AnalysisUi extends JDialog {
 				}
 			}
 		});
-
 		specialPointsPanel.add(removePoint);
 
 		if (!showNonChartAnalysis) {
@@ -317,16 +316,20 @@ public class AnalysisUi extends JDialog {
 	private void refreshChartList() {
 		chartList.removeAllItems();
 
+		int numberOfCharts = 0;
+
 		// acceleration
 		for (AccelerationChartFrame chart : menuFactory.getChartsAcceleration()
 				.getCharts()) {
 			chartList.addItem("Acceleration "
 					+ Hand.jointTypeToName(chart.getType()));
 			LOGGER.debug("accel");
+			numberOfCharts++;
 		}
 		// feeling
 		if (menuFactory.getFeelingChart().isEnabled()) {
 			chartList.addItem("Feeling");
+			numberOfCharts++;
 		}
 
 		// orientations
@@ -335,15 +338,19 @@ public class AnalysisUi extends JDialog {
 		for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
 			chartList.addItem("Orientation "
 					+ Hand.jointTypeToName(chart.getKey()));
+			numberOfCharts++;
 		}
 
-		// relations
+		// relationssp
 		for (JointRelationChartFrame chart : menuFactory.getChartsRelation()
 				.getCharts()) {
 			chartList.addItem("Relation "
 					+ Hand.jointTypeToName(chart.getType1()) + " / "
 					+ Hand.jointTypeToName(chart.getType2()));
+			numberOfCharts++;
 		}
+
+		graphButton.setEnabled(numberOfCharts > 0);
 	}
 
 	private void handleButton(AnalysesMode mode) {
@@ -383,9 +390,12 @@ public class AnalysisUi extends JDialog {
 
 	public ArrayList<Float> getSpecialPoints() {
 		ArrayList<Float> specialPoints = new ArrayList<Float>();
-		for (int i = 0; i < chartList.getItemCount(); i++) {
-			specialPoints.add(((Integer) chartList.getItemAt(i)) / 100f);
-
+		int itemCount = pointList.getItemCount();
+		for (int i = 0; i < itemCount; i++) {
+			String item = (String) pointList.getItemAt(i);
+			if (!item.isEmpty()) {
+				specialPoints.add(Integer.valueOf(item) / 100f);
+			}
 		}
 
 		return specialPoints;

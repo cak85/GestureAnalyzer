@@ -48,8 +48,8 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 
 		chart = new Chart2D();
 
-		chart.getAxisX().setAxisTitle(new AxisTitle("Acceleration in m/s^2"));
-		chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
+		chart.getAxisY().setAxisTitle(new AxisTitle("Acceleration in m/s^2"));
+		chart.getAxisX().setAxisTitle(new AxisTitle("Time"));
 
 		ITrace2D traceX = new Trace2DLtd(valueLimit);
 		traceX.setName("X");

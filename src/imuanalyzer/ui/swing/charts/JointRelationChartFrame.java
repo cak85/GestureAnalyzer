@@ -19,6 +19,7 @@ import info.monitorenter.gui.chart.views.ChartPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
+public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 	/**
 	 * 
@@ -57,8 +58,8 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 
 	ArrayList<ITrace2D> regressionCurves = new ArrayList<ITrace2D>();
 
-	JLabel resultLabel = new JLabel("   ");
-	JLabel resultLabelR2 = new JLabel("   ");
+	ArrayList<JLabel> resultLabel = new ArrayList<JLabel>();
+	ArrayList<JLabel> resultLabelR2 = new ArrayList<JLabel>();
 
 	RunningAvg mAvg = new RunningAvg(10);
 
@@ -127,24 +128,29 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 			values.add(new ArrayBlockingQueue<double[]>(valueLimit));
 			ITrace2D traceR = new Trace2DLtd(2);
 			traceR.setName("Regression curve " + (i + 1));
-			// TODO every trace needs regression curve color
-			traceR.setColor(Color.ORANGE);
+			traceR.setColor(rawPoints.get(i).getColor());
 			chart.addTrace(traceR);
 			regressionCurves.add(traceR);
 		}
 
-		ImageIcon icon = new ImageIcon(getClass().getResource(
-				"/Icons/hand.png"));
+		ImageIcon icon = new ImageIcon(getClass()
+				.getResource("/Icons/hand.png"));
 		this.setIconImage(icon.getImage());
 		// add the chart to the frame:
 		this.add(chartpanel, BorderLayout.CENTER);
 
-		JPanel resultPanel = new JPanel(new FlowLayout());
-		resultPanel.add(new JLabel(j2Name + " = "));
-		resultPanel.add(resultLabel);
-		resultPanel.add(new JLabel("* " + j1Name + " with R^2 = "));
-		resultPanel.add(resultLabelR2);
-		this.add(resultPanel, BorderLayout.SOUTH);
+		JPanel allResultPanel = new JPanel(new GridLayout(0, 1));
+		for (int i = 0; i < rawPoints.size(); i++) {
+			JPanel resultPanel = new JPanel(new FlowLayout());
+			resultPanel.add(new JLabel(j2Name + " = "));
+			resultLabel.add(new JLabel("   "));
+			resultPanel.add(resultLabel.get(i));
+			resultPanel.add(new JLabel("* " + j1Name + " with R^2 = "));
+			resultLabelR2.add(new JLabel("   "));
+			resultPanel.add(resultLabelR2.get(i));
+			allResultPanel.add(resultPanel);
+		}
+		this.add(allResultPanel, BorderLayout.SOUTH);
 
 		this.setSize(400, 200);
 		this.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
@@ -205,16 +211,15 @@ public  class JointRelationChartFrame extends JFrame implements IIntervalUpdate{
 				regTrace.addPoint(minX, m * minX + n);
 				regTrace.addPoint(maxX, m * maxX + n);
 
-				System.out.println(m);
-
 				mAvg.add(m);
 
 				r2Avg.add(regression.getR2());
 
-				resultLabel.setText(String.format("%.3f", mAvg.getAvg()));
+				resultLabel.get(i)
+						.setText(String.format("%.3f", mAvg.getAvg()));
 
-				resultLabelR2
-						.setText(String.format("%.3f", r2Avg.getAvg()));
+				resultLabelR2.get(i).setText(
+						String.format("%.3f", r2Avg.getAvg()));
 
 				i++;
 			}

@@ -57,6 +57,11 @@ public class Analyses {
 	ArrayList<JointType> saveTouchJoints;
 
 	ArrayList<Float> specialPercentPoints;
+	
+	/**
+	 * maximum count of one hand position
+	 */
+	int maxMotionCount = 0;
 
 	// TODO improve wrapp into interface
 	NonDynamicChartFiller chartFiller;
@@ -342,6 +347,8 @@ public class Analyses {
 	private void calculateMotionSum() {
 		// calculate sum of movements
 		moveResult = new LinkedList<MovementStep>();
+		
+		maxMotionCount = 0;
 
 		if (hands.size() < 1) {
 			return;
@@ -371,7 +378,9 @@ public class Analyses {
 					for (int j = 0; j < tmpResult.size(); j++) {
 						MovementStep m = tmpResult.get(j);
 						if (m.getMove().equals(newState)) {
-							m.setCount(m.getCount() + newState.getCount());
+							int newCount = m.getCount() + newState.getCount();
+							m.setCount(newCount);
+							maxMotionCount = Math.max(newCount, maxMotionCount);
 							exists = true;
 							// LOGGER.debug("Find existing position - Increase count");
 							break;
@@ -428,5 +437,10 @@ public class Analyses {
 	public ArrayList<IBoxplotData> getStatistics() {
 		return statistics;
 	}
+	
+	public int getMaxMotionCount() {
+		return maxMotionCount;
+	}
+
 
 }

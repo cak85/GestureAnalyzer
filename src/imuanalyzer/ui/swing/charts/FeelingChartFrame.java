@@ -60,8 +60,8 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 			chart.addTrace(traceX);
 		}
 
-		chart.getAxisX().setAxisTitle(new AxisTitle("Feeling value"));
-		chart.getAxisY().setAxisTitle(new AxisTitle("Time"));
+		chart.getAxisY().setAxisTitle(new AxisTitle("Feeling value"));
+		chart.getAxisX().setAxisTitle(new AxisTitle("Time"));
 
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
