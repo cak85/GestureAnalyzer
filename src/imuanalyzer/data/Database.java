@@ -1151,27 +1151,29 @@ public class Database {
 		return retID;
 	}
 
-	public ArrayList<JointRelation> getJointRelation(Hand hand, Joint jointDep) {
+	public ArrayList<JointRelation> getJointRelation(Hand hand,
+			Joint jointInDept) {
 
 		ArrayList<JointRelation> relations = new ArrayList<JointRelation>();
 
 		StringBuilder select = new StringBuilder("select ")
-				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append(", ")
+				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append(", ")
 				.append(IMU_RELATION_TABLE_FACTOR).append(" from ")
 				.append(IMU_RELATION_TABLE_NAME).append(" where ")
-				.append(IMU_RELATION_TABLE_JOINT_ID_DEPT).append("=?");
+				.append(IMU_RELATION_TABLE_JOINT_ID_INDEPT).append("=?");
 
 		PreparedStatement stmt = null;
 		try {
 			stmt = conn.prepareStatement(select.toString());
-			stmt.setInt(1, jointDep.getType().ordinal());
+			stmt.setInt(1, jointInDept.getType().ordinal());
 			ResultSet res = stmt.executeQuery();
 
 			while (res.next()) {
-				Joint jointIndept = hand.getJoint(JointType.values()[res
-						.getInt(IMU_RELATION_TABLE_JOINT_ID_INDEPT)]);
+				Joint jointdept = hand.getJoint(JointType.values()[res
+						.getInt(IMU_RELATION_TABLE_JOINT_ID_DEPT)]);
 				float factor = res.getFloat(IMU_RELATION_TABLE_FACTOR);
-				relations.add(new JointRelation(jointDep, jointIndept, factor));
+				relations
+						.add(new JointRelation(jointdept, jointInDept, factor));
 			}
 			stmt.close();
 		} catch (SQLException ex) {
@@ -1308,7 +1310,7 @@ public class Database {
 				int max = rs.getInt(FEELING_CONFIGURATION_MAX_VALUES);
 				int min = rs.getInt(FEELING_CONFIGURATION_MIN_VALUES);
 				int nrValues = rs.getInt(FEELING_CONFIGURATION_NR_VALUES);
-				
+
 				feeling = new FeelingScale(description, min, max, nrValues);
 			} else {
 				feeling = new FeelingScale();

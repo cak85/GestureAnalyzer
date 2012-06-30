@@ -150,10 +150,11 @@ public class Hand {
 	public void loadJointRelations() {
 		if (sensors != null) {
 			for (JointType j : JointType.values()) {
+				Joint independent = getJoint(j);
 				ArrayList<JointRelation> relations = db.getJointRelation(this,
-						getJoint(j));
+						independent);
 				for (JointRelation relation : relations) {
-					relation.getDependent().addRelation(relation);
+					independent.addRelation(relation);
 				}
 			}
 		}
