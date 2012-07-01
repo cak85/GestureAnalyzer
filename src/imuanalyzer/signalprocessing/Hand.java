@@ -253,8 +253,8 @@ public class Hand {
 			Joint newObservedJoint = getJoint(jointType);
 
 			// check if new joint is already covered by existing one
-			for (MotionAnalysis touch : runningMotionAnalysis) {
-				if (newObservedJoint.hasParent(touch.getObservedJoint())) {
+			for (MotionAnalysis motion : runningMotionAnalysis) {
+				if (newObservedJoint.hasParent(motion.getObservedJoint())) {
 					throw new Exception(
 							"Analysis is already covered by parent joint analysis");
 				}
@@ -262,15 +262,15 @@ public class Hand {
 
 			// remove all child analysis of new one --> obsolete
 			ArrayList<MotionAnalysis> toRemove = new ArrayList<MotionAnalysis>();
-			for (MotionAnalysis touch : runningMotionAnalysis) {
-				if (touch.getObservedJoint().hasParent(newObservedJoint)) {
-					toRemove.add(touch);
+			for (MotionAnalysis motion : runningMotionAnalysis) {
+				if (motion.getObservedJoint().hasParent(newObservedJoint)) {
+					toRemove.add(motion);
 					haveRemovedOldOnes = true;
 				}
 			}
 			// remove obsolete ones if necessary
-			for (MotionAnalysis touch : toRemove) {
-				runningMotionAnalysis.remove(touch);
+			for (MotionAnalysis motion : toRemove) {
+				runningMotionAnalysis.remove(motion);
 			}
 			// create new analysis
 			MotionAnalysis newAnalysis = new MotionAnalysis(this,

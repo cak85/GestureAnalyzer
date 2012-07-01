@@ -15,6 +15,7 @@ public class VectorLine implements Comparable<VectorLine> {
 
 	public VectorLine(ArrayList<Vector3f> lineBuffer) {
 		this(lineBuffer, 0);
+		updateLength();
 	}
 
 	public VectorLine(ArrayList<Vector3f> lineBuffer, float length) {
@@ -28,6 +29,7 @@ public class VectorLine implements Comparable<VectorLine> {
 			length += lineBuffer.get(i).subtract(lineBuffer.get(i - 1))
 					.length();
 		}
+		//System.out.println("Length: "+length);
 	}
 
 	public ArrayList<Vector3f> getLineBuffer() {

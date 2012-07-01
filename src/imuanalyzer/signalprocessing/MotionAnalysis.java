@@ -17,7 +17,8 @@ public class MotionAnalysis {
 	private static final Logger LOGGER = Logger.getLogger(MotionAnalysis.class
 			.getName());
 
-	private static final double MIN_ANGLE_DIFFERENCE = AngleHelper.radFromDeg(10);
+	private static final double MIN_ANGLE_DIFFERENCE = AngleHelper
+			.radFromDeg(10);
 
 	Hand hand;
 	Joint observedJoint;
@@ -37,6 +38,9 @@ public class MotionAnalysis {
 
 	ArrayList<Integer> maxIds = new ArrayList<Integer>();
 
+	ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
+	ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
+
 	public MotionAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
@@ -46,9 +50,15 @@ public class MotionAnalysis {
 	public void clear() {
 		savedMovementFlow.clear();
 		addInitialSavedMove();
+		maxLines.clear();
+		minLines.clear();
+		maxId = 0;
+		minId = 0;
 	}
-	
+
 	MovementStep lastChanged;
+
+	int maxCount = 0;
 
 	public void update(Joint updatedBy) {
 
@@ -64,9 +74,8 @@ public class MotionAnalysis {
 
 		StoredJointState newState = new StoredJointState(observedJoint,
 				observedJoint.parent, true);
-		
 
-		if(lastChanged!=null){
+		if (lastChanged != null) {
 			StoredJointState lastState = lastChanged.getMove();
 
 			if (!newState.hasAngelDifferenceGreaterThan(lastState,
@@ -82,31 +91,36 @@ public class MotionAnalysis {
 		// if yes increase counter
 		for (int i = 0; i < savedMovementFlow.size() - 1; i++) {
 			MovementStep m = savedMovementFlow.get(i);
-			if (m!=lastChanged && m.getMove().equals(newState)) {
+			if (m != lastChanged && m.getMove().equals(newState)) {
 				m.incCount();
-				LOGGER.debug("Find existing position - Increase count");
+				maxCount = Math.max(maxCount, m.getCount());
+				// LOGGER.debug("Find existing position - Increase count");
 				return;
 			}
 		}
 
+		// LOGGER.debug("Created new one");
+		lastChanged = new MovementStep(newState);
+		savedMovementFlow.addLast(lastChanged);
+
 		// get right parent
 		// save extrema
 		checkExtrema(newState);
-
-		// LOGGER.debug("Created new one");
-		lastChanged=new MovementStep(newState);
-		savedMovementFlow.addLast(lastChanged);
 	}
 
 	private void checkExtrema(StoredJointState newState) {
 
 		if (newState.compareTo(getMinMovementStep().move) < 0) {
-			minId = savedMovementFlow.size();
+			minId = savedMovementFlow.size() - 1;
 			minIds.add(minId);
+			minLines = getLineToId(minIds);
+			// LOGGER.debug("new min " + minId);
 		}
 		if (newState.compareTo(getMaxMovementStep().move) > 0) {
-			maxId = savedMovementFlow.size();
+			maxId = savedMovementFlow.size() - 1;
 			maxIds.add(maxId);
+			maxLines = getLineToId(maxIds);
+			// LOGGER.debug("new max " + maxId);
 		}
 	}
 
@@ -151,19 +165,23 @@ public class MotionAnalysis {
 	}
 
 	public ArrayList<VectorLine> getMaxLine() {
-		return getLineToId(maxIds);
+		return maxLines;
 	}
 
 	public ArrayList<VectorLine> getMinLine() {
-		return getLineToId(minIds);
+		return minLines;
 	}
 
 	/**
 	 * Get Line over given ids of saved motion states
+	 * 
 	 * @param ids
 	 * @return
 	 */
 	protected ArrayList<VectorLine> getLineToId(ArrayList<Integer> ids) {
+		if (savedMovementFlow.size() < 1) {
+			return new ArrayList<VectorLine>();
+		}
 		ArrayList<VectorLine> lines = new ArrayList<VectorLine>();
 
 		int numberOfChildren = getMaxMovementStep().getMove().children.size();
@@ -192,6 +210,10 @@ public class MotionAnalysis {
 			}
 		}
 		return lines;
+	}
+
+	public int getMaxCount() {
+		return maxCount;
 	}
 
 }

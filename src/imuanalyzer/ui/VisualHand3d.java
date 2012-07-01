@@ -30,6 +30,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
 
 public class VisualHand3d extends Node {
+	
+	public static final float MAX_OPACITY = 0.95f;
 
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -264,17 +266,19 @@ public class VisualHand3d extends Node {
 		setOpacity(ColorRGBA.White, opaStep, count);
 	}
 
+	/**
+	 * Set hand part color and opacticy
+	 * @param type
+	 * @param color
+	 * @param percentOfMax percentage of the hardcoded max opacity value
+	 */
 	public void setOpacity(JointType type, ColorRGBA color, float percentOfMax) {
 
 		ColorRGBA colorAmbient = color.clone();
 
 		ColorRGBA colorDiffuse = colorAmbient.clone();
 
-		colorDiffuse.a = 0.9f * percentOfMax;
-
-		if (colorDiffuse.a > 0.9f) {
-			colorDiffuse.a = 0.9f;
-		}
+		colorDiffuse.a = MAX_OPACITY * percentOfMax;
 
 		for (Geometry geo : geometries.get(type)) {
 			Material mat = geo.getMaterial();
@@ -289,6 +293,13 @@ public class VisualHand3d extends Node {
 		}
 	}
 
+	/***
+	 * Set color and opacity of hand part based of count and step size
+	 * @param type
+	 * @param color
+	 * @param opaStep
+	 * @param count
+	 */
 	public void setOpacity(JointType type, ColorRGBA color, float opaStep,
 			int count) {
 
@@ -298,8 +309,8 @@ public class VisualHand3d extends Node {
 
 		colorDiffuse.a = opaStep * count;
 
-		if (colorDiffuse.a > 0.9f) {
-			colorDiffuse.a = 0.9f;
+		if (colorDiffuse.a > MAX_OPACITY) {
+			colorDiffuse.a = MAX_OPACITY;
 		}
 
 		for (Geometry geo : geometries.get(type)) {
@@ -315,6 +326,13 @@ public class VisualHand3d extends Node {
 		}
 	}
 
+	/***
+	 * Set color and opacity of whole hand based of count and step size
+	 * @param type
+	 * @param color
+	 * @param opaStep
+	 * @param count
+	 */
 	public void setOpacity(ColorRGBA color, float opaStep, int count) {
 
 		ColorRGBA colorAmbient = color.clone();
@@ -323,8 +341,8 @@ public class VisualHand3d extends Node {
 
 		colorDiffuse.a = opaStep * count;
 
-		if (colorDiffuse.a > 0.9f) {
-			colorDiffuse.a = 0.9f;
+		if (colorDiffuse.a > MAX_OPACITY) {
+			colorDiffuse.a = MAX_OPACITY;
 		}
 
 		for (Geometry geo : geomtryList) {

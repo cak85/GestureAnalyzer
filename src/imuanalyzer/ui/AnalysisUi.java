@@ -71,6 +71,12 @@ public class AnalysisUi extends JDialog {
 
 	boolean showBoxplot2d = false;
 
+	boolean showBoxplotMotionMin3d = true;
+
+	boolean showBoxplotMotionMax3d = false;
+
+	boolean showBoxplotTouch3d = true;
+
 	boolean assumeDynamicCharts = false;
 
 	JComboBox chartList = null;
@@ -114,7 +120,7 @@ public class AnalysisUi extends JDialog {
 		JPanel optionsPanel = new JPanel(new FlowLayout());
 
 		JCheckBox checkShowBoxplot2d = new JCheckBox("Show boxplot 2D ");
-		checkShowBoxplot2d.setSelected(false);
+		checkShowBoxplot2d.setSelected(showBoxplot2d);
 		checkShowBoxplot2d.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -126,36 +132,62 @@ public class AnalysisUi extends JDialog {
 		if (!showNonChartAnalysis) {
 			checkShowBoxplot2d.setEnabled(false);
 		}
+		optionsPanel.add(checkShowBoxplot2d);
 
-		JCheckBox checkAssumeCharts = new JCheckBox(
-				"Assume dynamic chart setting ");
-		checkAssumeCharts.setSelected(false);
-		checkAssumeCharts.addChangeListener(new ChangeListener() {
+		optionsPanel.add(new JLabel("Show boxplot 3D: "));
+
+		JCheckBox checkShowBoxplotTouch3d = new JCheckBox("Touch");
+		checkShowBoxplotTouch3d.setSelected(showBoxplotTouch3d);
+		checkShowBoxplotTouch3d.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				JCheckBox source = (JCheckBox) arg0.getSource();
-				assumeDynamicCharts = source.isSelected();
-				if (addChart != null) {
-					addChart.setEnabled(!assumeDynamicCharts);
-					chartList.setEnabled(!assumeDynamicCharts);
-				}
+				showBoxplotTouch3d = source.isSelected();
 			}
 		});
-		if (!showChartAnalysis) {
-			checkAssumeCharts.setEnabled(false);
+		if (!showNonChartAnalysis) {
+			checkShowBoxplotTouch3d.setEnabled(false);
 		}
+		optionsPanel.add(checkShowBoxplotTouch3d);
 
-		JPanel specialPointsPanel = createSpecialPointsPanel(showNonChartAnalysis);
+		JCheckBox checkShowBoxplotMotionMin3d = new JCheckBox("Motion min");
+		checkShowBoxplotMotionMin3d.setSelected(showBoxplotMotionMin3d);
+		checkShowBoxplotMotionMin3d.addChangeListener(new ChangeListener() {
 
-		optionsPanel.add(checkShowBoxplot2d);
-		optionsPanel.add(checkAssumeCharts);
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				showBoxplotMotionMin3d = source.isSelected();
+			}
+		});
+		if (!showNonChartAnalysis) {
+			checkShowBoxplotMotionMin3d.setEnabled(false);
+		}
+		optionsPanel.add(checkShowBoxplotMotionMin3d);
+
+		JCheckBox checkShowBoxplotMotionMax3d = new JCheckBox("Motion max");
+		checkShowBoxplotMotionMax3d.setSelected(showBoxplotMotionMax3d);
+		checkShowBoxplotMotionMax3d.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				showBoxplotMotionMax3d = source.isSelected();
+			}
+		});
+		if (!showNonChartAnalysis) {
+			checkShowBoxplotMotionMax3d.setEnabled(false);
+		}
+		optionsPanel.add(checkShowBoxplotMotionMax3d);
 
 		bottomPanel.add(optionsPanel);
 
+		JPanel specialPointsPanel = createSpecialPointsPanel(showNonChartAnalysis);
+
 		bottomPanel.add(specialPointsPanel);
 
-		bottomPanel.add(createChartsPanel());
+		bottomPanel.add(createChartsPanel(showChartAnalysis));
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
@@ -212,6 +244,16 @@ public class AnalysisUi extends JDialog {
 			}
 		});
 		buttonPanel.add(deleteButton);
+
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				setVisible(false);
+			}
+		});
+		buttonPanel.add(cancelButton);
 
 		bottomPanel.add(buttonPanel);
 
@@ -278,7 +320,7 @@ public class AnalysisUi extends JDialog {
 		return specialPointsPanel;
 	}
 
-	protected JPanel createChartsPanel() {
+	protected JPanel createChartsPanel(boolean showChartAnalysis) {
 		final JPanel chartPanel = new JPanel(new FlowLayout());
 
 		chartPanel.add(new JLabel("Charts: "));
@@ -309,6 +351,26 @@ public class AnalysisUi extends JDialog {
 		});
 
 		chartPanel.add(addChart);
+
+		JCheckBox checkAssumeCharts = new JCheckBox(
+				"Assume dynamic chart setting ");
+		checkAssumeCharts.setSelected(false);
+		checkAssumeCharts.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				assumeDynamicCharts = source.isSelected();
+				if (addChart != null) {
+					addChart.setEnabled(!assumeDynamicCharts);
+					chartList.setEnabled(!assumeDynamicCharts);
+				}
+			}
+		});
+		if (!showChartAnalysis) {
+			checkAssumeCharts.setEnabled(false);
+		}
+		chartPanel.add(checkAssumeCharts);
 
 		return chartPanel;
 	}
@@ -403,6 +465,18 @@ public class AnalysisUi extends JDialog {
 
 	public boolean isAssumeDynamicCharts() {
 		return assumeDynamicCharts;
+	}
+
+	public boolean isShowBoxplotMotionMin3d() {
+		return showBoxplotMotionMin3d;
+	}
+
+	public boolean isShowBoxplotMotionMax3d() {
+		return showBoxplotMotionMax3d;
+	}
+
+	public boolean isShowBoxplotTouch3d() {
+		return showBoxplotTouch3d;
 	}
 
 }

@@ -25,7 +25,7 @@ public class Analyses {
 			.getName());
 
 	public enum AnalysesMode {
-		AVG, SUM, GRAPH ,NONE
+		AVG, SUM, GRAPH, NONE
 	};
 
 	private AnalysesMode mode = AnalysesMode.SUM;
@@ -57,7 +57,11 @@ public class Analyses {
 	ArrayList<JointType> saveTouchJoints;
 
 	ArrayList<Float> specialPercentPoints;
-	
+
+	boolean withTouchBox;
+	boolean withMinMotionBox;
+	boolean withMaxMotionBox;
+
 	/**
 	 * maximum count of one hand position
 	 */
@@ -88,7 +92,8 @@ public class Analyses {
 				break;
 			case SUM:
 				calculateMotionSum();
-				calculateSum(specialPercentPoints);
+				calculateBoxPlots(specialPercentPoints, withTouchBox,
+						withMinMotionBox, withMaxMotionBox);
 				break;
 
 			default:
@@ -103,7 +108,8 @@ public class Analyses {
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
 			ArrayList<JointType> _touchJoint,
 			ArrayList<Float> specialPercentPoints,
-			NonDynamicChartFiller chartFiller) {
+			NonDynamicChartFiller chartFiller, boolean withTouchBox,
+			boolean withMinMotionBox, boolean withMaxMotionBox) {
 
 		this.mode = mode;
 		this.specialPercentPoints = specialPercentPoints;
@@ -116,7 +122,8 @@ public class Analyses {
 			break;
 		case SUM:
 			calculateMotionSum();
-			calculateSum(specialPercentPoints);
+			calculateBoxPlots(specialPercentPoints, withTouchBox,
+					withMinMotionBox, withMaxMotionBox);
 			break;
 		case GRAPH:
 		default:
@@ -310,36 +317,65 @@ public class Analyses {
 
 	}
 
-	private void calculateSum(ArrayList<Float> specialPercentPoints) {
-		touchResult = new ArrayList<VectorLine>();
-		for (Hand h : hands) {
-			touchResult.addAll(h.getMaxTouchLines());
-		}
-
+	private void calculateBoxPlots(ArrayList<Float> specialPercentPoints,
+			boolean withTouchBox, boolean withMinMotionBox,
+			boolean withMaxMotionBox) {
 		statistics = new ArrayList<IBoxplotData>();
 
-		for (int i = 0; i < saveTouchJoints.size(); i++) {
-			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
+		// touchline
+		if (withTouchBox) {
+			touchResult = new ArrayList<VectorLine>();
 			for (Hand h : hands) {
-				TouchAnalysis touchAnalysis = h.getRunningTouchAnalysis()
-						.get(i);
-				linesOfOneJointAnalysis.add(touchAnalysis.getMaxLine());
+				touchResult.addAll(h.getMaxTouchLines());
 			}
-			String name = Hand.jointTypeToName(saveTouchJoints.get(i));
-			statistics.add(new VectorLineStatistics(name,
-					linesOfOneJointAnalysis, specialPercentPoints));
+
+			for (int i = 0; i < saveTouchJoints.size(); i++) {
+				ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
+				for (Hand h : hands) {
+					TouchAnalysis touchAnalysis = h.getRunningTouchAnalysis()
+							.get(i);
+					linesOfOneJointAnalysis.add(touchAnalysis.getMaxLine());
+				}
+				String name = Hand.jointTypeToName(saveTouchJoints.get(i));
+				statistics.add(new VectorLineStatistics(name,
+						linesOfOneJointAnalysis, specialPercentPoints));
+			}
 		}
 
-		for (int i = 0; i < saveMotionJoints.size(); i++) {
-			ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
-			for (Hand h : hands) {
-				MotionAnalysis motionAnalysis = h.getRunningMotionAnalysis()
-						.get(i);
-				linesOfOneJointAnalysis.addAll(motionAnalysis.getMaxLine());
+		// motionline max
+		if (withMaxMotionBox) {
+			for (int i = 0; i < saveMotionJoints.size(); i++) {
+				ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
+				for (Hand h : hands) {
+					MotionAnalysis motionAnalysis = h
+							.getRunningMotionAnalysis().get(i);
+					LOGGER.debug("MaxID:" + motionAnalysis.getMaxIdMotion());
+
+					linesOfOneJointAnalysis.addAll(motionAnalysis.getMaxLine());
+				}
+				String name = Hand.jointTypeToName(saveMotionJoints.get(i))
+						+ " max";
+				statistics.add(new VectorLineStatistics(name,
+						linesOfOneJointAnalysis, specialPercentPoints));
 			}
-			String name = Hand.jointTypeToName(saveMotionJoints.get(i));
-			statistics.add(new VectorLineStatistics(name,
-					linesOfOneJointAnalysis, specialPercentPoints));
+		}
+
+		// motionline min
+		if (withMinMotionBox) {
+			for (int i = 0; i < saveMotionJoints.size(); i++) {
+				ArrayList<VectorLine> linesOfOneJointAnalysis = new ArrayList<VectorLine>();
+				for (Hand h : hands) {
+					MotionAnalysis motionAnalysis = h
+							.getRunningMotionAnalysis().get(i);
+					LOGGER.debug("MinID:" + motionAnalysis.getMinIdMotion());
+
+					linesOfOneJointAnalysis.addAll(motionAnalysis.getMinLine());
+				}
+				String name = Hand.jointTypeToName(saveMotionJoints.get(i))
+						+ " min";
+				statistics.add(new VectorLineStatistics(name,
+						linesOfOneJointAnalysis, specialPercentPoints));
+			}
 		}
 
 	}
@@ -347,7 +383,7 @@ public class Analyses {
 	private void calculateMotionSum() {
 		// calculate sum of movements
 		moveResult = new LinkedList<MovementStep>();
-		
+
 		maxMotionCount = 0;
 
 		if (hands.size() < 1) {
@@ -360,12 +396,15 @@ public class Analyses {
 		}
 
 		for (Hand h : hands) {
-			// improve performance by aggregation
+			// improve visual performance by aggregation
 			// over several hands
 			for (int i = 0; i < h.getRunningMotionAnalysis().size(); i++) {
 
 				MotionAnalysis motionAnalysis = h.getRunningMotionAnalysis()
 						.get(i);
+
+				maxMotionCount = Math.max(motionAnalysis.getMaxCount(),
+						maxMotionCount);
 				for (MovementStep newState : motionAnalysis
 						.getSavedMovementFlow()) {
 
@@ -437,10 +476,9 @@ public class Analyses {
 	public ArrayList<IBoxplotData> getStatistics() {
 		return statistics;
 	}
-	
+
 	public int getMaxMotionCount() {
 		return maxMotionCount;
 	}
-
 
 }

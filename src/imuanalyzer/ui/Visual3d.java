@@ -586,7 +586,8 @@ public class Visual3d extends SimpleApplication {
 				// update live movement
 
 				updateLiveMovement(currentJoint, currentJointType,
-						currentJointOrientation, currentSetting);
+						currentJointOrientation, currentSetting,
+						numberOfLiveSteps);
 
 				// update stored analyses movement
 				for (int i = 0; i < numberOfStoredSteps; i++) {
@@ -597,9 +598,15 @@ public class Visual3d extends SimpleApplication {
 					StoredJointState currentStep = moveStep.getMove();
 					currentStep.updateWorldOrientation();
 
+					float opacity;
+					if (maxMotionCount == 0) {
+						opacity = 0;
+					} else {
+						opacity = moveStep.getCount() / (float) maxMotionCount;
+					}
+
 					hand3d.setOpacity(currentJointType,
-							currentSetting.getStoredMotionColor(),
-							moveStep.getCount() / maxMotionCount);
+							currentSetting.getStoredMotionColor(), opacity);
 
 					EnumMap<JointType, StoredJointState> storedSet = analysesMovementPositions
 							.get(i).getJointSet();
@@ -691,21 +698,30 @@ public class Visual3d extends SimpleApplication {
 
 	private void updateLiveMovement(Joint currentJoint,
 			JointType currentJointType, Quaternion currentJointOrientation,
-			JointSetting currentSetting) {
+			JointSetting currentSetting, int numberOfLiveSteps) {
 		int id_live_hand_modell = 0;
 
 		for (MotionAnalysis motionAnalysis : hand.getRunningMotionAnalysis()) {
 			LinkedList<MovementStep> storedMovementPositions = motionAnalysis
 					.getSavedMovementFlow();
-			for (int i = 0; i < storedMovementPositions.size(); i++) {
+			for (int i = 0; i < numberOfLiveSteps; i++) {
 				VisualHand3d hand3d = liveMovementSteps
 						.get(id_live_hand_modell);
 				MovementStep moveStep = storedMovementPositions.get(i);
 
 				int count = moveStep.getCount();
+
+				int maxCount = motionAnalysis.getMaxCount();
+
+				float opacity;
+				if (maxCount == 0) {
+					opacity = 0;
+				} else {
+					opacity = count / (float) maxCount;
+				}
+
 				hand3d.setOpacity(currentJointType,
-						currentSetting.getLiveMotionColor(), OPACITY_STEP,
-						count);
+						currentSetting.getLiveMotionColor(), opacity);
 
 				EnumMap<JointType, StoredJointState> storedSet = moveStep
 						.getJointSet();

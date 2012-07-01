@@ -589,7 +589,9 @@ public class MarkerControl extends JPanel {
 				newAnalysis.calculate(mode, selectedMarkers,
 						sensor.getCurrentFilter(), currentSavedMotionJoints,
 						currentSavedTouchJoints, selector.getSpecialPoints(),
-						filler);
+						filler, selector.isShowBoxplotTouch3d(),
+						selector.isShowBoxplotMotionMin3d(),
+						selector.isShowBoxplotMotionMax3d());
 
 				if (!mode.equals(AnalysesMode.GRAPH)) {
 					visual3d.setAnalyses(newAnalysis);
