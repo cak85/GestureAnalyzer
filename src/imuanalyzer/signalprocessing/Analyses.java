@@ -75,7 +75,11 @@ public class Analyses {
 	 */
 	ArrayList<IBoxplotData> statistics;
 
-	public Analyses() {
+	IProgress progress;
+
+	public Analyses(IProgress progress) {
+		this.progress = progress;
+
 		try {
 			db = Database.getInstance();
 		} catch (SQLException e) {
@@ -111,19 +115,28 @@ public class Analyses {
 			NonDynamicChartFiller chartFiller, boolean withTouchBox,
 			boolean withMinMotionBox, boolean withMaxMotionBox) {
 
+		this.markers = _markers;
 		this.mode = mode;
 		this.specialPercentPoints = specialPercentPoints;
 		this.chartFiller = chartFiller;
+
+		progress.setMaxSteps(markers.size() + 2);
+		progress.setStepSize(1);
+
 		prepare(_markers, _filterType, _movementStartJoint, _touchJoint);
 
 		switch (mode) {
 		case AVG:
 			calculateMotionAvg();
+			progress.stepUp();
+			progress.stepUp();
 			break;
 		case SUM:
 			calculateMotionSum();
+			progress.stepUp();
 			calculateBoxPlots(specialPercentPoints, withTouchBox,
 					withMinMotionBox, withMaxMotionBox);
+			progress.stepUp();
 			break;
 		case GRAPH:
 		default:
@@ -136,7 +149,6 @@ public class Analyses {
 			ArrayList<JointType> _saveMotionJoints,
 			ArrayList<JointType> _touchJoints) {
 
-		this.markers = _markers;
 		this.filterType = _filterType;
 		this.saveMotionJoints = _saveMotionJoints;
 		this.saveTouchJoints = _touchJoints;
@@ -226,6 +238,7 @@ public class Analyses {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				progress.stepUp();
 			}
 		});
 	}

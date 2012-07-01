@@ -14,6 +14,7 @@ import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
 import imuanalyzer.signalprocessing.Playback;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.AnalysisUi.ReturnCode;
+import imuanalyzer.ui.swing.AnalysisProgress;
 import imuanalyzer.ui.swing.charts.AccelerationChartManager;
 import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
@@ -21,9 +22,13 @@ import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
 import imuanalyzer.ui.swing.charts.OrientationChartManager;
 import imuanalyzer.ui.swing.menu.MenuFactory;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -92,6 +97,8 @@ public class MarkerControl extends JPanel {
 
 	JToggleButton buttonRepeat;
 
+	AnalysisProgress progress;
+
 	protected OrientationChartManager chartOrientation;
 	protected AccelerationChartManager chartsAcceleration;
 	protected FeelingChartManager feelingChart;
@@ -124,7 +131,41 @@ public class MarkerControl extends JPanel {
 			LOGGER.error(e);
 		}
 
-		this.setLayout(new FlowLayout());
+		this.setLayout(new GridBagLayout());
+
+		JPanel buttonPanel = new JPanel(new FlowLayout());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.ipady = 0;
+		c.weighty = 1;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		c.gridy = 0;
+		c.gridheight = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+
+		this.add(buttonPanel, c);
+
+		JPanel progressPanel = new JPanel(new BorderLayout());
+
+		progress = new AnalysisProgress();
+		progress.setVisible(false);
+		progressPanel.add(progress, BorderLayout.CENTER);
+
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 0;
+		c.weighty = 1;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		c.gridy = 1;
+		c.gridheight = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+
+		this.add(progressPanel, c);
 
 		ImageIcon icon = new ImageIcon(getClass().getResource(
 				"/Icons/sq_br_prev.png"));
@@ -144,7 +185,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 
-		this.add(buttonBack);
+		buttonPanel.add(buttonBack);
 
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec.png"));
 
@@ -199,7 +240,7 @@ public class MarkerControl extends JPanel {
 				return false;
 			}
 		});
-		this.add(buttonRec);
+		buttonPanel.add(buttonRec);
 
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_next.png"));
 
@@ -238,7 +279,7 @@ public class MarkerControl extends JPanel {
 				return false;
 			}
 		});
-		this.add(buttonPlay);
+		buttonPanel.add(buttonPlay);
 
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/playback_reloaded_button.png"));
@@ -252,7 +293,7 @@ public class MarkerControl extends JPanel {
 		buttonRepeat.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonRepeat.setContentAreaFilled(false);
 		buttonRepeat.setToolTipText("Repeat one");
-		this.add(buttonRepeat);
+		buttonPanel.add(buttonRepeat);
 
 		// forward button
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
@@ -273,7 +314,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 
-		this.add(buttonForward);
+		buttonPanel.add(buttonForward);
 
 		// analysis button
 		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
@@ -288,11 +329,19 @@ public class MarkerControl extends JPanel {
 		buttonAnalysis.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				startAnaylsis();
+				Runnable run = new Runnable() {
+					
+					@Override
+					public void run() {
+						startAnaylsis();
+					}
+				};
+				Thread t = new Thread(run);
+				t.start();
 			}
 		});
 
-		this.add(buttonAnalysis);
+		buttonPanel.add(buttonAnalysis);
 
 		// eject buttonframe
 		icon = new ImageIcon(getClass().getResource("/Icons/trash.png"));
@@ -311,7 +360,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 
-		this.add(buttonDelete);
+		buttonPanel.add(buttonDelete);
 
 		// CSV button
 		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
@@ -329,7 +378,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 
-		this.add(buttonCSV);
+		buttonPanel.add(buttonCSV);
 
 		JPanel comboBoxPanel = new JPanel(new GridLayout(0, 1));
 		LineBorder roundedLineBorder = new LineBorder(Color.lightGray, 1, true);
@@ -364,7 +413,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 		comboBoxPanel.add(markerComboBox);
-		this.add(comboBoxPanel);
+		buttonPanel.add(comboBoxPanel);
 
 		playback.setNotifyer(new IPlaybackNotify() {
 
@@ -508,7 +557,7 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void startAnaylsis() {
-
+		
 		boolean showChartAnalysis;
 		boolean showNonChartAnalyis;
 
@@ -546,7 +595,7 @@ public class MarkerControl extends JPanel {
 				return;
 			}
 
-			Analyses newAnalysis = new Analyses();
+			Analyses newAnalysis = new Analyses(progress);
 
 			ArrayList<Marker> selectedMarkers = selector.getSelectedMarkers();
 
@@ -585,7 +634,7 @@ public class MarkerControl extends JPanel {
 							menuFactory.getChartsRelation(),
 							selectedMarkers.size(), maxSize);
 				}
-
+				progress.setVisible(true);
 				newAnalysis.calculate(mode, selectedMarkers,
 						sensor.getCurrentFilter(), currentSavedMotionJoints,
 						currentSavedTouchJoints, selector.getSpecialPoints(),
@@ -596,15 +645,16 @@ public class MarkerControl extends JPanel {
 				if (!mode.equals(AnalysesMode.GRAPH)) {
 					visual3d.setAnalyses(newAnalysis);
 				}
-
-				JOptionPane.showMessageDialog(myInstance,
-						"Calculation complete", "Information",
-						JOptionPane.INFORMATION_MESSAGE);
-
+				
 				if (selector.isShowBoxplot2d()) {
 					new Boxplot2d("Analysis statistics",
 							newAnalysis.getStatistics());
 				}
+
+				//reset progress
+				progress.setStep(0);
+				progress.setVisible(false);
+
 			}
 		} else {
 			JOptionPane.showMessageDialog(myInstance, "No markers available",
