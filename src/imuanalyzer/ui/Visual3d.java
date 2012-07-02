@@ -36,6 +36,7 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -314,13 +315,20 @@ public class Visual3d extends SimpleApplication {
 		al.setColor(ColorRGBA.White.clone().mult(1.3f));
 		rootNode.addLight(al);
 
-		PointLight lamp_light2 = new PointLight();
-		lamp_light2.setColor(ColorRGBA.White.clone());
-		lamp_light2.setRadius(10f);
-		Vector3f lamp_pos_2 = new Vector3f(0, 8, 3);
-		lamp_light2.setPosition(lamp_pos_2);
+		// PointLight lamp_light2 = new PointLight();
+		// lamp_light2.setColor(ColorRGBA.White.clone());
+		// lamp_light2.setRadius(10f);
+		// Vector3f lamp_pos_2 = new Vector3f(0, 8, 3);
+		// lamp_light2.setPosition(lamp_pos_2);
+		//
+		// rootNode.addLight(lamp_light2);
 
-		rootNode.addLight(lamp_light2);
+		DirectionalLight directLight = new DirectionalLight();
+		directLight.setColor(ColorRGBA.White.clone());
+		Vector3f direct = new Vector3f(0, -8, -3).normalize();
+		directLight.setDirection(direct);
+
+		rootNode.addLight(directLight);
 
 		pssmRenderer = new PssmShadowRenderer(assetManager, 1024, 7);
 		pssmRenderer.setDirection(new Vector3f(0, -8, -3).normalizeLocal()); // light
@@ -360,6 +368,19 @@ public class Visual3d extends SimpleApplication {
 		hand.setLocalJointOrientation(joint, newQuat);
 
 	}
+	
+	private void updateCollisionData(){
+		for (Geometry geo : linesPoolMotion) {
+			geo.getMesh().createCollisionData();
+			geo.updateModelBound();
+		}
+		for (Geometry geo : linesPoolTouch) {
+			geo.getMesh().createCollisionData();
+			geo.updateModelBound();
+		}
+		
+		visualHand.updateCollisionData();
+	}
 
 	private Geometry mousePick() {
 		// Reset results list.
@@ -375,8 +396,8 @@ public class Visual3d extends SimpleApplication {
 		Ray ray = new Ray(click3d, dir);
 		// Collect intersections between ray and all nodes in results
 		// list.
-		visualHand.updateCollisionData();
-		visualHand.getModel().collideWith(ray, results);
+		updateCollisionData();
+		visualHand.collideWith(ray, results);
 
 		// Use the results
 		if (results.size() > 0) {
@@ -643,18 +664,19 @@ public class Visual3d extends SimpleApplication {
 				.getRunningTouchAnalysis();
 		for (int i = 0; i < touchAnalysises.size(); i++) {
 			TouchAnalysis t = touchAnalysises.get(i);
-
-			JointSetting setting = visualJointSettings.get(t.getObservedJoint()
-					.getType());
+			JointType type = t.getObservedJoint().getType();
+			JointSetting setting = visualJointSettings.get(type);
 
 			if (linesPoolTouch.size() <= i * 2) {
 				Geometry geom = Utils.CreateLine(assetManager, t.getMaxLine(),
 						setting.getLiveTouchMaxColor(), false, 4);
+				geom.setName("Motion" + type);
 				linesPoolTouch.add(geom);
 				visualHand.attachChild(geom);
 				Geometry geom2 = Utils.CreateLine(assetManager,
 						t.getCurrentLine(), setting.getLiveTouchCurrentColor(),
 						false, 4);
+				geom2.setName(geom.getName());
 				linesPoolTouch.add(geom2);
 				visualHand.attachChild(geom2);
 			} else {
@@ -671,19 +693,20 @@ public class Visual3d extends SimpleApplication {
 				.getRunningMotionAnalysis();
 		for (int i = 0; i < motionAnalysises.size(); i++) {
 			MotionAnalysis m = motionAnalysises.get(i);
-
-			JointSetting setting = visualJointSettings.get(m.getObservedJoint()
-					.getType());
+			JointType type = m.getObservedJoint().getType();
+			JointSetting setting = visualJointSettings.get(type);
 
 			if (linesPoolMotion.size() <= i * 2) {
 				Geometry geom = Utils.CreateLinesVec(assetManager,
 						m.getMaxLine(), setting.getLiveTouchMaxColor(), false,
 						4);
+				geom.setName("Motion" + type);
 				linesPoolMotion.add(geom);
 				visualHand.attachChild(geom);
 				Geometry geom2 = Utils.CreateLinesVec(assetManager,
 						m.getMinLine(), setting.getLiveTouchCurrentColor(),
 						false, 4);
+				geom2.setName(geom.getName());
 				linesPoolMotion.add(geom2);
 				visualHand.attachChild(geom2);
 			} else {

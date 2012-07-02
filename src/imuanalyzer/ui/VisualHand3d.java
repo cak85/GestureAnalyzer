@@ -93,7 +93,6 @@ public class VisualHand3d extends Node {
 			@Override
 			public void run() {
 				findGeometries(model);
-
 			}
 		});
 
@@ -152,6 +151,11 @@ public class VisualHand3d extends Node {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			LOGGER.error(e);
+		}
+		
+		//force cull settings
+		for(JointType t:JointType.values()){
+			setVisible(t, true);
 		}
 	}
 
