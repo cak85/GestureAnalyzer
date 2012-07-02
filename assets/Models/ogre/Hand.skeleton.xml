@@ -13,27 +13,27 @@
 			</rotation>
 		</bone>
 		<bone name="Bone.KM" id="2" >
-			<position y="1.443877" x="0.000000" z="0.000000" />
+			<position y="1.285621" x="0.000000" z="0.000000" />
 			<rotation angle="0.000000" >
 				<axis y="0.000000" x="1.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.KT" id="3" >
-			<position y="1.132948" x="0.000000" z="-0.000000" />
+			<position y="0.952425" x="0.000000" z="0.000000" />
 			<rotation angle="0.000000" >
-				<axis y="0.000000" x="1.000000" z="0.000000" />
+				<axis y="0.000000" x="0.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.RD" id="4" >
 			<position y="4.632688" x="-0.484531" z="0.000000" />
 			<rotation angle="0.000000" >
-				<axis y="0.000000" x="-0.000000" z="0.000000" />
+				<axis y="0.000000" x="1.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.RM" id="5" >
 			<position y="1.663471" x="0.000000" z="0.000000" />
 			<rotation angle="0.000000" >
-				<axis y="0.000000" x="0.000000" z="0.000000" />
+				<axis y="0.000000" x="1.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.RT" id="6" >
@@ -49,7 +49,7 @@
 			</rotation>
 		</bone>
 		<bone name="Bone.MM" id="8" >
-			<position y="1.833187" x="-0.000000" z="-0.000000" />
+			<position y="1.833187" x="-0.000000" z="0.000000" />
 			<rotation angle="0.000000" >
 				<axis y="-0.000035" x="0.000000" z="0.000000" />
 			</rotation>
@@ -57,7 +57,7 @@
 		<bone name="Bone.MT" id="9" >
 			<position y="1.553350" x="0.000000" z="-0.000000" />
 			<rotation angle="0.000000" >
-				<axis y="0.000000" x="-0.000000" z="0.000000" />
+				<axis y="0.000000" x="0.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.ZD" id="10" >
@@ -73,27 +73,27 @@
 			</rotation>
 		</bone>
 		<bone name="Bone.ZT" id="12" >
-			<position y="1.329222" x="0.000000" z="0.000000" />
+			<position y="1.329222" x="0.000000" z="-0.000000" />
 			<rotation angle="0.000000" >
 				<axis y="0.000000" x="1.000000" z="0.000000" />
 			</rotation>
 		</bone>
 		<bone name="Bone.DD" id="13" >
-			<position y="2.283664" x="2.263091" z="0.168373" />
-			<rotation angle="0.926079" >
-				<axis y="-0.765634" x="0.002448" z="-0.643272" />
+			<position y="2.430069" x="2.339820" z="0.199669" />
+			<rotation angle="0.889026" >
+				<axis y="-0.805738" x="0.012338" z="-0.592144" />
 			</rotation>
 		</bone>
 		<bone name="Bone.DM" id="14" >
-			<position y="1.070099" x="0.000000" z="-0.000000" />
-			<rotation angle="0.563816" >
-				<axis y="-0.317241" x="0.524084" z="0.790376" />
+			<position y="0.961077" x="0.000000" z="-0.000000" />
+			<rotation angle="0.460303" >
+				<axis y="-0.391122" x="0.511851" z="0.764875" />
 			</rotation>
 		</bone>
 		<bone name="Bone.DT" id="15" >
-			<position y="1.188255" x="0.000000" z="0.000000" />
-			<rotation angle="0.062605" >
-				<axis y="0.017359" x="-0.345982" z="0.938176" />
+			<position y="0.914867" x="0.000000" z="0.000000" />
+			<rotation angle="0.075320" >
+				<axis y="0.003554" x="0.130857" z="0.991478" />
 			</rotation>
 		</bone>
 	</bones>
