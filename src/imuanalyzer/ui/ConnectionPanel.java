@@ -5,6 +5,7 @@ import imuanalyzer.device.IImuReaderStatusNotifier;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.utils.os.OSValidator;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -82,6 +83,7 @@ public class ConnectionPanel extends JPanel {
 		c.gridy = 2; // third row
 
 		connectButton = new JButton("Connect");
+		connectButton.setBackground(Color.orange);
 		connectButton.setToolTipText("Connect with IMU-Reader device");
 
 		connectButton.addActionListener(new ActionListener() {
@@ -122,10 +124,10 @@ public class ConnectionPanel extends JPanel {
 	}
 
 	protected void connect() {
-		connectButton.setText("Disconnect");
+		
 		if (sensor.connect((String) cbPort.getSelectedItem())) {
-			JOptionPane.showMessageDialog(this, "Connection established",
-					"Connection", JOptionPane.INFORMATION_MESSAGE);
+			connectButton.setText("Disconnect");
+			connectButton.setBackground(Color.green);
 		} else {
 			JOptionPane.showMessageDialog(this, "Could not connect",
 					"Connection", JOptionPane.ERROR_MESSAGE);
@@ -134,6 +136,7 @@ public class ConnectionPanel extends JPanel {
 
 	protected void disconnect() {
 		connectButton.setText("Connect");
+		connectButton.setBackground(Color.orange);
 		sensor.disconnect();
 	}
 

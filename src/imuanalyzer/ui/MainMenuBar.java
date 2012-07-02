@@ -271,7 +271,8 @@ public class MainMenuBar extends JMenuBar {
 
 		menu.add(menuItem);
 
-		this.add(menu);
+		//TODO may enable later
+		//this.add(menu);
 
 		// Build the ? menu.
 		menu = new JMenu("?");
