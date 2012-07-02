@@ -119,6 +119,34 @@ public class Visual3dHandPopUpMenu extends JPopupMenu {
 			add(anItem);
 		}
 
+		// add motion info
+		if (hand.getMotionAnalysis(jointType) != null) {
+			anItem = new JMenuItem("Add motion info");
+			anItem.addActionListener(new java.awt.event.ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					addMotionInfo();
+					finishHandler.notifyFinished();
+				}
+
+			});
+			add(anItem);
+		}
+
+		// add touch info
+		if (hand.getTouchAnalysis(jointType) != null) {
+			anItem = new JMenuItem("Add touch info");
+			anItem.addActionListener(new java.awt.event.ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					addTouchInfo();
+					finishHandler.notifyFinished();
+				}
+
+			});
+			add(anItem);
+		}
+
 		// color settings
 		anItem = new JMenuItem("Color settings");
 		anItem.addActionListener(new java.awt.event.ActionListener() {
@@ -156,6 +184,14 @@ public class Visual3dHandPopUpMenu extends JPopupMenu {
 		});
 		add(anItem);
 
+	}
+
+	private void addMotionInfo() {
+		infoBox.addInfo(hand.getMotionAnalysis(jointType));
+	}
+
+	private void addTouchInfo() {
+		infoBox.addInfo(hand.getTouchAnalysis(jointType));
 	}
 
 	private void addInfo() {

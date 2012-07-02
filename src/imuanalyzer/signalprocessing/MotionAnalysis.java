@@ -2,6 +2,7 @@ package imuanalyzer.signalprocessing;
 
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.IInfoContent;
 import imuanalyzer.ui.Utils;
 import imuanalyzer.utils.math.AngleHelper;
 
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
 
 import com.jme3.math.Vector3f;
 
-public class MotionAnalysis {
+public class MotionAnalysis implements IInfoContent {
 
 	private static final Logger LOGGER = Logger.getLogger(MotionAnalysis.class
 			.getName());
@@ -31,9 +32,6 @@ public class MotionAnalysis {
 	int maxId = 0;
 	int minId = 0;
 
-	VectorLine maxLine = new VectorLine();
-	VectorLine minLine = new VectorLine();
-
 	ArrayList<Integer> minIds = new ArrayList<Integer>();
 
 	ArrayList<Integer> maxIds = new ArrayList<Integer>();
@@ -41,10 +39,13 @@ public class MotionAnalysis {
 	ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 	ArrayList<VectorLine> minLines = new ArrayList<VectorLine>();
 
+	String infoName;
+
 	public MotionAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
 		addInitialSavedMove();
+		infoName = "Motion " + observedJoint.getInfoName();
 	}
 
 	public void clear() {
@@ -214,6 +215,29 @@ public class MotionAnalysis {
 
 	public int getMaxCount() {
 		return maxCount;
+	}
+
+	@Override
+	public String getInfoName() {
+		return infoName;
+	}
+
+	@Override
+	public String getInfoValue() {
+		StringBuffer info = new StringBuffer();
+		int minSize = minLines.size();
+		int maxSize = maxLines.size();
+		for (int i = 0; i < Math.max(minSize, maxSize); i++) {
+			if (i < minSize) {
+				info.append("min:");
+				info.append(String.format("%.2f", minLines.get(i).getLength()));
+			}
+			if (i < maxSize) {
+				info.append(" max:");
+				info.append(String.format("%.2f", maxLines.get(i).getLength()));
+			}
+		}
+		return info.toString();
 	}
 
 }
