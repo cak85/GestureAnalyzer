@@ -1349,7 +1349,7 @@ public class Database {
 			stmt.setInt(1, feeling.getCurrentValues().size());
 			stmt.setInt(2, feeling.getMin());
 			stmt.setInt(3, feeling.getMax());
-			stmt.setString(4, feeling.getDescription());
+			stmt.setString(4, feeling.getAllDescriptions());
 			stmt.setInt(5, 1); // at the moment we will not have more than one
 								// entry
 			ret = stmt.executeUpdate() > 0; // updated or not
@@ -1388,7 +1388,7 @@ public class Database {
 			stmt.setInt(1, feeling.getCurrentValues().size());
 			stmt.setInt(2, feeling.getMin());
 			stmt.setInt(3, feeling.getMax());
-			stmt.setString(4, feeling.getDescription());
+			stmt.setString(4, feeling.getAllDescriptions());
 			stmt.execute();
 			stmt.close();
 		} catch (SQLException ex) {

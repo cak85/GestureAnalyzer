@@ -33,6 +33,8 @@ public class FeelingSliders extends JPanel {
 
 	protected ArrayList<JSlider> comfortSliders = new ArrayList<JSlider>();
 
+	protected ArrayList<JTextField> feelingLabels = new ArrayList<JTextField>();
+
 	protected JTextField sliderDescription;
 
 	protected Hand hand;
@@ -46,50 +48,9 @@ public class FeelingSliders extends JPanel {
 
 		FeelingScale feeling = hand.getComfortScale();
 
-		HelpManager.getInstance().enableHelpKey(this,"feeling") ;
+		HelpManager.getInstance().enableHelpKey(this, "feeling");
 
 		this.setLayout(new BorderLayout());
-
-		//slider description
-		sliderDescription = new JTextField(feeling.getDescription());
-		sliderDescription.getDocument().addDocumentListener(
-				new DocumentListener() {
-
-					@Override
-					public void removeUpdate(DocumentEvent e) {
-						try {
-							hand.getComfortScale().setDescription(
-									e.getDocument().getText(0,
-											e.getDocument().getLength()));
-						} catch (BadLocationException e1) {
-							e1.printStackTrace();
-						}
-					}
-
-					@Override
-					public void insertUpdate(DocumentEvent e) {
-						try {
-							hand.getComfortScale().setDescription(
-									e.getDocument().getText(0,
-											e.getDocument().getLength()));
-						} catch (BadLocationException e1) {
-							e1.printStackTrace();
-						}
-					}
-
-					@Override
-					public void changedUpdate(DocumentEvent e) {
-						try {
-							hand.getComfortScale().setDescription(
-									e.getDocument().getText(0,
-											e.getDocument().getLength()));
-						} catch (BadLocationException e1) {
-							e1.printStackTrace();
-						}
-					}
-				});
-
-		this.add(sliderDescription, BorderLayout.NORTH);
 
 		sliderPanel = new JPanel();
 
@@ -97,7 +58,7 @@ public class FeelingSliders extends JPanel {
 
 		// add sliders
 		for (int i = 0; i < feeling.getCurrentValues().size(); i++) {
-			addSlider();
+			addSlider(feeling);
 		}
 
 		this.add(sliderPanel, BorderLayout.CENTER);
@@ -157,15 +118,16 @@ public class FeelingSliders extends JPanel {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				JSpinner s = (JSpinner) e.getSource();
+				FeelingScale feeling = hand.getComfortScale();
 				int value = (Integer) s.getValue();
 
 				if (comfortSliders.size() > value) {
 					removeSlider();
 				}
 				if (comfortSliders.size() < value) {
-					addSlider();
+					addSlider(feeling);
 				}
-				hand.getComfortScale().setNrOfValues(value);
+				feeling.setNrOfValues(value);
 				writeBackSliderValues();
 			}
 		});
@@ -175,11 +137,55 @@ public class FeelingSliders extends JPanel {
 		this.add(sliderConfigPanel, BorderLayout.SOUTH);
 	}
 
-	private void addSlider() {
+	protected JTextField createSliderLabel(final FeelingScale feeling,
+			final int labelId) {
+		// slider description
+		JTextField sliderDescription = new JTextField(
+				feeling.getDescription(labelId));
+		sliderDescription.getDocument().addDocumentListener(
+				new DocumentListener() {
+
+					@Override
+					public void removeUpdate(DocumentEvent e) {
+						try {
+							feeling.setDescription(labelId, e.getDocument()
+									.getText(0, e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+
+					@Override
+					public void insertUpdate(DocumentEvent e) {
+						try {
+							feeling.setDescription(labelId, e.getDocument()
+									.getText(0, e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+
+					@Override
+					public void changedUpdate(DocumentEvent e) {
+						try {
+							feeling.setDescription(labelId, e.getDocument()
+									.getText(0, e.getDocument().getLength()));
+						} catch (BadLocationException e1) {
+							e1.printStackTrace();
+						}
+					}
+				});
+		// update backend
+		feeling.setDescription(labelId, sliderDescription.getText());
+
+		return sliderDescription;
+	}
+
+	private void addSlider(FeelingScale feeling) {
 
 		JSlider comfortSlider = new JSlider(SwingConstants.VERTICAL, hand
-				.getComfortScale().getMin(), hand.getComfortScale().getMax(),
-				hand.getComfortScale().getCurrentValues().get(0));
+				.getComfortScale().getMin(), feeling.getMax(), feeling
+				.getCurrentValues().get(0));
 		comfortSlider.setMajorTickSpacing(5);
 		comfortSlider.setMinorTickSpacing(1);
 		comfortSlider.setPaintTicks(true);
@@ -202,10 +208,19 @@ public class FeelingSliders extends JPanel {
 		c.gridwidth = 1;
 		c.gridy = 0;
 		c.gridheight = 1;
-		c.insets = new Insets(0, 0, 0, 0);
+		c.insets = new Insets(0, 5, 0, 5);
 
 		comfortSliders.add(comfortSlider);
-		sliderPanel.add(comfortSlider, c);
+
+		JPanel oneSliderPanel = new JPanel(new BorderLayout());
+
+		oneSliderPanel.add(comfortSlider, BorderLayout.CENTER);
+
+		oneSliderPanel.add(
+				createSliderLabel(feeling, comfortSliders.size() - 1),
+				BorderLayout.NORTH);
+
+		sliderPanel.add(oneSliderPanel, c);
 		this.updateUI();
 	}
 
@@ -221,7 +236,7 @@ public class FeelingSliders extends JPanel {
 	private void removeSlider() {
 		if (comfortSliders.size() > 0) {
 			JSlider slider = comfortSliders.get(comfortSliders.size() - 1);
-			sliderPanel.remove(slider);
+			sliderPanel.remove(slider.getParent());
 			comfortSliders.remove(slider);
 		}
 		this.updateUI();

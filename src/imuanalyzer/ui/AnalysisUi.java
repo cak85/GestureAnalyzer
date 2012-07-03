@@ -454,7 +454,7 @@ public class AnalysisUi extends JDialog {
 		ArrayList<Float> specialPoints = new ArrayList<Float>();
 		int itemCount = pointList.getItemCount();
 		for (int i = 0; i < itemCount; i++) {
-			String item = (String) pointList.getItemAt(i);
+			String item = String.valueOf(pointList.getItemAt(i));
 			if (!item.isEmpty()) {
 				specialPoints.add(Integer.valueOf(item) / 100f);
 			}

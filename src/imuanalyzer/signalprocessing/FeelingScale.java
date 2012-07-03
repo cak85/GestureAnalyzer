@@ -5,6 +5,7 @@ import imuanalyzer.data.Database;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
@@ -19,14 +20,21 @@ public class FeelingScale implements IRecordDataNotify {
 
 	Database db;
 
-	String description;
+	ArrayList<String> descriptions = new ArrayList<String>();
 
 	public FeelingScale() {
 		this("Feeling", -5, 5, 1);
 	}
 
 	public FeelingScale(String description, int min, int max, int nrOfValues) {
-		this.description = description;
+
+		// parse multiple data from one field, a bit hacky but ...
+		StringTokenizer tokenizer = new StringTokenizer(description, ";");
+		while (tokenizer.hasMoreTokens()) {
+			String token = tokenizer.nextToken();
+			descriptions.add(token);
+		}
+
 		this.min = min;
 		this.max = max;
 		this.currentValues = new ArrayList<Integer>();
@@ -107,12 +115,32 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
-	public String getDescription() {
-		return description;
+	// create data from multiple data to one field, a bit hacky but ...
+	public String getAllDescriptions() {
+		StringBuilder all = new StringBuilder();
+		for (int i = 0; i < descriptions.size(); i++) {
+			all.append(descriptions.get(i));
+			all.append(";");
+		}
+
+		return all.toString();
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
+	public String getDescription(int id) {
+		if (id < descriptions.size()) {
+			return descriptions.get(id);
+		} else {
+			return "";
+		}
+	}
+
+	public void setDescription(int id, String description) {
+
+		if (id < descriptions.size()) {
+			descriptions.set(id, description);
+		} else {
+			descriptions.add(description);
+		}
 		LOGGER.debug("new feeling description: " + description);
 		db.setFeeling(this);
 	}

@@ -37,7 +37,6 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
@@ -427,7 +426,7 @@ public class Visual3d extends SimpleApplication {
 						// create popUp with further options
 						menu = menuFactory.getDevicePopUpMenu(myInstance,
 								deviceDummy);
-					} else {
+					} else if (targetName.contains("HAND")) {
 						// create popUp with further options
 						menu = menuFactory.getHandPopUpMenu(myInstance,
 								Utils.getJointTypeFromGeometry(target));
