@@ -6,7 +6,6 @@ import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
 import imuanalyzer.utils.parallel.LoopBody;
 import imuanalyzer.utils.parallel.Parallel;
 
@@ -67,8 +66,7 @@ public class Analyses {
 	 */
 	int maxMotionCount = 0;
 
-	// TODO improve wrapp into interface
-	NonDynamicChartFiller chartFiller;
+	IAnalysisExtension chartFiller;
 
 	/**
 	 * touch analysis statistics Data
@@ -112,7 +110,7 @@ public class Analyses {
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
 			ArrayList<JointType> _touchJoint,
 			ArrayList<Float> specialPercentPoints,
-			NonDynamicChartFiller chartFiller, boolean withTouchBox,
+			IAnalysisExtension chartFiller, boolean withTouchBox,
 			boolean withMinMotionBox, boolean withMaxMotionBox) {
 
 		this.markers = _markers;

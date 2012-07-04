@@ -1,5 +1,6 @@
 package imuanalyzer.ui.swing.charts;
 
+import imuanalyzer.signalprocessing.IAnalysisExtension;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
@@ -13,7 +14,7 @@ import java.util.Set;
  * @author "Christopher-Eyk Hrabia"
  * 
  */
-public class NonDynamicChartFiller {
+public class NonDynamicChartFiller implements IAnalysisExtension {
 
 	protected OrientationChartManager chartOrientation;
 	protected AccelerationChartManager chartsAcceleration;

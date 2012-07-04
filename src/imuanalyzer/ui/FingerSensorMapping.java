@@ -18,11 +18,9 @@ import java.util.EnumMap;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
