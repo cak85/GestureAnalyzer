@@ -4,8 +4,11 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.swing.extensions.RelativeLayout;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -33,7 +37,7 @@ public class FingerSensorMapping extends JPanel {
 	 */
 	private static final long serialVersionUID = 2313286213104983633L;
 
-	public static final String IMAGE = "/Background/hand.png";
+	public static final String IMAGE = "/Background/hand_edit.png";
 
 	private BackgroundPanel background;
 
@@ -57,51 +61,59 @@ public class FingerSensorMapping extends JPanel {
 		}
 		background = new BackgroundPanel(img, BackgroundPanel.SCALED, 0.0f,
 				0.0f);
-		background.setLayout(new RelativeLayout(img.getWidth(),img.getHeight()));
-		
-		JPanel scrollContent = new JPanel();
-		
-		scrollContent.setLayout(new FlowLayout());
+		background.setLayout(new RelativeLayout(438, 595));
 
-		JScrollPane scrollPane = new JScrollPane(scrollContent);
-				
-		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-		
+		JPanel picturePanel = new JPanel();
+
+		picturePanel.setLayout(new GridBagLayout());
+
+		this.setLayout(new BorderLayout());
 
 		JLabel infoText = new JLabel(
-				"<html><h2>Select sensor-id's for hand links</h2></html>");
+				"<html><h2>Select sensor-id's for hand links</h2></html>",
+				SwingConstants.CENTER);
 
-		this.add(infoText);
-		
-		this.add(scrollPane);
-		
-		scrollContent.add(background);
+		this.add(infoText, BorderLayout.NORTH);
 
-		addHandSpinner(JointType.HAND_ROOT, 245, 350);
+		this.add(picturePanel, BorderLayout.CENTER);
 
-		addHandSpinner(JointType.THUMB_TOP, 30, 275);
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.VERTICAL;
+		c.weightx = 1;
+		c.weighty = 1;
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.insets = new Insets(0, 0, 0, 0);
 
-		addHandSpinner(JointType.THUMB_MID, 76, 318);
+		picturePanel.add(background, c);
 
-		addHandSpinner(JointType.THUMB_BOTTOM, 120, 370);
+		addHandSpinner(JointType.HAND_ROOT, 225, 340);
 
-		addHandSpinner(JointType.INDEX_TOP, 120, 75);
+		addHandSpinner(JointType.THUMB_TOP, 22, 235);
+
+		addHandSpinner(JointType.THUMB_MID, 25, 295);
+
+		addHandSpinner(JointType.THUMB_BOTTOM, 70, 350);
+
+		addHandSpinner(JointType.INDEX_TOP, 127, 65);
 
 		addHandSpinner(JointType.INDEX_MID, 127, 135);
 
-		addHandSpinner(JointType.INDEX_BOTTOM, 160, 195);
+		addHandSpinner(JointType.INDEX_BOTTOM, 127, 195);
 
-		addHandSpinner(JointType.MIDDLE_TOP, 235, 40);
+		addHandSpinner(JointType.MIDDLE_TOP, 220, 40);
 
-		addHandSpinner(JointType.MIDDLE_MID, 232, 110);
+		addHandSpinner(JointType.MIDDLE_MID, 212, 110);
 
-		addHandSpinner(JointType.MIDDLE_BOTTOM, 230, 170);
+		addHandSpinner(JointType.MIDDLE_BOTTOM, 212, 170);
 
-		addHandSpinner(JointType.RING_TOP, 327, 58);
+		addHandSpinner(JointType.RING_TOP, 315, 74);
 
-		addHandSpinner(JointType.RING_MID, 312, 120);
+		addHandSpinner(JointType.RING_MID, 307, 135);
 
-		addHandSpinner(JointType.RING_BOTTOM, 300, 190);
+		addHandSpinner(JointType.RING_BOTTOM, 295, 190);
 
 		addHandSpinner(JointType.LITTLE_TOP, 400, 150);
 
@@ -124,7 +136,7 @@ public class FingerSensorMapping extends JPanel {
 
 		buttonPanel.add(resetButton);
 
-		this.add(buttonPanel);
+		this.add(buttonPanel, BorderLayout.SOUTH);
 
 	}
 
@@ -141,7 +153,7 @@ public class FingerSensorMapping extends JPanel {
 		spinner.addChangeListener(new SensorChangeListener(finger, hand));
 
 		spinners.put(finger, spinner);
-		background.add(""+xOffset+","+yOffset,spinner);
+		background.add("" + xOffset + "," + yOffset, spinner);
 
 		updateSpinnerColor(defaultValue - 1, spinner);
 		return spinner;
