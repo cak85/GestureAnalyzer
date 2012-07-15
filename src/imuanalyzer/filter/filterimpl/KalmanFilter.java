@@ -13,11 +13,16 @@ import Jama.Matrix;
 
 public class KalmanFilter extends Filter {
 	// the variance of the roll, calculated as square of standardabweichung
-	private final double sigmaRoll = Math.pow(AngleHelper.radFromDeg((0.184814356)), 2); //original 0.5647
-	// the variance of the pitch measure, calculated as square of standardabweichung
-	private final double sigmaPitch = Math.pow(AngleHelper.radFromDeg((0.210655094)), 2); // original 0.5674
-	// the variance of the yaw measure, calculated as square of standardabweichung
-	private final double sigmaYaw = Math.pow(AngleHelper.radFromDeg((0.178495138)), 2); //original 0.5394
+	private static double sigmaRoll = Math.pow(
+			AngleHelper.radFromDeg((0.184814356)), 2); // original 0.5647
+	// the variance of the pitch measure, calculated as square of
+	// standardabweichung
+	private static double sigmaPitch = Math.pow(
+			AngleHelper.radFromDeg((0.210655094)), 2); // original 0.5674
+	// the variance of the yaw measure, calculated as square of
+	// standardabweichung
+	private static double sigmaYaw = Math.pow(
+			AngleHelper.radFromDeg((0.178495138)), 2); // original 0.5394
 
 	Matrix weOld;
 
@@ -205,7 +210,7 @@ public class KalmanFilter extends Filter {
 
 		// normalise the accelerometer measurement
 		norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
-		if(norm==0){
+		if (norm == 0) {
 			return updateAndAdjust(new Quaternion(state_filtered));
 		}
 		a_x /= norm;
@@ -214,7 +219,7 @@ public class KalmanFilter extends Filter {
 
 		// normalise the magnetometer measurement
 		norm = Math.sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
-		if(norm==0){
+		if (norm == 0) {
 			return updateAndAdjust(new Quaternion(state_filtered));
 		}
 		m_x /= norm;
@@ -267,7 +272,7 @@ public class KalmanFilter extends Filter {
 
 			// normalise the accelerometer measurement
 			norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
-			if(norm==0){
+			if (norm == 0) {
 				return updateAndAdjust(new Quaternion(state_filtered));
 			}
 			a_x /= norm;
@@ -276,7 +281,7 @@ public class KalmanFilter extends Filter {
 
 			// normalise the magnetometer measurement
 			norm = Math.sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
-			if(norm==0){
+			if (norm == 0) {
 				return updateAndAdjust(new Quaternion(state_filtered));
 			}
 			m_x /= norm;
@@ -297,7 +302,7 @@ public class KalmanFilter extends Filter {
 			norm = Math.sqrt(dq.get(0, 0) * dq.get(0, 0) + dq.get(1, 0)
 					* dq.get(1, 0) + dq.get(2, 0) * dq.get(2, 0) + dq.get(3, 0)
 					* dq.get(3, 0));
-			if(norm==0){
+			if (norm == 0) {
 				return updateAndAdjust(new Quaternion(state_filtered));
 			}
 			mu = 10 * norm * samplePeriod;
@@ -369,6 +374,63 @@ public class KalmanFilter extends Filter {
 	@Override
 	public Quaternion getFilteredQuaternions() {
 		return new Quaternion(state_filtered);
+	}
+
+	@Override
+	public int getNumberOfParameters() {
+		return 3;
+	}
+
+	@Override
+	public double getParameter(int index) {
+
+		switch (index) {
+		case 0:
+			return sigmaRoll;
+		case 1:
+			return sigmaPitch;
+		case 2:
+		default:
+			return sigmaYaw;
+		}
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+		switch (index) {
+		case 0:
+			sigmaRoll = value;
+			break;
+		case 1:
+			sigmaPitch = value;
+			break;
+		case 2:
+		default:
+			sigmaYaw = value;
+		}
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+		return 1;
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+
+	@Override
+	public String getParameterName(int index) {
+		switch (index) {
+		case 0:
+			return "Sigma Roll";
+		case 1:
+			return "Sigma Pitch";
+		case 2:
+		default:
+			return "Sigma Yaw";
+		}
 	}
 
 }

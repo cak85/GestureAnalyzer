@@ -118,7 +118,9 @@ public class FeelingSliders extends JPanel {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				JSpinner s = (JSpinner) e.getSource();
+				
 				FeelingScale feeling = hand.getComfortScale();
+				
 				int value = (Integer) s.getValue();
 
 				if (comfortSliders.size() > value) {

@@ -9,6 +9,7 @@ import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.FilterFactory;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
+import imuanalyzer.filter.ITuneFilter;
 import imuanalyzer.utils.SensorVector;
 import imuanalyzer.utils.math.AngleHelper;
 
@@ -109,12 +110,12 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 							final double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
 									/ (double) 1000;
-							//LOGGER.debug("SamplePeriod: " + samplePeriod);
+							// LOGGER.debug("SamplePeriod: " + samplePeriod);
 
 							lastFilterUpdate = newFilterUpdate;
 
 							synchronized (filterEditLock) {
-								if (isRecording) { 
+								if (isRecording) {
 									recordData(event.getData(), samplePeriod);
 								}
 
@@ -146,11 +147,12 @@ public class OrientationSensorManager implements IOrientationSensors {
 				SensorVector magneto = data[id].getMagnetometer();
 				SensorVector gyro = data[id].getGyroskope();
 
-				//degree to rad
-				fm.getFilter().filterStep(samplePeriod, AngleHelper.radFromDeg(gyro.x),
-						AngleHelper.radFromDeg(gyro.y), AngleHelper.radFromDeg(gyro.z),
-						accel.x, accel.y, accel.z, magneto.x, magneto.y,
-						magneto.z);
+				// degree to rad
+				fm.getFilter().filterStep(samplePeriod,
+						AngleHelper.radFromDeg(gyro.x),
+						AngleHelper.radFromDeg(gyro.y),
+						AngleHelper.radFromDeg(gyro.z), accel.x, accel.y,
+						accel.z, magneto.x, magneto.y, magneto.z);
 			}
 		}
 
@@ -266,6 +268,15 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public IIMUDataProvider getImuDataProvider() {
 		return imureader;
+	}
+
+	@Override
+	public ITuneFilter getCurrentTuning() {
+		if (filters.size() > 0) {
+			return filters.first().getFilter();
+		} else {
+			return null;
+		}
 	}
 
 }

@@ -34,12 +34,12 @@ public class AHRSFilter extends Filter {
 	// ----------------------------------------------------------------------------------------------------
 	// Definitions
 
-	protected static final double Kp = 2.0; // proportional gain governs rate of
-											// convergence to
-											// accelerometer/magnetometer
-	protected static final double Ki = 0.001; // integral gain governs rate of
-												// convergence of gyroscope
-												// biases
+	protected static double Kp = 5.0; // proportional gain governs rate of
+										// convergence to
+										// accelerometer/magnetometer
+	protected static double Ki = 0.000; // integral gain governs rate of
+										// convergence of gyroscope
+										// biases
 
 	// ---------------------------------------------------------------------------------------------------
 	// Variable definitions
@@ -126,16 +126,17 @@ public class AHRSFilter extends Filter {
 
 		// TODO I got better results without that correction...??
 		// integral error scaled integral gain
-//		exInt = exInt + ex * Ki;
-//		eyInt = eyInt + ey * Ki;
-//		ezInt = ezInt + ez * Ki;
-//
-//		//System.out.println("E  x:" + exInt + " y:" + eyInt + " z:" + ezInt);
-//
-//		// adjusted gyroscope measurements
-//		gx = gx + Kp * ex + exInt;
-//		gy = gy + Kp * ey + eyInt;
-//		gz = gz + Kp * ez + ezInt;
+		exInt = exInt + ex * Ki;
+		eyInt = eyInt + ey * Ki;
+		ezInt = ezInt + ez * Ki;
+
+		// System.out.println("E  x:" + exInt + " y:" + eyInt + " z:" +
+		// ezInt);
+
+		// adjusted gyroscope measurements
+		gx = gx + Kp * ex + exInt;
+		gy = gy + Kp * ey + eyInt;
+		gz = gz + Kp * ez + ezInt;
 
 		// integrate quaternion rate and normalise
 		q0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * halfT;
@@ -170,6 +171,61 @@ public class AHRSFilter extends Filter {
 		eyInt = 0;
 		ezInt = 0;
 
+	}
+
+	@Override
+	public int getNumberOfParameters() {
+		return 2;
+	}
+
+	@Override
+	public double getParameter(int index) {
+
+		switch (index) {
+		case 0:
+			return Kp;
+		case 1:
+		default:
+			return Ki;
+		}
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+		switch (index) {
+		case 0:
+			Kp = value;
+			break;
+		case 1:
+		default:
+			Ki = value;
+		}
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+		switch (index) {
+		case 0:
+			return 10;
+		case 1:
+		default:
+			return 1;
+		}
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+
+	public String getParameterName(int index) {
+		switch (index) {
+		case 0:
+			return "Kp";
+		case 1:
+		default:
+			return "Ki";
+		}
 	}
 
 }

@@ -13,7 +13,7 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	// TODO Ist verantwortlich für das weiterdriften (original war 0.98 aber
 	// damit drift mit 1 oder 0.99 weniger)
-	private static final double k = 1;//0.999;
+	private static double k = 1;//0.999;
 
 	public List<Double> aAcc;
 	public List<Double> bAcc;
@@ -241,5 +241,34 @@ public class QuaternionComplementaryFilter extends Filter {
 	@Override
 	public Quaternion getFilteredQuaternions() {
 		return qFilt;
+	}
+	
+	@Override
+	public int getNumberOfParameters() {
+		return 1;
+	}
+
+	@Override
+	public double getParameter(int index) {
+		return k;
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+		k = value;
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+			return 1;
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+
+	public String getParameterName(int index) {
+			return "K";
 	}
 }

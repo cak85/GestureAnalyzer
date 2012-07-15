@@ -17,12 +17,19 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+/**
+ * Panel with different non default
+ * @author "Christopher-Eyk Hrabia"
+ *
+ */
 public class SettingsPanel extends JPanel {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 4820785871426946118L;
+
+	OrientationFilterTunePanel filterTuner;
 
 	public SettingsPanel(final IOrientationSensors sensors) {
 
@@ -43,6 +50,21 @@ public class SettingsPanel extends JPanel {
 		c.insets = new Insets(20, 20, 20, 20);
 
 		this.add(filterPanel, c);
+
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.NONE;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.ipady = 0; // reset to default
+		c.weighty = 1; // request any extra vertical space
+		c.weightx = 1;
+		c.gridx = 0; // aligned with button 2
+		c.gridwidth = 1; // 1 columns wide
+		c.gridy = 1;
+		c.insets = new Insets(20, 20, 20, 20);
+
+		filterTuner = new OrientationFilterTunePanel(sensors);
+
+		this.add(filterTuner, c);
 
 	}
 
@@ -72,6 +94,7 @@ public class SettingsPanel extends JPanel {
 						.getSelectedItem();
 				sensors.setFilterType(filterType);
 				Configuration.getInstance().setFilterType(filterType);
+				filterTuner.update();
 			}
 		});
 		HelpManager.getInstance().enableHelpKey(filterTypes,

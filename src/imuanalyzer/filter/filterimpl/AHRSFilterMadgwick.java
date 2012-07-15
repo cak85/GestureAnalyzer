@@ -13,8 +13,8 @@ public class AHRSFilterMadgwick extends Filter {
 
 	private Quaternion state_filtered;
 
-	private final double Beta = 0.001;// 0.005;
-	private final double dT = 0.5;
+	private static double beta = 0.001;// 0.005;
+	private static final double dT = 0.5;
 
 	public AHRSFilterMadgwick() {
 		super();
@@ -138,10 +138,10 @@ public class AHRSFilterMadgwick extends Filter {
 		s4 *= norm;
 
 		// Compute rate of change of quaternion
-		qDot1 = dT * (-q2 * gx - q3 * gy - q4 * gz) - Beta * s1;
-		qDot2 = dT * (q1 * gx + q3 * gz - q4 * gy) - Beta * s2;
-		qDot3 = dT * (q1 * gy - q2 * gz + q4 * gx) - Beta * s3;
-		qDot4 = dT * (q1 * gz + q2 * gy - q3 * gx) - Beta * s4;
+		qDot1 = dT * (-q2 * gx - q3 * gy - q4 * gz) - beta * s1;
+		qDot2 = dT * (q1 * gx + q3 * gz - q4 * gy) - beta * s2;
+		qDot3 = dT * (q1 * gy - q2 * gz + q4 * gx) - beta * s3;
+		qDot4 = dT * (q1 * gz + q2 * gy - q3 * gx) - beta * s4;
 
 		// Integrate to yield quaternion
 		q1 += qDot1 * samplePeriod;
@@ -164,6 +164,35 @@ public class AHRSFilterMadgwick extends Filter {
 	@Override
 	public Quaternion getFilteredQuaternions() {
 		return state_filtered;
+	}
+	
+	@Override
+	public int getNumberOfParameters() {
+		return 1;
+	}
+
+	@Override
+	public double getParameter(int index) {
+		return beta;
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+		beta = value;
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+			return 1;
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+
+	public String getParameterName(int index) {
+			return "Beta";
 	}
 
 }

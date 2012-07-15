@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 
 import Jama.Matrix;
 
-public abstract class Filter {
+public abstract class Filter implements ITuneFilter {
 
 	private static final Logger LOGGER = Logger.getLogger(Filter.class
 			.getName());
@@ -433,18 +433,18 @@ public abstract class Filter {
 			listener.updateMove(move);
 		}
 	}
-	
+
 	LowPass accelLowPass = new LowPass(0.8f);
 
 	private Quaternion calculateDynAcceleration(double a_x, double a_y,
 			double a_z, Quaternion currentOrientation) {
-		
-		//first low pass
-		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
-		
-		accelRaw= accelLowPass.filter(accelRaw);
 
-		//running average
+		// first low pass
+		Quaternion accelRaw = new Quaternion(0, a_x, a_y, a_z);
+
+		accelRaw = accelLowPass.filter(accelRaw);
+
+		// running average
 		a_x_avg.add(accelRaw.getX());
 		a_y_avg.add(accelRaw.getY());
 		a_z_avg.add(accelRaw.getZ());
@@ -458,7 +458,7 @@ public abstract class Filter {
 		double current_avg_z_diff = current_avg_z - a_z;
 
 		// System.out.println("AVG Diff x:"+current_avg_x_diff+" y:"+current_avg_y_diff+" z:"+current_avg_z_diff);
-		
+
 		// if the difference of current acceleration and the running average of
 		// a period is mininmal
 		// we assume current acceleration is gravity
@@ -564,5 +564,36 @@ public abstract class Filter {
 					.getInitialOrientation();
 		}
 		this.listener = additionalCorrection;
+	}
+
+	// basic interface implementation could be overriden by childs
+
+	@Override
+	public int getNumberOfParameters() {
+		return 0;
+	}
+
+	@Override
+	public double getParameter(int index) {
+		return 0;
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+		return 0;
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+
+	@Override
+	public String getParameterName(int index) {
+		return "";
 	}
 }

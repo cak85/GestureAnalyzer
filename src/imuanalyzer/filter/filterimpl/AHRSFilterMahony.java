@@ -13,9 +13,9 @@ public class AHRSFilterMahony extends Filter {
 
 	Quaternion state_filtered;
 
-	final double Kp = 5;
-	final double Ki = 0;
-	final double dT = 0.5;
+	private static double Kp = 5;
+	private static double Ki = 0;
+	private final static double dT = 0.5;
 
 	double[] eInt = { 0f, 0f, 0f };
 
@@ -142,5 +142,61 @@ public class AHRSFilterMahony extends Filter {
 	@Override
 	public Quaternion getFilteredQuaternions() {
 		return state_filtered;
+	}
+	
+	@Override
+	public int getNumberOfParameters() {
+		return 2;
+	}
+
+	@Override
+	public double getParameter(int index) {
+
+		switch (index) {
+		case 0:
+			return Kp;
+		case 1:
+		default:
+			return Ki;
+		}
+	}
+
+	@Override
+	public void setParameter(int index, double value) {
+		switch (index) {
+		case 0:
+			Kp = value;
+			break;
+		case 1:
+		default:
+			Ki = value;
+		}
+	}
+
+	@Override
+	public double getMaxValueFromParameter(int index) {
+		switch (index) {
+		case 0:
+			return 10;
+		case 1:
+		default:
+			return 1;
+		}
+	}
+
+	@Override
+	public double getMinValueFromParameter(int index) {
+		return 0;
+	}
+	
+	@Override
+	public String getParameterName(int index) {
+		switch (index) {
+		case 0:
+			return "Kp";
+		case 1:
+		default:
+			return "Ki";
+		}
 	}
 }

@@ -4,6 +4,7 @@ import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.IFilterListener;
+import imuanalyzer.filter.ITuneFilter;
 
 import java.util.Vector;
 
@@ -34,5 +35,7 @@ public interface IOrientationSensors {
 	void setRecordDataNotifyListener(IRecordDataNotify listener);
 	
 	IIMUDataProvider getImuDataProvider();
+	
+	ITuneFilter getCurrentTuning();
 	
 }
