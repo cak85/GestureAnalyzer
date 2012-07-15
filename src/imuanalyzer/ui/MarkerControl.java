@@ -559,13 +559,19 @@ public class MarkerControl extends JPanel {
 	private void startAnaylsis() {
 		
 		boolean showChartAnalysis;
-		boolean showNonChartAnalyis;
-
-		if (hand.getRunningMotionAnalysis().size() == 0
-				&& hand.getRunningTouchAnalysis().size() == 0) {
-			showNonChartAnalyis = false;
+		boolean showTouchAnalysis;
+		boolean showMotionAnalysis;
+		
+		if (hand.getRunningMotionAnalysis().size() == 0) {
+			showMotionAnalysis = false;
 		} else {
-			showNonChartAnalyis = true;
+			showMotionAnalysis = true;
+		}
+		
+		if ( hand.getRunningTouchAnalysis().size() == 0) {
+			showTouchAnalysis = false;
+		} else {
+			showTouchAnalysis = true;
 		}
 
 		// check if we should show chart options
@@ -588,7 +594,7 @@ public class MarkerControl extends JPanel {
 					new JointRelationChartManager(hand), false);
 
 			AnalysisUi selector = new AnalysisUi(frame, markers,
-					showNonChartAnalyis, showChartAnalysis, menuFactory);
+					showMotionAnalysis, showTouchAnalysis, showChartAnalysis, menuFactory);
 
 			if (selector.getReturnCode() == ReturnCode.CANCEL) {
 				updateMarkers();

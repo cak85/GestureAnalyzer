@@ -33,6 +33,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -87,8 +88,8 @@ public class AnalysisUi extends JDialog {
 	MenuFactory menuFactory = null;
 
 	public AnalysisUi(Frame parent, ArrayList<Marker> markers,
-			boolean showNonChartAnalysis, boolean showChartAnalysis,
-			MenuFactory menuFactory) {
+			boolean showMotionAnalysis, boolean showTouchAnalysis,
+			boolean showChartAnalysis, MenuFactory menuFactory) {
 		super(parent, true);
 		myInstance = this;
 		this.markers = markers;
@@ -113,7 +114,9 @@ public class AnalysisUi extends JDialog {
 		list.setLayoutOrientation(JList.VERTICAL);
 		list.setVisibleRowCount(-1);
 
-		this.add(list, BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(list);
+
+		this.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel bottomPanel = new JPanel(new GridLayout(0, 1));
 
@@ -129,7 +132,7 @@ public class AnalysisUi extends JDialog {
 				showBoxplot2d = source.isSelected();
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showMotionAnalysis && !showTouchAnalysis) {
 			checkShowBoxplot2d.setEnabled(false);
 		}
 		optionsPanel.add(checkShowBoxplot2d);
@@ -146,7 +149,7 @@ public class AnalysisUi extends JDialog {
 				showBoxplotTouch3d = source.isSelected();
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showTouchAnalysis) {
 			checkShowBoxplotTouch3d.setEnabled(false);
 		}
 		optionsPanel.add(checkShowBoxplotTouch3d);
@@ -161,7 +164,7 @@ public class AnalysisUi extends JDialog {
 				showBoxplotMotionMin3d = source.isSelected();
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showMotionAnalysis) {
 			checkShowBoxplotMotionMin3d.setEnabled(false);
 		}
 		optionsPanel.add(checkShowBoxplotMotionMin3d);
@@ -176,14 +179,15 @@ public class AnalysisUi extends JDialog {
 				showBoxplotMotionMax3d = source.isSelected();
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showMotionAnalysis) {
 			checkShowBoxplotMotionMax3d.setEnabled(false);
 		}
 		optionsPanel.add(checkShowBoxplotMotionMax3d);
 
 		bottomPanel.add(optionsPanel);
 
-		JPanel specialPointsPanel = createSpecialPointsPanel(showNonChartAnalysis);
+		JPanel specialPointsPanel = createSpecialPointsPanel(showMotionAnalysis
+				|| showTouchAnalysis);
 
 		bottomPanel.add(specialPointsPanel);
 
@@ -200,7 +204,7 @@ public class AnalysisUi extends JDialog {
 				handleButton(AnalysesMode.SUM);
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showMotionAnalysis && !showTouchAnalysis) {
 			boxplotButton.setEnabled(false);
 		}
 		buttonPanel.add(boxplotButton);
@@ -213,7 +217,7 @@ public class AnalysisUi extends JDialog {
 				handleButton(AnalysesMode.AVG);
 			}
 		});
-		if (!showNonChartAnalysis) {
+		if (!showMotionAnalysis && !showTouchAnalysis) {
 			avgButton.setEnabled(false);
 		}
 		buttonPanel.add(avgButton);
@@ -263,7 +267,7 @@ public class AnalysisUi extends JDialog {
 
 	}
 
-	protected JPanel createSpecialPointsPanel(boolean showNonChartAnalysis) {
+	protected JPanel createSpecialPointsPanel(boolean enable) {
 		JPanel specialPointsPanel = new JPanel(new FlowLayout());
 
 		specialPointsPanel.add(new JLabel("Custom % "));
@@ -311,7 +315,7 @@ public class AnalysisUi extends JDialog {
 		});
 		specialPointsPanel.add(removePoint);
 
-		if (!showNonChartAnalysis) {
+		if (!enable) {
 			pointList.setEnabled(false);
 			removePoint.setEnabled(false);
 			addPoint.setEnabled(false);
