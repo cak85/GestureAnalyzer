@@ -1,5 +1,7 @@
 package imuanalyzer.ui.swing.menu;
 
+import imuanalyzer.data.Database;
+import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
@@ -13,12 +15,14 @@ import imuanalyzer.ui.swing.charts.OrientationChartManager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
 /**
@@ -40,6 +44,8 @@ public class MenuFactory {
 
 	protected boolean newFramesVisible;
 
+	private Database db;
+
 	public MenuFactory(Hand hand, OrientationChartManager _chartOrientation,
 			AccelerationChartManager _chartsAcceleration,
 			FeelingChartManager _feelingChart,
@@ -50,6 +56,12 @@ public class MenuFactory {
 		feelingChart = _feelingChart;
 		chartsRelation = _chartsRelation;
 		this.newFramesVisible = newFramesVisible;
+
+		try {
+			db = Database.getInstance();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public JPopupMenu getDevicePopUpMenu(Visual3d visual3d,
@@ -73,6 +85,50 @@ public class MenuFactory {
 	public JPopupMenu getChartPopUpMenu(FinishListenerHandler finishHandler) {
 		JPopupMenu popUp = new JPopupMenu();
 		popUp.add(createChartMenu(finishHandler));
+		return popUp;
+	}
+
+	public JPopupMenu getDatasetPopUpMenu(final Marker currentMarker,
+			final FinishListenerHandler finishHandler) {
+		JPopupMenu popUp = new JPopupMenu();
+
+		JMenuItem item = new JMenuItem("Rename");
+
+		item.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				String name = (String) JOptionPane.showInputDialog(null,
+						"Change name: ", "Change name",
+						JOptionPane.QUESTION_MESSAGE, null, null,
+						currentMarker.getName());
+
+				if (name != null) {
+
+					currentMarker.setName(name);
+
+					db.setMarker(currentMarker);
+				}
+
+				finishHandler.notifyFinished();
+			}
+		});
+
+		popUp.add(item);
+
+		item = new JMenuItem("Delete");
+
+		item.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				db.removeMarker(currentMarker);
+			}
+		});
+
+		popUp.add(item);
+
 		return popUp;
 	}
 

@@ -126,7 +126,7 @@ public class MainFrame extends JFrame {
 
 		createMenu(menuFactory);
 
-		createToolbars();
+		createToolbars(menuFactory);
 
 		menuFactory.setInfoBox(rightToolBarPanel.getInfoBox());
 
@@ -207,7 +207,7 @@ public class MainFrame extends JFrame {
 		jointMappingSettingsPanel.add(fingerSensorMapping, BorderLayout.CENTER);
 	}
 
-	protected void createToolbars() {
+	protected void createToolbars(MenuFactory menuFactory) {
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -237,7 +237,7 @@ public class MainFrame extends JFrame {
 		// marker panel
 		MarkerControl markerControl = new MarkerControl(this, visual3d,
 				sensors, hand, chartOrientation, chartsAcceleration,
-				chartsFeeling, chartsRelation);
+				chartsFeeling, chartsRelation, menuFactory);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;

@@ -18,6 +18,8 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -87,12 +89,11 @@ public class AnalysisUi extends JDialog {
 
 	MenuFactory menuFactory = null;
 
-	public AnalysisUi(Frame parent, ArrayList<Marker> markers,
-			boolean showMotionAnalysis, boolean showTouchAnalysis,
-			boolean showChartAnalysis, MenuFactory menuFactory) {
+	public AnalysisUi(Frame parent, boolean showMotionAnalysis,
+			boolean showTouchAnalysis, boolean showChartAnalysis,
+			final MenuFactory menuFactory) {
 		super(parent, true);
 		myInstance = this;
-		this.markers = markers;
 		this.menuFactory = menuFactory;
 
 		HelpManager.getInstance().enableHelpKey(this.getRootPane(),
@@ -104,6 +105,8 @@ public class AnalysisUi extends JDialog {
 			LOGGER.error(e);
 		}
 
+		markers = getDatasetList();
+
 		this.setTitle("Select dataset and analysis");
 		this.setSize(640, 480);
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -113,6 +116,45 @@ public class AnalysisUi extends JDialog {
 
 		list.setLayoutOrientation(JList.VERTICAL);
 		list.setVisibleRowCount(-1);
+
+		list.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				handlePopUp(e);
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				handlePopUp(e);
+			}
+
+			public void handlePopUp(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+
+					int index = list.getSelectedIndex();
+					if (index > -1) {
+
+						Marker m = AnalysisUi.this.markers.get(index);
+
+						FinishListenerHandler finishHandler = new FinishListenerHandler();
+
+						finishHandler.addFinishListener(new IPopUpFinished() {
+
+							@Override
+							public void notifyFinished() {
+								updateDatasetList();
+							}
+						});
+
+						JPopupMenu popup = menuFactory.getDatasetPopUpMenu(m,
+								finishHandler);
+
+						popup.show(e.getComponent(), e.getX(), e.getY());
+					}
+				}
+			}
+		});
 
 		JScrollPane scrollPane = new JScrollPane(list);
 
@@ -244,7 +286,7 @@ public class AnalysisUi extends JDialog {
 				for (Marker m : selectedMarkers) {
 					db.removeMarker(m);
 				}
-				setVisible(false);
+				updateDatasetList();
 			}
 		});
 		buttonPanel.add(deleteButton);
@@ -265,6 +307,14 @@ public class AnalysisUi extends JDialog {
 
 		this.setVisible(true);
 
+	}
+
+	protected void updateDatasetList() {
+		list.setListData(getDatasetList().toArray());
+	}
+
+	protected ArrayList<Marker> getDatasetList() {
+		return db.getAvailableMarkers();
 	}
 
 	protected JPanel createSpecialPointsPanel(boolean enable) {

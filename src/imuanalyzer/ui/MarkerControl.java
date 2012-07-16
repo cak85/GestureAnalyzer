@@ -20,25 +20,30 @@ import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
 import imuanalyzer.ui.swing.charts.NonDynamicChartFiller;
 import imuanalyzer.ui.swing.charts.OrientationChartManager;
+import imuanalyzer.ui.swing.menu.FinishListenerHandler;
+import imuanalyzer.ui.swing.menu.IPopUpFinished;
 import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -47,6 +52,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
@@ -71,45 +77,47 @@ public class MarkerControl extends JPanel {
 	 */
 	private static final long serialVersionUID = -5817037604009410498L;
 
-	Database db;
+	private Database db;
 
-	IOrientationSensors sensor;
+	protected IOrientationSensors sensor;
 
-	JComboBox markerComboBox;
+	protected JComboBox markerComboBox;
 
-	Marker currentActiveMarker;
+	protected Marker currentActiveMarker;
 
-	Hand hand;
+	protected Hand hand;
 
-	MarkerControl myInstance;
+	private MarkerControl myInstance;
 
-	MainFrame frame;
+	protected MainFrame frame;
 
-	ArrayList<Marker> markers;
+	protected ArrayList<Marker> markers;
 
-	Playback playback;
+	protected Playback playback;
 
-	Visual3d visual3d;
+	protected Visual3d visual3d;
 
-	JToggleButton buttonPlay;
+	protected JToggleButton buttonPlay;
 
-	JToggleButton buttonRec;
+	protected JToggleButton buttonRec;
 
-	JToggleButton buttonRepeat;
+	protected JToggleButton buttonRepeat;
 
-	AnalysisProgress progress;
+	protected AnalysisProgress progress;
 
 	protected OrientationChartManager chartOrientation;
 	protected AccelerationChartManager chartsAcceleration;
 	protected FeelingChartManager feelingChart;
 	protected JointRelationChartManager chartsRelation;
 
+	protected MenuFactory menuFactory;
+
 	public MarkerControl(MainFrame _frame, Visual3d _visual3d,
 			IOrientationSensors _sensor, Hand hand,
 			OrientationChartManager _chartOrientation,
 			AccelerationChartManager _chartsAcceleration,
 			FeelingChartManager _feelingChart,
-			JointRelationChartManager _chartsRelation) {
+			JointRelationChartManager _chartsRelation, MenuFactory _menuFactory) {
 		this.sensor = _sensor;
 		this.hand = hand;
 		this.frame = _frame;
@@ -118,6 +126,7 @@ public class MarkerControl extends JPanel {
 		chartsAcceleration = _chartsAcceleration;
 		feelingChart = _feelingChart;
 		chartsRelation = _chartsRelation;
+		menuFactory = _menuFactory;
 
 		myInstance = this;
 
@@ -133,7 +142,9 @@ public class MarkerControl extends JPanel {
 
 		this.setLayout(new GridBagLayout());
 
-		JPanel buttonPanel = new JPanel(new FlowLayout());
+		JPanel buttonPanel = new JPanel();
+
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -167,6 +178,8 @@ public class MarkerControl extends JPanel {
 
 		this.add(progressPanel, c);
 
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+
 		ImageIcon icon = new ImageIcon(getClass().getResource(
 				"/Icons/sq_br_prev.png"));
 
@@ -186,6 +199,7 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonBack);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_rec.png"));
 
@@ -241,6 +255,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 		buttonPanel.add(buttonRec);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_next.png"));
 
@@ -280,6 +295,7 @@ public class MarkerControl extends JPanel {
 			}
 		});
 		buttonPanel.add(buttonPlay);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		icon = new ImageIcon(getClass().getResource(
 				"/Icons/playback_reloaded_button.png"));
@@ -294,6 +310,7 @@ public class MarkerControl extends JPanel {
 		buttonRepeat.setContentAreaFilled(false);
 		buttonRepeat.setToolTipText("Repeat one");
 		buttonPanel.add(buttonRepeat);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		// forward button
 		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_next.png"));
@@ -315,6 +332,7 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonForward);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		// analysis button
 		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
@@ -330,7 +348,7 @@ public class MarkerControl extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				Runnable run = new Runnable() {
-					
+
 					@Override
 					public void run() {
 						startAnaylsis();
@@ -342,25 +360,7 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonAnalysis);
-
-		// eject buttonframe
-		icon = new ImageIcon(getClass().getResource("/Icons/trash.png"));
-
-		JButton buttonDelete = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/trash_select.png"));
-		buttonDelete.setRolloverIcon(icon);
-		buttonDelete.setMargin(new java.awt.Insets(0, 0, 0, 0));
-		buttonDelete.setContentAreaFilled(false);
-		buttonDelete
-				.setToolTipText("Delete current dataset and dependent data");
-		buttonDelete.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				deleteMarker();
-			}
-		});
-
-		buttonPanel.add(buttonDelete);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		// CSV button
 		icon = new ImageIcon(getClass().getResource("/Icons/csv_text.png"));
@@ -379,12 +379,13 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonCSV);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JPanel comboBoxPanel = new JPanel(new GridLayout(0, 1));
+		JPanel comboBoxPanel = new JPanel(new BorderLayout());
 		LineBorder roundedLineBorder = new LineBorder(Color.lightGray, 1, true);
 		Border margin = new EmptyBorder(5, 10, 5, 10);
 		comboBoxPanel.setBorder(new CompoundBorder(roundedLineBorder, margin));
-		comboBoxPanel.add(new JLabel("Dataset:"));
+		comboBoxPanel.add(new JLabel("Dataset:"), BorderLayout.NORTH);
 
 		markerComboBox = new JComboBox();
 		markerComboBox.setToolTipText("Select or create new dataset");
@@ -412,8 +413,43 @@ public class MarkerControl extends JPanel {
 				}
 			}
 		});
-		comboBoxPanel.add(markerComboBox);
+
+		comboBoxPanel.add(markerComboBox, BorderLayout.CENTER);
 		buttonPanel.add(comboBoxPanel);
+
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		// edit button
+		icon = new ImageIcon(getClass().getResource("/Icons/edit.png"));
+
+		final JButton buttonEditData = new JButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/edit.png"));
+		buttonEditData.setRolloverIcon(icon);
+		buttonEditData.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonEditData.setContentAreaFilled(false);
+		buttonEditData
+				.setToolTipText("Edit current dataset and dependent data");
+		buttonEditData.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				FinishListenerHandler finishHandler = new FinishListenerHandler();
+
+				finishHandler.addFinishListener(new IPopUpFinished() {
+
+					@Override
+					public void notifyFinished() {
+						updateMarkers();
+					}
+				});
+
+				JPopupMenu popup = menuFactory.getDatasetPopUpMenu(
+						getCurrentMarker(), finishHandler);
+
+				popup.show(buttonEditData, 0, 0);
+			}
+		});
+
+		buttonPanel.add(buttonEditData);
+	
 
 		playback.setNotifyer(new IPlaybackNotify() {
 
@@ -463,7 +499,10 @@ public class MarkerControl extends JPanel {
 	}
 
 	private Marker getCurrentMarker() {
-		return markers.get(markerComboBox.getSelectedIndex());
+		int index = markerComboBox.getSelectedIndex();
+		
+		System.out.println(index);
+		return markers.get(index);
 	}
 
 	private void deleteMarker() {
@@ -557,18 +596,18 @@ public class MarkerControl extends JPanel {
 	}
 
 	private void startAnaylsis() {
-		
+
 		boolean showChartAnalysis;
 		boolean showTouchAnalysis;
 		boolean showMotionAnalysis;
-		
+
 		if (hand.getRunningMotionAnalysis().size() == 0) {
 			showMotionAnalysis = false;
 		} else {
 			showMotionAnalysis = true;
 		}
-		
-		if ( hand.getRunningTouchAnalysis().size() == 0) {
+
+		if (hand.getRunningTouchAnalysis().size() == 0) {
 			showTouchAnalysis = false;
 		} else {
 			showTouchAnalysis = true;
@@ -593,8 +632,8 @@ public class MarkerControl extends JPanel {
 					new FeelingChartManager(hand),
 					new JointRelationChartManager(hand), false);
 
-			AnalysisUi selector = new AnalysisUi(frame, markers,
-					showMotionAnalysis, showTouchAnalysis, showChartAnalysis, menuFactory);
+			AnalysisUi selector = new AnalysisUi(frame, showMotionAnalysis,
+					showTouchAnalysis, showChartAnalysis, menuFactory);
 
 			if (selector.getReturnCode() == ReturnCode.CANCEL) {
 				updateMarkers();
@@ -651,13 +690,13 @@ public class MarkerControl extends JPanel {
 				if (!mode.equals(AnalysesMode.GRAPH)) {
 					visual3d.setAnalyses(newAnalysis);
 				}
-				
+
 				if (selector.isShowBoxplot2d()) {
 					new Boxplot2d("Analysis statistics",
 							newAnalysis.getStatistics());
 				}
 
-				//reset progress
+				// reset progress
 				progress.setStep(0);
 				progress.setVisible(false);
 

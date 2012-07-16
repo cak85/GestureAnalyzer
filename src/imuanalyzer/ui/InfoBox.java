@@ -66,19 +66,17 @@ public class InfoBox extends JPanel {
 				return false;
 			}
 		};
-		
+
 		infoTable.addMouseListener(new MouseAdapter() {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
 					handlePopUp(e);
-				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				handlePopUp(e);
+					handlePopUp(e);
 			}
 
 			public void handlePopUp(MouseEvent e) {
@@ -95,7 +93,7 @@ public class InfoBox extends JPanel {
 						return;
 					}
 
-					JPopupMenu popup = createYourPopUp(rowindex);
+					JPopupMenu popup = createPopUp(rowindex);
 					popup.show(e.getComponent(), e.getX(), e.getY());
 				}
 			}
@@ -110,8 +108,8 @@ public class InfoBox extends JPanel {
 		this.add(scrollPane);
 
 	}
-	
-	private JPopupMenu createYourPopUp(final int rowIndex) {
+
+	private JPopupMenu createPopUp(final int rowIndex) {
 		JPopupMenu menu = new JPopupMenu();
 
 		JMenuItem item = new JMenuItem("Delete");
@@ -144,8 +142,8 @@ public class InfoBox extends JPanel {
 	public boolean isObserved(JointType type) {
 		return observedObjects.contains(type);
 	}
-	
-	private void removeInfo(int idx){
+
+	private void removeInfo(int idx) {
 		observedObjects.remove(idx);
 	}
 
