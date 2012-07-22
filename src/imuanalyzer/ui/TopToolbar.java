@@ -1,6 +1,9 @@
 package imuanalyzer.ui;
 
+import imuanalyzer.signalprocessing.IOrientationSensors;
+
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -13,14 +16,30 @@ public class TopToolbar extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = -7403865217590908973L;
-	
+
 	Visual3d visual3d;
 
-	public TopToolbar(Visual3d _visual3d) {
+	public TopToolbar(IOrientationSensors sensors, Visual3d _visual3d) {
+		this.visual3d = _visual3d;
+		
+		this.setLayout(new GridLayout(0, 3));
+		
+		JPanel leftPanel = new JPanel();
 		FlowLayout layout = new FlowLayout();
 		layout.setAlignment(FlowLayout.LEFT);
-		this.setLayout(layout);
-		this.visual3d = _visual3d;
+		leftPanel.setLayout(layout);
+	
+
+		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
+
+		leftPanel.add(connectionPanel);
+		
+		this.add(leftPanel);
+		
+		JPanel rightPanel = new JPanel();
+		FlowLayout layout2 = new FlowLayout();
+		layout2.setAlignment(FlowLayout.LEFT);
+		rightPanel.setLayout(layout2);
 
 		JButton resetHandButton = new JButton("Reset hand");
 		resetHandButton.addActionListener(new ActionListener() {
@@ -30,6 +49,8 @@ public class TopToolbar extends JPanel {
 				visual3d.resetHand();
 			}
 		});
-		this.add(resetHandButton);
+		rightPanel.add(resetHandButton);
+		
+		this.add(rightPanel);
 	}
 }

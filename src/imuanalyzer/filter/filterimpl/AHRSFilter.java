@@ -34,7 +34,7 @@ public class AHRSFilter extends Filter {
 	// ----------------------------------------------------------------------------------------------------
 	// Definitions
 
-	protected static double Kp = 5.0; // proportional gain governs rate of
+	protected static double Kp = 0;     // proportional gain governs rate of
 										// convergence to
 										// accelerometer/magnetometer
 	protected static double Ki = 0.000; // integral gain governs rate of
@@ -63,7 +63,7 @@ public class AHRSFilter extends Filter {
 
 	@Override
 	public Quaternion filterStep(double gx, double gy, double gz, double ax,
-			double ay, double az, double mx, double my, double mz) {
+			double ay, double az, double mx, double my, double mz, float temp) {
 		double norm;
 		double hx, hy, hz, bx, bz;
 		double vx, vy, vz, wx, wy, wz;

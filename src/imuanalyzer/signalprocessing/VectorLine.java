@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.jme3.math.Vector3f;
 
-public class VectorLine implements Comparable<VectorLine> {
+public class VectorLine implements Comparable<VectorLine>, IStatisticsValue {
 	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 
 	float length = 0;
@@ -29,7 +29,6 @@ public class VectorLine implements Comparable<VectorLine> {
 			length += lineBuffer.get(i).subtract(lineBuffer.get(i - 1))
 					.length();
 		}
-		//System.out.println("Length: "+length);
 	}
 
 	public ArrayList<Vector3f> getLineBuffer() {
@@ -61,6 +60,11 @@ public class VectorLine implements Comparable<VectorLine> {
 		} else {
 			return 0;
 		}
+	}
+
+	@Override
+	public float getStatisticsNumberRepresentation() {
+		return getLength();
 	}
 
 }

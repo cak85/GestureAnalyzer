@@ -145,15 +145,20 @@ public class Boxplot3d extends Node {
 
 		for (int i = 0; i < statistics.size(); i++) {
 			IBoxplotData t = statistics.get(i);
-			VectorLine maxLine = (VectorLine) t.getMaxObj();
-			lines.add(maxLine);
-			LOGGER.debug("Maxline length " + maxLine.getLength());
+
+			// one option with based on max line
+			// VectorLine boxBaseLine = (VectorLine) t.getMaxObj();
+			// better option with using calculated avg line for base
+			VectorLine boxBaseLine = (VectorLine) t.getAvgObj();
+			lines.add(boxBaseLine);
+			LOGGER.debug("Boxbaseline length " + boxBaseLine.getLength());
 
 			int cylinderIndex = 0;
 			int boxIndex = 0;
 
-			ArrayList<Vector3f> maxlineBuffer = maxLine.getLineBuffer();
-			if (maxlineBuffer.size() > 5) { // TODO arbitrary number ....
+			ArrayList<Vector3f> boxBaselineBuffer = boxBaseLine.getLineBuffer();
+			// do not paint lines with less points
+			if (boxBaselineBuffer.size() > 5) {
 
 				Vector3f pos = new Vector3f();
 				Vector3f direction = new Vector3f();
@@ -165,7 +170,7 @@ public class Boxplot3d extends Node {
 						medianColor, SEGMENTHEIGTH, MEDIANRADIUS
 								+ SEGMENTOFFSET, true);
 				LOGGER.debug("Median: " + t.getMedian());
-				getPosAndDirectionLength(maxlineBuffer, t.getMedian(), pos,
+				getPosAndDirectionLength(boxBaselineBuffer, t.getMedian(), pos,
 						direction);
 				median.setLocalTranslation(pos);
 				rotation.lookAt(direction, up);
@@ -175,7 +180,7 @@ public class Boxplot3d extends Node {
 				Geometry max = getCylinder(cylinders, this, cylinderIndex++,
 						extremaColor, SEGMENTHEIGTH, WHISKERRADIUS, true);
 				LOGGER.debug("Whisker high: " + t.getMax());
-				getPosAndDirectionLength(maxlineBuffer, t.getMax(), pos,
+				getPosAndDirectionLength(boxBaselineBuffer, t.getMax(), pos,
 						direction);
 				max.setLocalTranslation(pos);
 				rotation.lookAt(direction, up);
@@ -184,7 +189,7 @@ public class Boxplot3d extends Node {
 				Geometry min = getCylinder(cylinders, this, cylinderIndex++,
 						extremaColor, SEGMENTHEIGTH, WHISKERRADIUS, true);
 				LOGGER.debug("Whisker low: " + t.getMin());
-				getPosAndDirectionLength(maxlineBuffer, t.getMin(), pos,
+				getPosAndDirectionLength(boxBaselineBuffer, t.getMin(), pos,
 						direction);
 				min.setLocalTranslation(pos);
 				rotation.lookAt(direction, up);
@@ -196,7 +201,7 @@ public class Boxplot3d extends Node {
 					Geometry gOut = getBox(boxIndex++, outlinerColor,
 							SEGMENTHEIGTH, OUTLINERSIDELENGTH);
 					LOGGER.debug("Outliner: " + outLiner.getLength());
-					getPosAndDirectionLength(maxlineBuffer,
+					getPosAndDirectionLength(boxBaselineBuffer,
 							outLiner.getLength(), pos, direction);
 					gOut.setLocalTranslation(pos);
 					rotation.lookAt(direction, up);
@@ -208,9 +213,9 @@ public class Boxplot3d extends Node {
 				LOGGER.debug("Quantile high: " + t.getUpperQuantile());
 				Vector3f pos1 = new Vector3f();
 				Vector3f pos2 = new Vector3f();
-				int boxBegin = getPosFromLength(maxlineBuffer,
+				int boxBegin = getPosFromLength(boxBaselineBuffer,
 						t.getLowerQuantile(), pos1);
-				int boxEnd = getPosFromLength(maxlineBuffer,
+				int boxEnd = getPosFromLength(boxBaselineBuffer,
 						t.getUpperQuantile(), pos2);
 
 				ArrayList<Vector3f> boxLine = new ArrayList<Vector3f>();
@@ -218,7 +223,7 @@ public class Boxplot3d extends Node {
 
 				// create subline of box points
 				for (int j = boxBegin + 1; j < boxEnd; j++) {
-					boxLine.add(maxlineBuffer.get(j));
+					boxLine.add(boxBaselineBuffer.get(j));
 				}
 				boxLine.add(pos2);
 
@@ -232,8 +237,8 @@ public class Boxplot3d extends Node {
 					// generate special points line
 					ArrayList<Vector3f> specialPoints = new ArrayList<Vector3f>();
 					// generate special line
-					for (int j = 0; j < maxlineBuffer.size(); j++) {
-						specialPoints.add(maxlineBuffer.get(j));
+					for (int j = 0; j < boxBaselineBuffer.size(); j++) {
+						specialPoints.add(boxBaselineBuffer.get(j));
 					}
 
 					for (Float p : t.getSpecialPoints()) {

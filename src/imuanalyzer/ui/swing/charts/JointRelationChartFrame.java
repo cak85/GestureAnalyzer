@@ -61,14 +61,15 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 	ArrayList<JLabel> resultLabel = new ArrayList<JLabel>();
 	ArrayList<JLabel> resultLabelR2 = new ArrayList<JLabel>();
 
-	RunningAvg mAvg = new RunningAvg(10);
+	protected boolean calculateRegressionLive = true;
 
-	RunningAvg r2Avg = new RunningAvg(10);
+	float minRelationOffset = 5;
 
-	public JointRelationChartFrame(final JointRelationChartManager manager,
-			final Hand hand, final JointType type1, final JointType type2,
-			final int valueLimit) {
-		super("Relation " + type1 + " / " + type2);
+	public JointRelationChartFrame(String namePostfix,
+			final JointRelationChartManager manager, final Hand hand,
+			final JointType type1, final JointType type2, final int valueLimit,
+			boolean calculateRegressionLive) {
+		super("Relation " + type1 + " / " + type2 + " " + namePostfix);
 		instance = this;
 
 		this.setLayout(new BorderLayout());
@@ -76,6 +77,7 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 		this.hand = hand;
 		this.type1 = type1;
 		this.type2 = type2;
+		this.calculateRegressionLive = calculateRegressionLive;
 
 		chart = new Chart2D();
 
@@ -179,9 +181,9 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 		double[] newReleation = { angles1[0] / angles2[0],
 				angles1[1] / angles2[1], angles1[2] / angles2[2] };
 
-		if (Math.abs(currentRelation[0] - newReleation[0]) > 0.000001
-				|| Math.abs(currentRelation[1] - newReleation[1]) > 0.000001
-				|| Math.abs(currentRelation[2] - newReleation[2]) > 0.000001) {
+		if (Math.abs(currentRelation[0] - newReleation[0]) > 0.001
+				|| Math.abs(currentRelation[1] - newReleation[1]) > 0.001
+				|| Math.abs(currentRelation[2] - newReleation[2]) > 0.001) {
 			currentRelation = newReleation;
 			int i = 0;
 			for (ITrace2D trace : rawPoints) {
@@ -189,42 +191,58 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 				double y = Math.abs(AngleHelper.degFromRad(angles2[i]));
 				maxX = Math.max(x, maxX);
 				minX = Math.min(x, minX);
-				trace.addPoint(x, y);
 
-				ArrayBlockingQueue<double[]> currentValues = values.get(i);
+				if (x > minRelationOffset && y > minRelationOffset) {
 
-				if (currentValues.remainingCapacity() == 0) {
-					currentValues.poll();
+					trace.addPoint(x, y);
+
+					ArrayBlockingQueue<double[]> currentValues = values.get(i);
+
+					// delete oldest of necessary
+					if (currentValues.remainingCapacity() == 0) {
+						currentValues.poll();
+					}
+
+					currentValues.add(new double[] { x, y });
+
+					if (calculateRegressionLive) {
+						calculateLinearRegression(currentValues, i);
+					}
 				}
-
-				currentValues.add(new double[] { x, y });
-
-				// draw regression curve
-				LinearRegression regression = new LinearRegression(
-						currentValues);
-
-				double m = regression.getBeta1();
-
-				double n = regression.getBeta0();
-
-				ITrace2D regTrace = regressionCurves.get(i);
-				regTrace.addPoint(minX, m * minX + n);
-				regTrace.addPoint(maxX, m * maxX + n);
-
-				mAvg.add(m);
-
-				r2Avg.add(regression.getR2());
-
-				resultLabel.get(i)
-						.setText(String.format("%.3f", mAvg.getAvg()));
-
-				resultLabelR2.get(i).setText(
-						String.format("%.3f", r2Avg.getAvg()));
 
 				i++;
 			}
 
 		}
+	}
+
+	/**
+	 * Recalculate regression for all datasets
+	 */
+	public void updateRegression() {
+		for (int i = 0; i < rawPoints.size(); i++) {
+			ArrayBlockingQueue<double[]> currentValues = values.get(i);
+			calculateLinearRegression(currentValues, i);
+		}
+	}
+
+	protected void calculateLinearRegression(
+			ArrayBlockingQueue<double[]> currentValues, int i) {
+
+		// draw regression curve
+		LinearRegression regression = new LinearRegression(currentValues);
+
+		double m = regression.getBeta1();
+
+		double n = regression.getBeta0();
+
+		ITrace2D regTrace = regressionCurves.get(i);
+		regTrace.addPoint(minX, m * minX + n);
+		regTrace.addPoint(maxX, m * maxX + n);
+
+		resultLabel.get(i).setText(String.format("%.3f", m));
+
+		resultLabelR2.get(i).setText(String.format("%.3f", regression.getR2()));
 	}
 
 	public Hand getHand() {
@@ -241,5 +259,25 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 	public JointType getType2() {
 		return type2;
+	}
+
+	public ArrayList<ArrayBlockingQueue<double[]>> getValues() {
+		return values;
+	}
+
+	/**
+	 * @return the minRelationOffset
+	 */
+	public float getMinRelationOffset() {
+		return minRelationOffset;
+	}
+
+	/**
+	 * @param minRelationOffset
+	 *            the minRelationOffset to set Define threshhold for relation
+	 *            analysis
+	 */
+	public void setMinRelationOffset(float minRelationOffset) {
+		this.minRelationOffset = minRelationOffset;
 	}
 }

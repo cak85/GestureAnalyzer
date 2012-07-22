@@ -36,7 +36,7 @@ public class AHRSFilterMahony extends Filter {
 
 	@Override
 	public Quaternion filterStep(double gx, double gy, double gz, double ax,
-			double ay, double az, double mx, double my, double mz) {
+			double ay, double az, double mx, double my, double mz, float temp) {
 		double q1 = state_filtered.getW();
 		double q2 = state_filtered.getX();
 		double q3 = state_filtered.getY();

@@ -16,6 +16,8 @@ import org.apache.log4j.Logger;
 
 public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 
+	private static final boolean READ_GYRO_TEMP = false;
+
 	private static final Logger LOGGER = Logger.getLogger(ImuReader.class
 			.getName());
 
@@ -26,6 +28,12 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 	private static final char COMMAND_ENABLE_CONTINOUS_MODE = 'C';
 	private static final char COMMAND_DISABLE_CONTINOUS_MODE = 'c';
 	private static final char COMMAND_CALIBRATION = 'K';
+
+	private static final int NUMBER_OF_SEPARATED_VALUES = 9 + (READ_GYRO_TEMP ? 1
+			: 0);
+
+	private static final int MAX_ERROR_TRESHHOLD = 5;
+	private static final int ERROR_TRESHHOLD_RING_LENGTH = 10;
 
 	private int numberOfIMUs;
 
@@ -125,7 +133,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 				if (data == '\n') {
 
 					processCounter++;
-					if (processCounter % 10 == 0) {
+					if (processCounter % ERROR_TRESHHOLD_RING_LENGTH == 0) {
 						errorCounter = 0;
 					}
 
@@ -138,7 +146,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 						String token = tokenizer.nextToken();
 						if (token.equals("ERR")) {
 							errorCounter++;
-							if (errorCounter > 5) {
+							if (errorCounter > MAX_ERROR_TRESHHOLD) {
 								String message = "The device is reporting many transfer errors - the connection is closed. Please check the hardware!";
 								for (IImuReaderStatusNotifier notifier : notifiers) {
 									notifier.notifyImuReaderError(message);
@@ -152,39 +160,62 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 						tokenList.add(token);
 					}
 
-					if (tokenList.size() >= ((9 * numberOfIMUs) + 1)) {
+					if (tokenList.size() >= ((NUMBER_OF_SEPARATED_VALUES * numberOfIMUs) + 1)) {
 						ImuRawData[] imuData = new ImuRawData[numberOfIMUs];
 						for (int i = 0; i < numberOfIMUs; i++) {
-							int tokenIndex = i * 9;
+							int tokenIndex = i * NUMBER_OF_SEPARATED_VALUES;
 							try {
 								ImuRawData current = new ImuRawData();
 
 								imuData[i] = current;
 
+								int index = 0;
+
 								current.setId(i);
-								Long bits = Long.parseLong(
-										tokenList.get(tokenIndex), 16);
+
+								Long bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
 								current.getAccelerometer().x = bits.intValue();
-								bits = Long.parseLong(
-										tokenList.get(tokenIndex + 1), 16);
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
 								current.getAccelerometer().y = bits.intValue();
-								bits = Long.parseLong(
-										tokenList.get(tokenIndex + 2), 16);
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
 								current.getAccelerometer().z = bits.intValue();
+								index++;
 
-								current.getGyroskope().x = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 3));
-								current.getGyroskope().y = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 4));
-								current.getGyroskope().z = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 5));
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getGyroskope().x = bits.intValue();
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getGyroskope().y = bits.intValue();
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getGyroskope().z = bits.intValue();
+								index++;
 
-								current.getMagnetometer().x = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 6));
-								current.getMagnetometer().y = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 7));
-								current.getMagnetometer().z = decodeFloatFromHex(tokenList
-										.get(tokenIndex + 8));
+								if (READ_GYRO_TEMP) {
+									current.setTemp(decodeFloatFromHex(tokenList
+											.get(tokenIndex + index)));
+									index++;
+								}
+
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getMagnetometer().x = bits.intValue();
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getMagnetometer().y = bits.intValue();
+								index++;
+								bits = Long.valueOf(
+										tokenList.get(tokenIndex + index), 16);
+								current.getMagnetometer().z = bits.intValue();
 
 							} catch (NumberFormatException e) {
 								LOGGER.error(e);

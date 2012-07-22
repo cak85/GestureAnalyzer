@@ -55,7 +55,7 @@ public class LinearRegression {
 		beta0 = ybar - beta1 * xbar;
 
 		// print results
-		//LOGGER.debug("y   = " + beta1 + " * x + " + beta0);
+		LOGGER.debug("y   = " + beta1 + " * x + " + beta0);
 
 		// analyze results
 		int df = numberOfElements - 2;
@@ -69,11 +69,11 @@ public class LinearRegression {
 		double svar = rss / df;
 		double svar1 = svar / xxbar;
 		double svar0 = svar / numberOfElements + xbar * xbar * svar1;
-		//LOGGER.debug("R^2                 = " + R2);
+		LOGGER.debug("R^2                 = " + R2);
 
 		stdErrorBeta1 = Math.sqrt(svar1);
 		//LOGGER.debug("std error of beta_1 = " + stdErrorBeta1);
-		// LOGGER.debug("std error of beta_0 = " + Math.sqrt(svar0));
+		//LOGGER.debug("std error of beta_0 = " + Math.sqrt(svar0));
 		svar0 = svar * sumx2 / (numberOfElements * xxbar);
 		stdErrorBeta0 = Math.sqrt(svar0);
 		//LOGGER.debug("std error of beta_0 = " + stdErrorBeta0);

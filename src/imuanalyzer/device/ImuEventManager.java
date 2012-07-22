@@ -1,54 +1,93 @@
 package imuanalyzer.device;
 
-import imuanalyzer.device.ImuUpdateListener;
-import imuanalyzer.device.ImuEvent;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.apache.log4j.Logger;
 
 public class ImuEventManager {
-	private List<ImuUpdateListener> listeners = new LinkedList<ImuUpdateListener>();
 
-	ExecutorService eventExecutor = Executors.newCachedThreadPool();
+	private static final Logger LOGGER = Logger.getLogger(ImuEventManager.class
+			.getName());
+
+	private ImuUpdateListener currentListener = null;
+
+	private BlockingQueue<ImuEvent> events = new ArrayBlockingQueue<ImuEvent>(
+			500, false);
+
+	private long lastFilterUpdate = 0;
+
+	Worker worker;
+
+	public ImuEventManager() {
+	}
+
+	private void startWorker() {
+
+		worker = (new Worker());
+
+		new Thread(worker).start();
+	}
+
+	private void stopWorker() {
+		worker.stopWorker = false;
+		worker = null;
+	}
 
 	public void addEventListener(ImuUpdateListener listener) {
-		if (!listeners.contains(listener)) {
-			listeners.add(listener);
+		if (currentListener == null) {
+			currentListener = listener;
+			startWorker();
 		}
 	}
 
 	public void removeEventListener(ImuUpdateListener listener) {
-		listeners.remove(listener);
-	}
-
-	public void fireEvent(ImuEvent event) {
-		for (int i = 0; i < listeners.size(); i++) {
-//			eventExecutor
-//					.execute(new ImuEventRunnable(listeners.get(i), event));
-			listeners.get(i).notifyImuDataUpdate(event);
+		if (currentListener == listener) {
+			stopWorker();
+			listener = null;
 		}
 	}
 
-//	/**
-//	 * 
-//	 * Runnable for IMU events
-//	 * 
-//	 */
-//	class ImuEventRunnable implements Runnable {
-//		ImuUpdateListener listener;
-//		ImuEvent event;
-//
-//		ImuEventRunnable(ImuUpdateListener listener, ImuEvent event) {
-//			this.listener = listener;
-//			this.event = event;
-//		}
-//
-//		@Override
-//		public void run() {
-//			listener.notifyImuDataUpdate(event);
-//		}
-//
-//	}
+	public void fireEvent(ImuEvent event) {
+
+		// ignore first event
+		if (lastFilterUpdate == 0) {
+			lastFilterUpdate = System.currentTimeMillis();
+			return;
+		}
+
+		long newFilterUpdate = System.currentTimeMillis();
+
+		double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
+				/ (double) 1000;
+		// LOGGER.debug("SamplePeriod: " + samplePeriod);
+
+		lastFilterUpdate = newFilterUpdate;
+
+		event.setSamplePeriod(samplePeriod);
+
+		events.add(event);
+	}
+
+	/**
+	 * Worker/Consumer task for handling all events
+	 * 
+	 * @author "Christopher-Eyk Hrabia"
+	 * 
+	 */
+	class Worker implements Runnable {
+
+		boolean stopWorker = false;
+
+		@Override
+		public void run() {
+			while (!stopWorker) {
+				ImuEvent event = events.poll();
+				if (event != null) {
+					currentListener.notifyImuDataUpdate(event);
+				}
+			}
+		}
+	}
+
 }

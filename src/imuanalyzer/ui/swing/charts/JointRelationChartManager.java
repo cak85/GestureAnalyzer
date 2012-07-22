@@ -36,8 +36,8 @@ public class JointRelationChartManager {
 				return;
 			}
 		}
-		JointRelationChartFrame frame = new JointRelationChartFrame(this, hand,
-				type1, type2, VALUES_LIMIT);
+		JointRelationChartFrame frame = new JointRelationChartFrame("Live",
+				this, hand, type1, type2, VALUES_LIMIT, true);
 		frame.setVisible(visible);
 		relations.add(frame);
 
@@ -69,10 +69,11 @@ public class JointRelationChartManager {
 	 * @param valueMax
 	 * @return
 	 */
-	public JointRelationChartFrame getStaticChart(final JointType type1,
-			final JointType type2, final int valueMax) {
+	public JointRelationChartFrame getStaticChart(String namePostfix,
+			final JointType type1, final JointType type2, final int valueMax) {
 
-		return (new JointRelationChartFrame(this, hand, type1, type2, valueMax));
+		return (new JointRelationChartFrame(namePostfix, this, hand, type1,
+				type2, valueMax, false));
 	}
 
 	public ArrayList<JointRelationChartFrame> getCharts() {

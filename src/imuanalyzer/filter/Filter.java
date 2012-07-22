@@ -7,7 +7,15 @@ import org.apache.log4j.Logger;
 
 import Jama.Matrix;
 
+/**
+ * Based on http://code.google.com/p/9dof-orientation-estimation/
+ * 
+ * @author "Christopher-Eyk Hrabia"
+ * 
+ */
 public abstract class Filter implements ITuneFilter {
+
+	// TODO load parameter from DB
 
 	private static final Logger LOGGER = Logger.getLogger(Filter.class
 			.getName());
@@ -59,7 +67,7 @@ public abstract class Filter implements ITuneFilter {
 
 	protected abstract Quaternion filterStep(double w_x, double w_y,
 			double w_z, double a_x, double a_y, double a_z, double m_x,
-			double m_y, double m_z);
+			double m_y, double m_z, float temp);
 
 	public abstract Quaternion getFilteredQuaternions();
 
@@ -381,8 +389,8 @@ public abstract class Filter implements ITuneFilter {
 
 	public void filterStep(double samplePeriod, double w_x, double w_y,
 			double w_z, double a_x, double a_y, double a_z, double m_x,
-			double m_y, double m_z) {
-
+			double m_y, double m_z, float temp) {
+		
 		this.samplePeriod = samplePeriod;
 
 		// TODO möglicherweise besser die gerade berechnete orientierung zu
@@ -392,7 +400,7 @@ public abstract class Filter implements ITuneFilter {
 		// getFilteredQuaternions());
 
 		Quaternion currentOrientation = filterStep(w_x, w_y, w_z, a_x, a_y,
-				a_z, m_x, m_y, m_z);
+				a_z, m_x, m_y, m_z, temp);
 
 		currentDynAcceleration = calculateDynAcceleration(a_x, a_y, a_z,
 				currentOrientation);

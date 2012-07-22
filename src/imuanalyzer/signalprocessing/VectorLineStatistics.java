@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.jme3.math.Vector3f;
+
 /**
  * Generate all statistic data over VectorLines which are necessary for boxplots
  * 
@@ -25,11 +27,13 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	protected ArrayList<VectorLine> lines;
 
-	protected ArrayList<Object> outliners = new ArrayList<Object>();
+	protected ArrayList<IStatisticsValue> outliners = new ArrayList<IStatisticsValue>();
 
 	protected ArrayList<Float> specialPoints = new ArrayList<Float>();
 
 	protected String description;
+
+	protected VectorLine avgLine = new VectorLine();
 
 	public VectorLineStatistics(String description,
 			ArrayList<VectorLine> lines, ArrayList<Float> specialPercentPoints) {
@@ -44,6 +48,8 @@ public class VectorLineStatistics implements IBoxplotData {
 
 		if (linesSize > 1) {
 
+			avgLine = calculateAvgLine(lines);
+
 			median = calcMedian(lines);
 			if (lines.size() % 2 == 0) {
 				lowerQuantile = calcMedian(lines.subList(0,
@@ -57,9 +63,11 @@ public class VectorLineStatistics implements IBoxplotData {
 						(int) (lines.size() / 2f), lines.size()));
 			}
 
-			ArrayList<VectorLine> linesWithoutOutliers = eliminateOutliners(lines, lowerQuantile, upperQuantile);
+			ArrayList<VectorLine> linesWithoutOutliers = eliminateOutliners(
+					lines, lowerQuantile, upperQuantile);
 			if (linesWithoutOutliers.size() > 0) {
-				max = linesWithoutOutliers.get(linesWithoutOutliers.size() - 1).getLength();
+				max = linesWithoutOutliers.get(linesWithoutOutliers.size() - 1)
+						.getLength();
 				min = linesWithoutOutliers.get(0).getLength();
 			}
 
@@ -72,9 +80,9 @@ public class VectorLineStatistics implements IBoxplotData {
 		}
 
 		for (Float p : specialPercentPoints) {
-			float idx = (linesSize*p);
+			float idx = (linesSize * p);
 			int intIdx = (int) idx;
-			LOGGER.debug("Percent: "+p +"  idx: "+idx);
+			LOGGER.debug("Percent: " + p + "  idx: " + idx);
 			specialPoints.add(lines.get(intIdx).getLength());
 		}
 	}
@@ -111,7 +119,7 @@ public class VectorLineStatistics implements IBoxplotData {
 		int pos = calcSet.size() / 2;
 
 		float median;
-		// if gerade
+		// if even
 		if (calcSet.size() % 2 == 0) {
 			// calculating average
 			float len1 = calcSet.get(pos - 1).getLength();
@@ -119,10 +127,41 @@ public class VectorLineStatistics implements IBoxplotData {
 
 			median = (len1 + len2) / 2;
 
-		} else { // ungerade
+		} else { // odd
 			median = calcSet.get(pos).getLength();
 		}
 		return median;
+	}
+
+	public static VectorLine calculateAvgLine(ArrayList<VectorLine> calcSet) {
+		VectorLine avg = new VectorLine();
+		ArrayList<Vector3f> avgPoints = avg.getLineBuffer();
+		ArrayList<Integer> count = new ArrayList<Integer>();
+
+		VectorLine lastOne = calcSet.get(calcSet.size() - 1);
+
+		for (VectorLine current : calcSet) {
+			ArrayList<Vector3f> currentPoints = current.getLineBuffer();
+			for (int i = 0; i < currentPoints.size(); i++) {
+				// sum up
+				if (i < count.size()) {
+					count.set(i, count.get(i) + 1);
+					avgPoints
+							.set(i, avgPoints.get(i).add(currentPoints.get(i)));
+				} else {
+					count.add(1);
+					avgPoints.add(currentPoints.get(i).clone());
+				}
+
+				// if it is the last line lets divide
+				if (current.equals(lastOne)) {
+					avgPoints.set(i, avgPoints.get(i).divide(count.get(i)));
+				}
+			}
+		}
+		avg.updateLength();
+
+		return avg;
 	}
 
 	public float getMedian() {
@@ -153,8 +192,12 @@ public class VectorLineStatistics implements IBoxplotData {
 		return lines.get(0);
 	}
 
+	public VectorLine getAvgObj() {
+		return avgLine;
+	}
+
 	@Override
-	public ArrayList<Object> getOutliners() {
+	public ArrayList<IStatisticsValue> getOutliners() {
 		return outliners;
 	}
 

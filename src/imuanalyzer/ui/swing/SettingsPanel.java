@@ -5,6 +5,7 @@ import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.ui.HelpManager;
 
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -19,8 +20,9 @@ import javax.swing.SwingConstants;
 
 /**
  * Panel with different non default
+ * 
  * @author "Christopher-Eyk Hrabia"
- *
+ * 
  */
 public class SettingsPanel extends JPanel {
 
@@ -29,13 +31,20 @@ public class SettingsPanel extends JPanel {
 	 */
 	private static final long serialVersionUID = 4820785871426946118L;
 
-	OrientationFilterTunePanel filterTuner;
+	protected OrientationFilterTunePanel filterTuner;
+
+	private SettingsPanel myInstance;
 
 	public SettingsPanel(final IOrientationSensors sensors) {
+		myInstance = this;
+		
+		JPanel mainPanel = new JPanel(new GridBagLayout());
+		
+		this.add(mainPanel);
 
-		this.setLayout(new GridBagLayout());
+		this.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
 		// Filter selection
-
 		JPanel filterPanel = createFilterPanel(sensors);
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -49,7 +58,7 @@ public class SettingsPanel extends JPanel {
 		c.gridy = 0;
 		c.insets = new Insets(20, 20, 20, 20);
 
-		this.add(filterPanel, c);
+		mainPanel.add(filterPanel, c);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.NONE;
@@ -64,8 +73,8 @@ public class SettingsPanel extends JPanel {
 
 		filterTuner = new OrientationFilterTunePanel(sensors);
 
-		this.add(filterTuner, c);
-
+		mainPanel.add(filterTuner, c);
+		
 	}
 
 	private JPanel createFilterPanel(final IOrientationSensors sensors) {
@@ -95,6 +104,7 @@ public class SettingsPanel extends JPanel {
 				sensors.setFilterType(filterType);
 				Configuration.getInstance().setFilterType(filterType);
 				filterTuner.update();
+				myInstance.updateUI();
 			}
 		});
 		HelpManager.getInstance().enableHelpKey(filterTypes,

@@ -1,7 +1,7 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.IBoxplotData;
-import imuanalyzer.signalprocessing.VectorLine;
+import imuanalyzer.signalprocessing.IStatisticsValue;
 
 import java.util.ArrayList;
 
@@ -36,9 +36,9 @@ public class BoxAndWhiskerRendererWithOutliers extends BoxAndWhiskerRenderer {
 			max = Math.max(max, d.getMax());
 			min = Math.min(min, d.getMin());
 			for (Object o : d.getOutliners()) {
-				VectorLine v = (VectorLine) o;
-				max = Math.max(max, v.getLength());
-				min = Math.min(min, v.getLength());
+				IStatisticsValue v = (IStatisticsValue) o;
+				max = Math.max(max, v.getStatisticsNumberRepresentation());
+				min = Math.min(min, v.getStatisticsNumberRepresentation());
 			}
 		}
 		return new Range(min - 1, max);

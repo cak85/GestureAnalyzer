@@ -15,6 +15,8 @@ public class ImuRawData {
 	SensorVector gyroskope;
 	SensorVector magnetometer;
 
+	float temp = 0;
+
 	Date timeStamp;
 
 	double samplePeriod = 0;
@@ -28,12 +30,20 @@ public class ImuRawData {
 	public ImuRawData(int id, Date timeStamp, double samplePeriod,
 			SensorVector accelerometer, SensorVector gyroskope,
 			SensorVector magnetometer) {
+		this(id, timeStamp, samplePeriod, accelerometer, gyroskope,
+				magnetometer, 0);
+	}
+
+	public ImuRawData(int id, Date timeStamp, double samplePeriod,
+			SensorVector accelerometer, SensorVector gyroskope,
+			SensorVector magnetometer, float temp) {
 		this.id = id;
 		this.timeStamp = timeStamp;
 		this.samplePeriod = samplePeriod;
 		this.accelerometer = accelerometer;
 		this.gyroskope = gyroskope;
 		this.magnetometer = magnetometer;
+		this.temp = temp;
 	}
 
 	public int getId() {
@@ -82,6 +92,20 @@ public class ImuRawData {
 
 	public void setSamplePeriod(double samplePeriod) {
 		this.samplePeriod = samplePeriod;
+	}
+
+	/**
+	 * @return the temp
+	 */
+	public float getTemp() {
+		return temp;
+	}
+
+	/**
+	 * @param temp the temp to set
+	 */
+	public void setTemp(float temp) {
+		this.temp = temp;
 	}
 
 }

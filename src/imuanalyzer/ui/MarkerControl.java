@@ -34,8 +34,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -53,12 +51,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
@@ -67,6 +69,7 @@ import org.apache.log4j.Logger;
  * Control dataset handling and analysis
  * 
  */
+// TODO rename to BottomToolbarPanel
 public class MarkerControl extends JPanel {
 
 	private static final Logger LOGGER = Logger.getLogger(MarkerControl.class
@@ -334,6 +337,28 @@ public class MarkerControl extends JPanel {
 		buttonPanel.add(buttonForward);
 		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
+		buttonPanel.add(new JLabel("Speed: "));
+
+		// speed slider
+		JSlider speedSlider = new JSlider(SwingConstants.HORIZONTAL,
+				(int) (1 / playback.getSpeed()), 9, 1);
+		speedSlider.setMajorTickSpacing(4);
+		speedSlider.setMinorTickSpacing(1);
+		speedSlider.setPaintTicks(true);
+		speedSlider.setPaintLabels(true);
+		speedSlider.setSnapToTicks(true);
+		speedSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int value = ((JSlider) e.getSource()).getValue();
+				playback.setSpeed(1 / (float) value);
+			}
+		});
+
+		buttonPanel.add(speedSlider);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+
 		// analysis button
 		icon = new ImageIcon(getClass().getResource("/Icons/chart_line_2.png"));
 
@@ -449,7 +474,6 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonEditData);
-	
 
 		playback.setNotifyer(new IPlaybackNotify() {
 
@@ -500,8 +524,6 @@ public class MarkerControl extends JPanel {
 
 	private Marker getCurrentMarker() {
 		int index = markerComboBox.getSelectedIndex();
-		
-		System.out.println(index);
 		return markers.get(index);
 	}
 
@@ -670,14 +692,16 @@ public class MarkerControl extends JPanel {
 				if (selector.isAssumeDynamicCharts()) {
 					filler = new NonDynamicChartFiller(chartOrientation,
 							chartsAcceleration, feelingChart, chartsRelation,
-							selectedMarkers.size(), maxSize);
+							selectedMarkers, maxSize,
+							selector.isShowRelationsBoxplot());
 				} else {
 					filler = new NonDynamicChartFiller(
 							menuFactory.getChartOrientation(),
 							menuFactory.getChartsAcceleration(),
 							menuFactory.getFeelingChart(),
 							menuFactory.getChartsRelation(),
-							selectedMarkers.size(), maxSize);
+							selectedMarkers, maxSize,
+							selector.isShowRelationsBoxplot());
 				}
 				progress.setVisible(true);
 				newAnalysis.calculate(mode, selectedMarkers,

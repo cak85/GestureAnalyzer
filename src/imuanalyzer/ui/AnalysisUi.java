@@ -82,6 +82,8 @@ public class AnalysisUi extends JDialog {
 
 	boolean assumeDynamicCharts = false;
 
+	boolean showRelationsBoxplot = false;
+
 	JComboBox chartList = null;
 	JComboBox pointList = null;
 	JButton graphButton = null;
@@ -426,6 +428,20 @@ public class AnalysisUi extends JDialog {
 		}
 		chartPanel.add(checkAssumeCharts);
 
+		JCheckBox checkShowRelationsBoxplot = new JCheckBox(
+				"Show relations boxplot");
+		checkShowRelationsBoxplot.setSelected(false);
+		checkShowRelationsBoxplot.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				showRelationsBoxplot = source.isSelected();
+			}
+		});
+
+		chartPanel.add(checkShowRelationsBoxplot);
+
 		return chartPanel;
 	}
 
@@ -531,6 +547,10 @@ public class AnalysisUi extends JDialog {
 
 	public boolean isShowBoxplotTouch3d() {
 		return showBoxplotTouch3d;
+	}
+
+	public boolean isShowRelationsBoxplot() {
+		return showRelationsBoxplot;
 	}
 
 }

@@ -32,7 +32,7 @@ public interface IOrientationSensors {
 	void processImuData(final ImuRawData data[],
 			final double samplePeriod);
 	
-	void setRecordDataNotifyListener(IRecordDataNotify listener);
+	IRecorder getRecorder(); 
 	
 	IIMUDataProvider getImuDataProvider();
 	

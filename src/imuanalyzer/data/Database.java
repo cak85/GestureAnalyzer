@@ -96,6 +96,7 @@ public class Database {
 
 	Connection conn;
 
+	// TODO extends with temp
 	static final StringBuilder writeImuData = new StringBuilder("insert into ")
 			.append(IMU_DATA_TABLE_NAME).append(" (")
 			.append(IMU_DATA_TABLE_TIME).append(",")
@@ -415,7 +416,45 @@ public class Database {
 		}
 	}
 
-	public FeelingScale selectFeelingData(java.util.Date timestamp,
+	public ArrayList<FeelingScale> selectFeelings(Marker marker) {
+		ArrayList<FeelingScale> result = new ArrayList<FeelingScale>();
+
+		StringBuilder select = new StringBuilder("select ")
+				.append(COMFORT_TABLE_NUMBER).append(" , ")
+				.append(COMFORT_TABLE_VALUE).append(" from ")
+				.append(COMFORT_TABLE_NAME).append(" where ")
+				.append(COMFORT_TABLE_TIME)
+				.append(" between ? and ? ORDER BY ")
+				.append(COMFORT_TABLE_NUMBER);
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(select.toString());
+			stmt.setTimestamp(1, new Timestamp(marker.getStart().getTime()));
+			stmt.setTimestamp(2, new Timestamp(marker.getEnd().getTime()));
+			ResultSet res = stmt.executeQuery();
+			while (res.next()) {
+				FeelingScale scale = new FeelingScale();
+				scale.setValueInPercent(res.getInt(COMFORT_TABLE_NUMBER),
+						res.getDouble(COMFORT_TABLE_VALUE));
+				result.add(scale);
+			}
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return result;
+	}
+
+	public FeelingScale selectFeeling(java.util.Date timestamp,
 			FeelingScale comfortScale) {
 		FeelingScale result = null;
 

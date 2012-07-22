@@ -31,6 +31,9 @@ public class Analyses {
 
 	Database db;
 
+	/**
+	 * One hand per dataset
+	 */
 	ArrayList<Hand> hands = new ArrayList<Hand>();
 
 	LinkedList<MovementStep> moveResult;
@@ -66,7 +69,7 @@ public class Analyses {
 	 */
 	int maxMotionCount = 0;
 
-	IAnalysisExtension chartFiller;
+	IAnalysisExtension analysisExtension;
 
 	/**
 	 * touch analysis statistics Data
@@ -116,7 +119,7 @@ public class Analyses {
 		this.markers = _markers;
 		this.mode = mode;
 		this.specialPercentPoints = specialPercentPoints;
-		this.chartFiller = chartFiller;
+		this.analysisExtension = chartFiller;
 
 		progress.setMaxSteps(markers.size() + 2);
 		progress.setStepSize(1);
@@ -164,6 +167,7 @@ public class Analyses {
 				Marker marker = markers.get(markerIdx);
 
 				ArrayList<ImuRawData> rawData = db.getImuData(marker);
+				ArrayList<FeelingScale> feelingData = db.selectFeelings(marker);
 
 				IOrientationSensors orientationManager;
 
@@ -215,16 +219,20 @@ public class Analyses {
 
 								double samplePeriod = newData.getSamplePeriod();
 								sumSamplePeriod += samplePeriod;
-								db.selectFeelingData(currentPeriod,
-										hand.getComfortScale());
+								
+								//we have only one scale entry per set
+								if (feelingData.size() > currentSet.length) {
+									hand.getComfortScale().setAllValues(
+											feelingData.get(currentSet.length));
+								}
 								orientationManager.processImuData(
 										currentSet.clone(), samplePeriod);
 								currentPeriod = newData.getTimeStamp();
 								// do not forget to process current item
 								currentSet[newData.getId()] = newData;
 
-								if (chartFiller != null) {
-									chartFiller.update(hand, markerIdx,
+								if (analysisExtension != null) {
+									analysisExtension.update(hand, markerIdx,
 											sumSamplePeriod);
 								}
 							}
@@ -239,6 +247,7 @@ public class Analyses {
 				progress.stepUp();
 			}
 		});
+		analysisExtension.finished();
 	}
 
 	private void calculateMotionAvg() {
@@ -277,6 +286,8 @@ public class Analyses {
 					avgElement.setCount(0);
 					moveResult.add(avgElement);
 
+					int avgAddedCounter = 0;
+
 					EnumMap<JointType, StoredJointState> avgJoints = avgElement
 							.getMove().get(saveMotionJoint).getAll();
 
@@ -294,13 +305,16 @@ public class Analyses {
 
 							for (Entry<JointType, StoredJointState> entry : avgJoints
 									.entrySet()) {
+
+								avgAddedCounter++;
 								// sum up
 								Quaternion addedQuat = currentJoints.get(
 										entry.getKey()).getLocalOrientation();
 
 								StoredJointState avgJoint = entry.getValue();
 								avgJoint.setLocalOrientation(avgJoint
-										.getLocalOrientation().plus(addedQuat));
+										.getLocalOrientation()
+										.quaternionProduct(addedQuat));
 
 							}
 							avgElement.setCount(avgElement.getCount()
@@ -309,13 +323,13 @@ public class Analyses {
 
 					}
 
-					// calculate average
+					// calculate average --> divide
 					for (Entry<JointType, StoredJointState> entry : avgJoints
 							.entrySet()) {
 						StoredJointState avgJoint = entry.getValue();
 						avgJoint.setLocalOrientation(avgJoint
-								.getLocalOrientation().times(
-										1 / (double) (hands.size())));
+								.getLocalOrientation().pow(
+										1 / (double) (avgAddedCounter)));
 						avgJoint.getLocalOrientation().normalized();
 					}
 					avgElement.setCount(Math.round(avgElement.getCount()

@@ -1,11 +1,9 @@
 package imuanalyzer.ui.swing;
 
 import imuanalyzer.filter.ITuneFilter;
-import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 
@@ -14,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -38,8 +37,9 @@ public class OrientationFilterTunePanel extends JPanel {
 		this.orientationManager = orientationManager;
 
 		this.setLayout(new GridLayout(0, 1));
-		
-		this.add(new JLabel("Sensor-Fusion-Algorithm Configuration:"));
+
+		this.add(new JLabel("Sensor-Fusion-Algorithm Configuration:",
+				SwingConstants.LEFT));
 
 		update();
 	}
@@ -67,16 +67,22 @@ public class OrientationFilterTunePanel extends JPanel {
 
 	public JPanel getControllerPanel(final ITuneFilter filterTuning,
 			final int index) {
-		JPanel controllerPanel = new JPanel(new FlowLayout());
+		JPanel controllerPanel = new JPanel(new GridLayout(1, 0));
 
-		controllerPanel.add(new JLabel(filterTuning.getParameterName(index)));
+		controllerPanel.add(new JLabel(filterTuning.getParameterName(index)
+				+ ": ", SwingConstants.RIGHT));
 
-		SpinnerModel spinnerModel = new SpinnerNumberModel(
-				filterTuning.getParameter(index),
-				filterTuning.getMinValueFromParameter(index),
-				filterTuning.getMaxValueFromParameter(index), 0.0001);
+		SpinnerModel spinnerModel = new SpinnerNumberModel(new Float(
+				filterTuning.getParameter(index)), new Float(
+				filterTuning.getMinValueFromParameter(index)), new Float(
+				filterTuning.getMaxValueFromParameter(index)), new Float(
+				0.000001));
 
 		JSpinner parameterSpinner = new JSpinner(spinnerModel);
+
+		final JSpinner.NumberEditor editor = new JSpinner.NumberEditor(
+				parameterSpinner, "0.#######");
+		parameterSpinner.setEditor(editor);
 
 		parameterSpinner.addChangeListener(new ChangeListener() {
 
@@ -84,13 +90,13 @@ public class OrientationFilterTunePanel extends JPanel {
 			public void stateChanged(ChangeEvent e) {
 				JSpinner s = (JSpinner) e.getSource();
 
-				double value = (Double) s.getValue();
+				double value = (Float) s.getValue();
 
 				filterTuning.setParameter(index, value);
 
 			}
 		});
-		
+
 		parameterSpinner.setPreferredSize(new Dimension(100, 25));
 
 		controllerPanel.add(parameterSpinner);

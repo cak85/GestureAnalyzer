@@ -115,6 +115,13 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
+	public void setAllValues(FeelingScale feeling) {
+		this.max = feeling.max;
+		this.min = feeling.min;
+		this.descriptions = feeling.descriptions;
+		this.currentValues = feeling.currentValues;
+	}
+
 	// create data from multiple data to one field, a bit hacky but ...
 	public String getAllDescriptions() {
 		StringBuilder all = new StringBuilder();

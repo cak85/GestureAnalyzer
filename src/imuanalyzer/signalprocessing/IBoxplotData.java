@@ -3,6 +3,7 @@ package imuanalyzer.signalprocessing;
 import java.util.ArrayList;
 
 public interface IBoxplotData {
+	
 	public float getMedian() ;
 
 	public float getMax() ;
@@ -13,11 +14,13 @@ public interface IBoxplotData {
 
 	public float getLowerQuantile() ;
 
-	public Object getMaxObj() ;
+	public IStatisticsValue getMaxObj() ;
 
-	public Object getMinObj() ;
+	public IStatisticsValue getMinObj() ;
 	
-	public ArrayList<Object> getOutliners();
+	public IStatisticsValue getAvgObj();
+	
+	public ArrayList<IStatisticsValue> getOutliners();
 	
 	public String getDescription();
 	

@@ -17,7 +17,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -191,11 +190,12 @@ public class RelationPanel extends JPanel {
 		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(new Float(0),
 				new Float(0.000), new Float(1), new Float(0.001));
 		factorSpinner = new JSpinner(percentSpinnerModel);
-		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) factorSpinner
-				.getEditor();
-		DecimalFormat format = editor.getFormat();
-		format.setMinimumFractionDigits(3);
+		
+		final JSpinner.NumberEditor editor = new JSpinner.NumberEditor(
+				factorSpinner, "0.###");
+		factorSpinner.setEditor(editor);
 		editor.getTextField().setHorizontalAlignment(SwingConstants.CENTER);
+		
 		Dimension d = factorSpinner.getPreferredSize();
 		d.width = 85;
 		factorSpinner.setPreferredSize(d);

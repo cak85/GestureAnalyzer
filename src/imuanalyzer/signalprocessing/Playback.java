@@ -30,6 +30,8 @@ public class Playback {
 
 	IPlaybackNotify notifier = null;
 
+	float speed = 1;
+
 	public Playback(Hand hand, IOrientationSensors orientationManager) {
 		this.hand = hand;
 		this.orientationManager = orientationManager;
@@ -67,6 +69,7 @@ public class Playback {
 
 	protected void internalPlay(Marker marker, boolean loop) {
 		ArrayList<ImuRawData> rawData = db.getImuData(marker);
+		ArrayList<FeelingScale> feelingData = db.selectFeelings(marker);
 
 		Marker oldMarker = hand.getCurrentMarker();
 		hand.setCurrentMarker(marker);
@@ -105,16 +108,15 @@ public class Playback {
 						currentSet[newData.getId()] = newData;
 					} else {
 						try {
-							// LOGGER.debug("Sampleperiod: "
-							// + (long) (currentSet[0].getSamplePeriod() *
-							// 1000));
 							Thread.sleep((long) (currentSet[0]
-									.getSamplePeriod() * 1000));
+									.getSamplePeriod() * 1000 * speed));
 						} catch (InterruptedException e) {
 							LOGGER.error(e);
 						}
-						db.selectFeelingData(currentPeriod,
-								hand.getComfortScale());
+						if (feelingData.size() > i / currentSet.length) {
+							hand.getComfortScale().setAllValues(
+									feelingData.get(i / currentSet.length));
+						}
 						orientationManager.processImuData(currentSet.clone(),
 								currentSet[0].getSamplePeriod());
 						currentPeriod = newData.getTimeStamp();
@@ -152,9 +154,23 @@ public class Playback {
 		@Override
 		public void run() {
 			player.internalPlay(marker, loop);
-
 		}
 
+	}
+
+	/**
+	 * @return the speed
+	 */
+	public float getSpeed() {
+		return speed;
+	}
+
+	/**
+	 * @param speed
+	 *            the speed to set
+	 */
+	public void setSpeed(float speed) {
+		this.speed = speed;
 	}
 
 }

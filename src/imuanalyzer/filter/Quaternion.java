@@ -3,59 +3,8 @@ package imuanalyzer.filter;
 import imuanalyzer.utils.math.AngleHelper;
 import Jama.Matrix;
 
+//TODO move to math
 public class Quaternion implements Comparable<Quaternion> {
-
-	public static void main(String[] args) {
-
-		Quaternion q1 = new Quaternion(Math.PI, 0, 0);
-
-		System.out.println("Dotproduct: " + q1.dotProdcut(q1));
-
-		// Test for order of roll pitch yaw
-		// Quaternion quat;
-		//
-		// quat = new Quaternion(Math.PI / 2, Math.PI / 4, Math.PI / 6);
-		//
-		// double[] rad = quat.getAnglesRadFromQuaternion();
-		//
-		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
-		//
-		// quat.print(3);
-		//
-		// Quaternion newQuat = new Quaternion(rad[0], rad[1], rad[2]);
-		//
-		// rad = newQuat.getAnglesRadFromQuaternion();
-		//
-		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad[0], rad[1], rad[2]);
-		//
-		// newQuat.print(3);
-
-		// //////////////////////
-		//
-		// com.jme3.math.Quaternion quat2;
-		//
-		// float angles[] ={(float)Math.PI/2, (float)Math.PI/4,
-		// (float)Math.PI/6};
-		// quat2= new com.jme3.math.Quaternion(angles);
-		//
-		// float[] rad2= quat2.toAngles(null);
-		//
-		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad2[1], rad2[2],
-		// rad2[0]);
-		//
-		// System.out.println(quat2.toString());
-		//
-		// com.jme3.math.Quaternion newQuat2 = new
-		// com.jme3.math.Quaternion(rad2);
-		//
-		// rad2= newQuat2.toAngles(null);
-		//
-		// System.out.printf("R%.8f: P%.8f: Y%.8f\n", rad2[1], rad2[2],
-		// rad2[0]);
-		//
-		// System.out.println(quat2.toString());
-
-	}
 
 	public final static Quaternion EMPTY = new Quaternion();
 
@@ -262,24 +211,47 @@ public class Quaternion implements Comparable<Quaternion> {
 
 	public static Quaternion pow(Quaternion q, double exponent) {
 
-		if (Math.abs(q.w) > .9999f) {
-			return q;
+		return log(q).times(exponent).exp();
+		// if (Math.abs(q.w) > .9999f || exponent == 1) {
+		// return q;
+		// } else if (exponent == 0) {
+		// return new Quaternion();
+		// }
+		//
+		// // Extract the half angle alpha (alpha = theta/2)
+		//
+		// double alpha = Math.acos(q.w);
+		//
+		// // Compute new alpha value
+		//
+		// double newAlpha = alpha * exponent;
+		//
+		// double mult = Math.sin(newAlpha) / Math.sin(alpha);
+		//
+		// // Compute new wxyz values
+		//
+		// return new Quaternion(Math.cos(newAlpha), q.x * mult, q.y * mult, q.z
+		// * mult);
+	}
+
+	public static Quaternion log(Quaternion input) {
+		double a = Math.acos(input.getW());
+		double sina = Math.sin(a);
+		Quaternion ret = new Quaternion();
+
+		ret.w = 0;
+		if (sina > 0) {
+			ret.x = a * input.x / sina;
+			ret.y = a * input.y / sina;
+			ret.z = a * input.z / sina;
+		} else {
+			ret.x = ret.y = ret.z = 0;
 		}
+		return ret;
+	}
 
-		// Extract the half angle alpha (alpha = theta/2)
-
-		double alpha = Math.acos(q.w);
-
-		// Compute new alpha value
-
-		double newAlpha = alpha * exponent;
-
-		double mult = Math.sin(newAlpha) / Math.sin(alpha);
-
-		// Compute new wxyz values
-
-		return new Quaternion(Math.cos(newAlpha), q.x * mult, q.y * mult, q.z
-				* mult);
+	public Quaternion log() {
+		return log(this);
 	}
 
 	public Quaternion exp() {
@@ -287,12 +259,15 @@ public class Quaternion implements Comparable<Quaternion> {
 	}
 
 	public static Quaternion exp(Quaternion input) {
-		double inputA = input.w;
-		Quaternion inputV = new Quaternion(0, input.x, input.y, input.z);
-		double outputA = Math.exp(inputA) * Math.cos(inputV.getNorm());
-		Quaternion outputV = (inputV.normalized().times(Math.sin(inputV
-				.getNorm()))).times(Math.exp(inputA));
-		return new Quaternion(outputA, outputV.x, outputV.y, outputV.z);
+		double mag = Math.exp(input.w);
+
+		double arg = Math.sqrt(input.x * input.x + input.y * input.y + input.z
+				* input.z);
+
+		double multiplier = mag * Math.sin(arg) / arg;
+
+		return new Quaternion(mag * Math.cos(arg), input.x * multiplier,
+				input.y * multiplier, input.z * multiplier);
 	}
 
 	public double[] getAnglesRad() {

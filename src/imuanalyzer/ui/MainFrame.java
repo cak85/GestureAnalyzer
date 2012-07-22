@@ -120,7 +120,7 @@ public class MainFrame extends JFrame {
 		createChartManager();
 
 		menuFactory = new MenuFactory(hand, chartOrientation,
-				chartsAcceleration, chartsFeeling, chartsRelation,true);
+				chartsAcceleration, chartsFeeling, chartsRelation, true);
 
 		visual3d.setMenuFactory(menuFactory);
 
@@ -148,9 +148,9 @@ public class MainFrame extends JFrame {
 
 		jointMappingSettingsPanel = new JPanel(new BorderLayout());
 		jtp.addTab("Mapping", jointMappingSettingsPanel);
-		
+
 		relationPanel = new RelationPanel(hand);
-		jtp.addTab("Relations",relationPanel);
+		jtp.addTab("Relations", relationPanel);
 
 		settingsPanel = new SettingsPanel(sensors);
 		jtp.addTab("Settings", settingsPanel);
@@ -217,7 +217,7 @@ public class MainFrame extends JFrame {
 		c.gridx = 0;
 		c.gridy = 0;
 		c.insets = new Insets(10, 0, 0, 0);
-		TopToolbar topBar = new TopToolbar(visual3d);
+		TopToolbar topBar = new TopToolbar(sensors, visual3d);
 		mainPanel.add(topBar, c);
 
 		rightToolBarPanel = new ToolbarPanel(hand, sensors, this, visual3d);
@@ -229,7 +229,7 @@ public class MainFrame extends JFrame {
 		c.gridx = 3; // aligned with button 2
 		c.gridwidth = 2; // 1 columns wide
 		c.gridy = 2;
-		c.gridheight = 4;
+		c.gridheight = 3;
 		c.insets = new Insets(10, 10, 10, 10);
 
 		mainPanel.add(rightToolBarPanel, c);
@@ -243,8 +243,9 @@ public class MainFrame extends JFrame {
 		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
+		c.weightx = 2; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 3; // 1 columns wide
+		c.gridwidth = 4; // 1 columns wide
 		c.gridy = 5;
 		c.gridheight = 0;
 		c.insets = new Insets(0, 0, 10, 0);

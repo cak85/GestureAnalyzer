@@ -7,13 +7,19 @@ import imuanalyzer.filter.Quaternion;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Based on http://code.google.com/p/9dof-orientation-estimation/
+ * 
+ * @author "Christopher-Eyk Hrabia"
+ * 
+ */
 public class QuaternionComplementaryFilter extends Filter {
 
 	private static final int IIR_LENGTH = 10;
 
 	// TODO Ist verantwortlich für das weiterdriften (original war 0.98 aber
 	// damit drift mit 1 oder 0.99 weniger)
-	private static double k = 1;//0.999;
+	private static double k = 1;// 0.999;
 
 	public List<Double> aAcc;
 	public List<Double> bAcc;
@@ -44,7 +50,6 @@ public class QuaternionComplementaryFilter extends Filter {
 	Quaternion qFilt;
 	Quaternion qGyroFilt;
 	Quaternion qObserv;
-
 
 	public QuaternionComplementaryFilter() {
 		initInteral();
@@ -105,7 +110,7 @@ public class QuaternionComplementaryFilter extends Filter {
 	@Override
 	public Quaternion filterStep(double w_x, double w_y, double w_z,
 			double a_x, double a_y, double a_z, double m_x, double m_y,
-			double m_z) {
+			double m_z, float temp) {
 
 		double norm = 0;
 
@@ -194,10 +199,10 @@ public class QuaternionComplementaryFilter extends Filter {
 			double accelNorm = currentDynAcceleration.getNorm();
 			// System.out.printf("AccelNorm: %.3f\n", accelNorm);
 
-			if (accelNorm == 0) { //no Acceleration = no Rotation
-				//I think this is not necessary because orientation was already
-				//adjusted last time
-				//this.qFilt = updateAndAdjust(qFilt);
+			if (accelNorm == 0) { // no Acceleration = no Rotation
+				// I think this is not necessary because orientation was already
+				// adjusted last time
+				// this.qFilt = updateAndAdjust(qFilt);
 				return qFilt;
 			}
 
@@ -223,9 +228,8 @@ public class QuaternionComplementaryFilter extends Filter {
 						m_y, m_z, qFilt.getQuaternionAsVector()));
 			}
 
-			
-		    qFilt = qGyroFilt.times(k).plus(qObserv.times(1 - k));
-			
+			qFilt = qGyroFilt.times(k).plus(qObserv.times(1 - k));
+
 			norm = qFilt.getNorm();
 
 			this.qFilt = updateAndAdjust(qFilt.times(1 / norm));
@@ -242,25 +246,37 @@ public class QuaternionComplementaryFilter extends Filter {
 	public Quaternion getFilteredQuaternions() {
 		return qFilt;
 	}
-	
+
 	@Override
 	public int getNumberOfParameters() {
-		return 1;
+		return 2;
 	}
 
 	@Override
 	public double getParameter(int index) {
-		return k;
+		switch (index) {
+		case 1:
+			return k;
+		default:
+			return obsMethod;
+		}
 	}
 
 	@Override
 	public void setParameter(int index, double value) {
-		k = value;
+		switch (index) {
+		case 1:
+			k = value;
+			break;
+		default:
+			obsMethod = (int) value;
+		}
+
 	}
 
 	@Override
 	public double getMaxValueFromParameter(int index) {
-			return 1;
+		return 1;
 	}
 
 	@Override
@@ -269,6 +285,12 @@ public class QuaternionComplementaryFilter extends Filter {
 	}
 
 	public String getParameterName(int index) {
+		switch (index) {
+		case 1:
 			return "K";
+		default:
+			return "Optimization Algorithm";
+		}
+
 	}
 }

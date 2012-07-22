@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+//TODO only possible axes! see relation..
 public class OrientationChartFrame extends JFrame {
 
 	/**

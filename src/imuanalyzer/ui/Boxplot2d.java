@@ -1,10 +1,11 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.signalprocessing.IBoxplotData;
-import imuanalyzer.signalprocessing.VectorLine;
+import imuanalyzer.signalprocessing.IStatisticsValue;
 
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -32,6 +33,26 @@ public class Boxplot2d extends JFrame {
 			.getName());
 
 	ArrayList<IBoxplotData> statistics;
+
+	class OutlierComparator implements Comparator<IStatisticsValue> {
+
+		@Override
+		public int compare(IStatisticsValue o1, IStatisticsValue o2) {
+			float prio1 = o1.getStatisticsNumberRepresentation();
+			float prio2 = o2.getStatisticsNumberRepresentation();
+
+			if (prio1 > prio2) {
+				return 1;
+			} else if (prio1 < prio2) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	// TODO check outlier painting and scale calculation for positive and
+	// negative outliers
 
 	public Boxplot2d(String title, ArrayList<IBoxplotData> statistics) {
 		super(title);
@@ -79,14 +100,19 @@ public class Boxplot2d extends JFrame {
 
 			float minOutliner = 0;
 			float maxOutliner = 0;
-			ArrayList<Object> outliners = d.getOutliners();
+			ArrayList<IStatisticsValue> outliners = d.getOutliners();
 			if (outliners.size() > 0) {
-				minOutliner = ((VectorLine) outliners.get(0)).getLength();
-				maxOutliner = ((VectorLine) outliners.get(0)).getLength();
+				//get outlier extrema
+				java.util.Collections.sort(outliners, new OutlierComparator());
+				minOutliner = outliners.get(0)
+						.getStatisticsNumberRepresentation();
+
+				maxOutliner = outliners.get(outliners.size() - 1)
+						.getStatisticsNumberRepresentation();
 			}
 
-			for (Object v : outliners) {
-				float out = ((VectorLine) v).getLength();
+			for (IStatisticsValue v : outliners) {
+				float out = v.getStatisticsNumberRepresentation();
 				if (out > maxOutliner && maxOutliner > d.getMedian()) {
 					maxOutliner = out;
 				}

@@ -59,21 +59,6 @@ public class ToolbarPanel extends JPanel {
 		JPanel subjectivePanel = new FeelingSliders(hand);
 
 		this.add(subjectivePanel, c);
-
-		// Connection
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.ipady = 0; // reset to default
-		c.weightx = 1; // request any extra vertical space
-		c.weighty = 1; // request any extra vertical space
-		c.gridx = 0; // aligned with button 2
-		c.gridwidth = 1; // 1 columns wide
-		c.gridheight = 1;
-		c.gridy = 4;
-		c.insets = new Insets(20, 0, 0, 0);
-
-		ConnectionPanel connectionPanel = new ConnectionPanel(sensors);
-
-		this.add(connectionPanel, c);
 	}
 
 	public InfoBox getInfoBox() {

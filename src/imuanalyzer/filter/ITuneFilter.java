@@ -1,5 +1,11 @@
 package imuanalyzer.filter;
 
+/**
+ * Interfaces for accessing filter parameters
+ * 
+ * @author "Christopher-Eyk Hrabia"
+ *
+ */
 public interface ITuneFilter {
 
 	int getNumberOfParameters();

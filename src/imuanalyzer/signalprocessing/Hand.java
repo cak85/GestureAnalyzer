@@ -59,7 +59,7 @@ public class Hand {
 
 		if (sensors != null) {
 			// register for record notification
-			sensors.setRecordDataNotifyListener(feelingScale);
+			sensors.getRecorder().setRecordDataNotifyListener(feelingScale);
 		}
 
 		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
@@ -345,7 +345,8 @@ public class Hand {
 		return feelingScale;
 	}
 
-	public JointRelation getJointRelation(JointType indipendent, JointType dependent) {
+	public JointRelation getJointRelation(JointType indipendent,
+			JointType dependent) {
 		Joint joint = getJoint(indipendent);
 		for (JointRelation r : joint.getRelationsToOtherJoints()) {
 			if (r.getDependent().getType().equals(dependent)) {

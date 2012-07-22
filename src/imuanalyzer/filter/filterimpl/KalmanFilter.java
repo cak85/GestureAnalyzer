@@ -11,6 +11,12 @@ import java.util.Stack;
 
 import Jama.Matrix;
 
+/**
+ * Based on http://code.google.com/p/9dof-orientation-estimation/
+ * 
+ * @author "Christopher-Eyk Hrabia"
+ * 
+ */
 public class KalmanFilter extends Filter {
 	// the variance of the roll, calculated as square of standardabweichung
 	private static double sigmaRoll = Math.pow(
@@ -202,10 +208,9 @@ public class KalmanFilter extends Filter {
 	@Override
 	public Quaternion filterStep(double w_x, double w_y, double w_z,
 			double a_x, double a_y, double a_z, double m_x, double m_y,
-			double m_z) {
+			double m_z, float temperatur) {
 		double norm;
 		Matrix temp;// =new Matrix(4,4);
-		Matrix dq = new Matrix(4, 1);
 		double mu;
 
 		// normalise the accelerometer measurement
@@ -292,16 +297,7 @@ public class KalmanFilter extends Filter {
 		countdata++;
 
 		if (this.obsMethod == 0) {
-			// after testing it seems to be better to disable computing this
-			// average smoothing by using the last orientation
-			// dq = (Quaternion.quaternionProduct(state_observed, new
-			// Quaternion(
-			// 0.0, w_x, w_y, w_z).getQuaternionAsVector())).times(0.5)
-			// .getQuaternionAsVector();
-			dq = new Quaternion(0.0, w_x, w_y, w_z).getQuaternionAsVector();
-			norm = Math.sqrt(dq.get(0, 0) * dq.get(0, 0) + dq.get(1, 0)
-					* dq.get(1, 0) + dq.get(2, 0) * dq.get(2, 0) + dq.get(3, 0)
-					* dq.get(3, 0));
+			norm = Math.sqrt(w_x * w_x + w_y * w_y + w_z * w_z);
 			if (norm == 0) {
 				return updateAndAdjust(new Quaternion(state_filtered));
 			}
@@ -378,7 +374,7 @@ public class KalmanFilter extends Filter {
 
 	@Override
 	public int getNumberOfParameters() {
-		return 3;
+		return 4;
 	}
 
 	@Override
@@ -390,8 +386,9 @@ public class KalmanFilter extends Filter {
 		case 1:
 			return sigmaPitch;
 		case 2:
-		default:
 			return sigmaYaw;
+		default:
+			return obsMethod;
 		}
 	}
 
@@ -405,8 +402,12 @@ public class KalmanFilter extends Filter {
 			sigmaPitch = value;
 			break;
 		case 2:
-		default:
+
 			sigmaYaw = value;
+		case 3:
+		default:
+			obsMethod = (int) value;
+			break;
 		}
 	}
 
@@ -428,8 +429,11 @@ public class KalmanFilter extends Filter {
 		case 1:
 			return "Sigma Pitch";
 		case 2:
-		default:
+
 			return "Sigma Yaw";
+		case 3:
+		default:
+			return "Optimization Algorithm";
 		}
 	}
 

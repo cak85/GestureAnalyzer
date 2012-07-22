@@ -1,6 +1,5 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.data.Database;
 import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuEvent;
 import imuanalyzer.device.ImuRawData;
@@ -14,7 +13,6 @@ import imuanalyzer.utils.SensorVector;
 import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.Comparator;
-import java.util.Date;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -40,7 +38,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 				return 0;
 			}
 		}
-
 	}
 
 	class FilterMapping {
@@ -72,8 +69,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 	private static final Logger LOGGER = Logger
 			.getLogger(OrientationSensorManager.class.getName());
 
-	private long lastFilterUpdate = 0;
-
 	private TreeSet<FilterMapping> filters = new TreeSet<FilterMapping>(
 			new PriorityComparator());
 
@@ -83,11 +78,9 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	private FilterTypes currentType;
 
-	private Database database = Database.getInstance();
-
 	private volatile boolean isRecording = false;
 
-	private IRecordDataNotify recordListener = null;
+	private Recorder recorder = new Recorder();
 
 	public OrientationSensorManager(FilterTypes filterType, int numberOfImus)
 			throws Exception {
@@ -99,27 +92,18 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 			this.imureader = imureader;
 
-			lastFilterUpdate = System.currentTimeMillis();
-
 			imureader.getEventManager().addEventListener(
 					new ImuUpdateListener() {
 						@Override
 						public void notifyImuDataUpdate(final ImuEvent event) {
 
-							long newFilterUpdate = System.currentTimeMillis();
-
-							final double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
-									/ (double) 1000;
-							// LOGGER.debug("SamplePeriod: " + samplePeriod);
-
-							lastFilterUpdate = newFilterUpdate;
-
 							synchronized (filterEditLock) {
 								if (isRecording) {
-									recordData(event.getData(), samplePeriod);
+									recorder.recordData(event);
 								}
 
-								processImuData(event.getData(), samplePeriod);
+								processImuData(event.getData(),
+										event.getSamplePeriod());
 							}
 						}
 
@@ -139,6 +123,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 		// update filters in logical order
 		for (FilterMapping fm : filters) {
+			
 			int id = fm.getListener().getSensorID();
 
 			if (id > -1) {
@@ -146,35 +131,19 @@ public class OrientationSensorManager implements IOrientationSensors {
 				SensorVector accel = data[id].getAccelerometer();
 				SensorVector magneto = data[id].getMagnetometer();
 				SensorVector gyro = data[id].getGyroskope();
+				float temp = data[id].getTemp();
 
 				// degree to rad
-				fm.getFilter().filterStep(samplePeriod,
-						AngleHelper.radFromDeg(gyro.x),
-						AngleHelper.radFromDeg(gyro.y),
-						AngleHelper.radFromDeg(gyro.z), accel.x, accel.y,
-						accel.z, magneto.x, magneto.y, magneto.z);
+				fm.getFilter()
+						.filterStep(samplePeriod,
+								AngleHelper.radFromDeg(gyro.x / 14.375),
+								AngleHelper.radFromDeg(gyro.y / 14.375),
+								AngleHelper.radFromDeg(gyro.z / 14.375),
+								accel.x, accel.y, accel.z, magneto.x,
+								magneto.y, magneto.z, temp);
 			}
 		}
 
-	}
-
-	private void recordData(final ImuRawData[] data, final double samplePeriod) {
-		final Date timestamp = new Date();
-
-		for (int i = 0; i < data.length; i++) {
-			SensorVector accel = data[i].getAccelerometer();
-			SensorVector magneto = data[i].getMagnetometer();
-			SensorVector gyro = data[i].getGyroskope();
-			if (i > data[i].getId()) {
-				LOGGER.error("ERRRRRRRRRRROOOOOOOR");
-			}
-			database.writeImuData(data[i].getId(), accel, gyro, magneto,
-					samplePeriod, timestamp);
-		}
-
-		if (recordListener != null) {
-			recordListener.notifyRecordNewData(timestamp);
-		}
 	}
 
 	public void setFilterType(FilterTypes filterType) {
@@ -222,6 +191,8 @@ public class OrientationSensorManager implements IOrientationSensors {
 		types.add(FilterTypes.QUATERNION_COMPLEMENTARY);
 		types.add(FilterTypes.AHRSMAHONY);
 		types.add(FilterTypes.AHRSMADGWICK);
+		types.add(FilterTypes.VARANESO_DOF);
+		types.add(FilterTypes.AHRSMADGWICK_FREEIMU);
 		return types;
 	}
 
@@ -253,11 +224,11 @@ public class OrientationSensorManager implements IOrientationSensors {
 	@Override
 	public void setRecording(boolean isRecording) {
 		this.isRecording = isRecording;
-	}
-
-	@Override
-	public void setRecordDataNotifyListener(IRecordDataNotify listener) {
-		recordListener = listener;
+		if (isRecording) {
+			recorder.startRecording();
+		} else {
+			recorder.stopRecording();
+		}
 	}
 
 	@Override
@@ -277,6 +248,11 @@ public class OrientationSensorManager implements IOrientationSensors {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public IRecorder getRecorder() {
+		return recorder;
 	}
 
 }

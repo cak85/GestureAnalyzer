@@ -124,6 +124,7 @@ public class MenuFactory {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				db.removeMarker(currentMarker);
+				finishHandler.notifyFinished();
 			}
 		});
 
