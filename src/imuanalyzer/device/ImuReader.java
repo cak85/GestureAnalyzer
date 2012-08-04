@@ -140,6 +140,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 					String transferedData = new String(buffer, 0, len);
 					StringTokenizer tokenizer = new StringTokenizer(
 							transferedData, ";");
+					// System.out.println(transferedData);
 
 					ArrayList<String> tokenList = new ArrayList<String>();
 					while (tokenizer.hasMoreTokens()) {
@@ -160,7 +161,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 						tokenList.add(token);
 					}
 
-					if (tokenList.size() >= ((NUMBER_OF_SEPARATED_VALUES * numberOfIMUs) + 1)) {
+					if (tokenList.size() >= ((NUMBER_OF_SEPARATED_VALUES * numberOfIMUs))) {
 						ImuRawData[] imuData = new ImuRawData[numberOfIMUs];
 						for (int i = 0; i < numberOfIMUs; i++) {
 							int tokenIndex = i * NUMBER_OF_SEPARATED_VALUES;
@@ -216,14 +217,21 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 								bits = Long.valueOf(
 										tokenList.get(tokenIndex + index), 16);
 								current.getMagnetometer().z = bits.intValue();
-
 							} catch (NumberFormatException e) {
 								LOGGER.error(e);
 								break; // skip current data line
 							}
 						}
+						String samplePeriodToken = tokenList
+								.get(NUMBER_OF_SEPARATED_VALUES * numberOfIMUs);
+						samplePeriodToken = samplePeriodToken.substring(0,
+								samplePeriodToken.length() - 1); // remove \n
+						Long bits = Long.valueOf(samplePeriodToken, 16);
+						// convert from mikroseconds to seconds
+						double samplePeriod = (bits.intValue() / 1000000.0); 
 
-						eventManager.fireEvent(new ImuEvent(imuData));
+						eventManager.fireEvent(new ImuEvent(imuData,
+								samplePeriod));
 
 					} else {
 						LOGGER.warn("Incomplete command: \n" + transferedData);

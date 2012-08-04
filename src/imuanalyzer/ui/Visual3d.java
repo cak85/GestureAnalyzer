@@ -161,6 +161,7 @@ public class Visual3d extends SimpleApplication {
 		setPauseOnLostFocus(false);
 
 		AppSettings settings = new AppSettings(true);
+		settings.setFrameRate(60);
 		settings.setWidth(640);
 		settings.setHeight(480);
 		this.setSettings(settings);

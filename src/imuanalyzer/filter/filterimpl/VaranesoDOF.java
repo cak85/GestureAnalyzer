@@ -76,12 +76,8 @@ public class VaranesoDOF extends Filter {
 				for (w = 0; w <= 1; w++) {
 					tmpf = Gyro[w]; // get current gyro rate in deg/s
 					tmpf *= samplePeriod; // get angle change in deg
-					Awz[w] = Math.atan2(RwEst[w], RwEst[2]) * 180 / Math.PI; // get
-																				// angle
-																				// and
-																				// convert
-																				// to
-																				// degrees
+					// get angle and convert to degrees
+					Awz[w] = Math.atan2(RwEst[w], RwEst[2]) * 180 / Math.PI; 
 					Awz[w] += tmpf; // get updated angle according to gyro
 									// movement
 				}

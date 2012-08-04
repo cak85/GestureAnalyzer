@@ -17,9 +17,8 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	private static final int IIR_LENGTH = 10;
 
-	// TODO Ist verantwortlich für das weiterdriften (original war 0.98 aber
-	// damit drift mit 1 oder 0.99 weniger)
-	private static double k = 1;// 0.999;
+	//gyro drift correction factor
+	private static double k = 1;
 
 	public List<Double> aAcc;
 	public List<Double> bAcc;

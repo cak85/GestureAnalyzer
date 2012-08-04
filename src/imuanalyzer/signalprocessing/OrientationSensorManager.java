@@ -192,8 +192,9 @@ public class OrientationSensorManager implements IOrientationSensors {
 		types.add(FilterTypes.QUATERNION_COMPLEMENTARY);
 		types.add(FilterTypes.AHRSMAHONY);
 		types.add(FilterTypes.AHRSMADGWICK);
-		types.add(FilterTypes.VARANESO_DOF);
-		types.add(FilterTypes.AHRSMADGWICK_FREEIMU);
+		//not well usable
+//		types.add(FilterTypes.VARANESO_DOF);
+//		types.add(FilterTypes.AHRSMADGWICK_FREEIMU);
 		return types;
 	}
 

@@ -1,1 +1,1 @@
-java -Djava.library.path=./IMUAnalyzer_lib -jar IMUAnalyzer.jar 
+java -Djava.library.path=./IMUAnalyzer_lib -jar IMUAnalyzer.jar >> log_win.txt

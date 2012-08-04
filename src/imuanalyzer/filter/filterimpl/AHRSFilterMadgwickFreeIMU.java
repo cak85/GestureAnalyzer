@@ -3,6 +3,12 @@ package imuanalyzer.filter.filterimpl;
 import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.Quaternion;
 
+/**
+ * Based on Arduino implementation of FreeIMU Library, this code is also based on madgwick
+ * http://www.varesano.net/projects/hardware/FreeIMU
+ * @author "Christopher-Eyk Hrabia"
+ *
+ */
 public class AHRSFilterMadgwickFreeIMU extends Filter {
 
 	double iq0, iq1, iq2, iq3;
@@ -108,8 +114,8 @@ public class AHRSFilterMadgwickFreeIMU extends Filter {
 		if (halfex != 0.0 && halfey != 0.0 && halfez != 0.0) {
 			// Compute and apply integral feedback if enabled
 			if (twoKi > 0.0) {
-				integralFBx += twoKi * halfex * samplePeriod; // integral error
-																// scaled by Ki
+				// integral error scaled by Ki
+				integralFBx += twoKi * halfex * samplePeriod; 
 				integralFBy += twoKi * halfey * samplePeriod;
 				integralFBz += twoKi * halfez * samplePeriod;
 				gx += integralFBx; // apply integral feedback

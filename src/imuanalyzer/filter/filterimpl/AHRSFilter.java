@@ -34,9 +34,9 @@ public class AHRSFilter extends Filter {
 	// ----------------------------------------------------------------------------------------------------
 	// Definitions
 
-	protected static double Kp = 0;     // proportional gain governs rate of
-										// convergence to
-										// accelerometer/magnetometer
+	protected static double Kp = 0; // proportional gain governs rate of
+									// convergence to
+									// accelerometer/magnetometer
 	protected static double Ki = 0.000; // integral gain governs rate of
 										// convergence of gyroscope
 										// biases
@@ -86,8 +86,8 @@ public class AHRSFilter extends Filter {
 		double q2q3 = q2 * q3;
 		double q3q3 = q3 * q3;
 
-		double halfT = samplePeriod / 2; // half the sample period (inverse of
-											// sample rate) in s
+		// half the sample period (inverse of sample rate) in s
+		double halfT = samplePeriod / 2;
 
 		// normalise the measurements
 		norm = Math.sqrt(ax * ax + ay * ay + az * az);
@@ -124,14 +124,10 @@ public class AHRSFilter extends Filter {
 		ey = (az * vx - ax * vz) + (mz * wx - mx * wz);
 		ez = (ax * vy - ay * vx) + (mx * wy - my * wx);
 
-		// TODO I got better results without that correction...??
 		// integral error scaled integral gain
 		exInt = exInt + ex * Ki;
 		eyInt = eyInt + ey * Ki;
 		ezInt = ezInt + ez * Ki;
-
-		// System.out.println("E  x:" + exInt + " y:" + eyInt + " z:" +
-		// ezInt);
 
 		// adjusted gyroscope measurements
 		gx = gx + Kp * ex + exInt;

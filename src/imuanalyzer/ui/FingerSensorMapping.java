@@ -191,14 +191,14 @@ public class FingerSensorMapping extends JPanel {
 		updateCurrentMarker();
 
 	}
-	
+
 	protected void updateCurrentMarker() {
 		int index = datasetComboBox.getSelectedIndex();
-		if (index > -1) {
+		if (index > 1) {
 			currentActiveMarker = markers.get(index);
 			updateSpinners();
-		}else{
-			currentActiveMarker = markers.get(0);
+		} else {
+			currentActiveMarker = hand.getCurrentMarker();
 		}
 	}
 
@@ -256,6 +256,7 @@ public class FingerSensorMapping extends JPanel {
 
 	/***
 	 * Update color of spinner regarding sensor id
+	 * 
 	 * @param id
 	 * @param spinner
 	 */
@@ -271,9 +272,10 @@ public class FingerSensorMapping extends JPanel {
 	}
 
 	/***
-	 * handle sensor id changes 
+	 * handle sensor id changes
+	 * 
 	 * @author "Christopher-Eyk Hrabia"
-	 *
+	 * 
 	 */
 	class SensorChangeListener implements ChangeListener {
 

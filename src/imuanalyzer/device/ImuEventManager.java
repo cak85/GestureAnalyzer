@@ -13,9 +13,7 @@ public class ImuEventManager {
 	private ImuUpdateListener currentListener = null;
 
 	private BlockingQueue<ImuEvent> events = new ArrayBlockingQueue<ImuEvent>(
-			500, false);
-
-	private long lastFilterUpdate = 0;
+			1000, false);
 
 	Worker worker;
 
@@ -49,22 +47,6 @@ public class ImuEventManager {
 	}
 
 	public void fireEvent(ImuEvent event) {
-
-		// ignore first event
-		if (lastFilterUpdate == 0) {
-			lastFilterUpdate = System.currentTimeMillis();
-			return;
-		}
-
-		long newFilterUpdate = System.currentTimeMillis();
-
-		double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
-				/ (double) 1000;
-		//LOGGER.debug("SamplePeriod: " + samplePeriod);
-
-		lastFilterUpdate = newFilterUpdate;
-
-		event.setSamplePeriod(samplePeriod);
 
 		events.add(event);
 	}
