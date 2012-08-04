@@ -75,7 +75,7 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 		// add the chart to the this:
 		this.getContentPane().add(chartpanel);
 		this.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
-		this.setSize(400, 200);
+		this.setSize(500, 200);
 		// Enable the termination button [cross on the upper right edge]:
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {

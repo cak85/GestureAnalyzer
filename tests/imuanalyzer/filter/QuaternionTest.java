@@ -194,7 +194,6 @@ public class QuaternionTest {
 			quatRes = quatRes.quaternionProduct(quat1);
 		}
 
-		// TODO pow ist not correct..?
 		quatRes = quat1.pow(1 / (float) trials);
 
 		double[] angles = quatRes.getAnglesDeg();

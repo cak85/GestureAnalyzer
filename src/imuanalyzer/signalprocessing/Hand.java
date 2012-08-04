@@ -3,6 +3,7 @@ package imuanalyzer.signalprocessing;
 import imuanalyzer.data.Database;
 import imuanalyzer.data.Marker;
 import imuanalyzer.filter.Quaternion;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -62,47 +63,41 @@ public class Hand {
 			sensors.getRecorder().setRecordDataNotifyListener(feelingScale);
 		}
 
-		Restriction fingerTopRestriction = new Restriction(-1, 0.05, 0, 0, 0, 0);
-
 		Joint elemKT = new Joint(this, JointType.LITTLE_TOP, sensors,
-				fingerTopRestriction);
+				db.getJointConstraint(JointType.LITTLE_TOP));
 		Joint elemRT = new Joint(this, JointType.RING_TOP, sensors,
-				fingerTopRestriction);
+				db.getJointConstraint(JointType.RING_TOP));
 		Joint elemMT = new Joint(this, JointType.MIDDLE_TOP, sensors,
-				fingerTopRestriction);
+				db.getJointConstraint(JointType.MIDDLE_TOP));
 		Joint elemZT = new Joint(this, JointType.INDEX_TOP, sensors,
-				fingerTopRestriction);
+				db.getJointConstraint(JointType.INDEX_TOP));
 		Joint elemDT = new Joint(this, JointType.THUMB_TOP, sensors,
-				fingerTopRestriction);
-
-		Restriction fingerMidRestriction = new Restriction(-1.8, 0.05, 0, 0, 0,
-				0);
+				db.getJointConstraint(JointType.THUMB_TOP));
 
 		Joint elemKM = new Joint(this, JointType.LITTLE_MID, sensors,
-				fingerMidRestriction);
+				db.getJointConstraint(JointType.LITTLE_MID));
 		Joint elemRM = new Joint(this, JointType.RING_MID, sensors,
-				fingerMidRestriction);
+				db.getJointConstraint(JointType.RING_MID));
 		Joint elemMM = new Joint(this, JointType.MIDDLE_MID, sensors,
-				fingerMidRestriction);
+				db.getJointConstraint(JointType.MIDDLE_MID));
 		Joint elemZM = new Joint(this, JointType.INDEX_MID, sensors,
-				fingerMidRestriction);
+				db.getJointConstraint(JointType.INDEX_MID));
 		Joint elemDM = new Joint(this, JointType.THUMB_MID, sensors,
-				fingerMidRestriction);
-
-		Restriction fingerBottomRestriction = new Restriction(-1.5, 0.05, -0.2,
-				+0.2, 0, 0);
+				db.getJointConstraint(JointType.THUMB_MID));
 
 		Joint elemKD = new Joint(this, JointType.LITTLE_BOTTOM, sensors,
-				fingerBottomRestriction);
+				db.getJointConstraint(JointType.LITTLE_BOTTOM));
 		Joint elemRD = new Joint(this, JointType.RING_BOTTOM, sensors,
-				fingerBottomRestriction);
+				db.getJointConstraint(JointType.RING_BOTTOM));
 		Joint elemMD = new Joint(this, JointType.MIDDLE_BOTTOM, sensors,
-				fingerBottomRestriction);
+				db.getJointConstraint(JointType.MIDDLE_BOTTOM));
 		Joint elemZD = new Joint(this, JointType.INDEX_BOTTOM, sensors,
-				fingerBottomRestriction);
-		Joint elemDD = new Joint(this, JointType.THUMB_BOTTOM, sensors);
+				db.getJointConstraint(JointType.INDEX_BOTTOM));
+		Joint elemDD = new Joint(this, JointType.THUMB_BOTTOM, sensors,
+				db.getJointConstraint(JointType.THUMB_BOTTOM));
 
-		Joint elemHR = new Joint(this, JointType.HAND_ROOT, sensors);
+		Joint elemHR = new Joint(this, JointType.HAND_ROOT, sensors,
+				db.getJointConstraint(JointType.HAND_ROOT));
 
 		elemHR.addChild(elemKD);
 		elemHR.addChild(elemRD);
@@ -367,6 +362,74 @@ public class Hand {
 		name = name.replace(" ", "_");
 
 		return JointType.valueOf(name.toUpperCase());
+	}
+
+	public static void writeDefaultJointConstraints(Database db) {
+		Restriction fingerTopRestriction = new Restriction(
+				-AngleHelper.radFromDeg(70), AngleHelper.radFromDeg(10), 0, 0,
+				0, 0);
+
+		db.setJointConstraint(JointType.LITTLE_TOP, fingerTopRestriction);
+		db.setJointConstraint(JointType.RING_TOP, fingerTopRestriction);
+		db.setJointConstraint(JointType.MIDDLE_TOP, fingerTopRestriction);
+		db.setJointConstraint(JointType.INDEX_TOP, fingerTopRestriction);
+
+		Restriction thumbTopRestriction = new Restriction(
+				-AngleHelper.radFromDeg(90), 0, 0, 0, 0, 0);
+
+		db.setJointConstraint(JointType.THUMB_TOP, thumbTopRestriction);
+
+		Restriction fingerMidRestriction = new Restriction(
+				-AngleHelper.radFromDeg(110), AngleHelper.radFromDeg(2), 0, 0,
+				0, 0);
+
+		db.setJointConstraint(JointType.LITTLE_MID, fingerMidRestriction);
+		db.setJointConstraint(JointType.RING_MID, fingerMidRestriction);
+		db.setJointConstraint(JointType.MIDDLE_MID, fingerMidRestriction);
+		db.setJointConstraint(JointType.INDEX_MID, fingerMidRestriction);
+
+		Restriction thumbMidRestriction = new Restriction(
+				-AngleHelper.radFromDeg(85), AngleHelper.radFromDeg(2), 0, 0,
+				0, 0);
+		db.setJointConstraint(JointType.THUMB_MID, thumbMidRestriction);
+
+		Restriction fingerBottomRestriction = new Restriction(
+				-AngleHelper.radFromDeg(90), AngleHelper.radFromDeg(10), -0.2,
+				+0.2, 0, 0);
+
+		db.setJointConstraint(JointType.LITTLE_BOTTOM, fingerBottomRestriction);
+		db.setJointConstraint(JointType.RING_BOTTOM, fingerBottomRestriction);
+		db.setJointConstraint(JointType.MIDDLE_BOTTOM, fingerBottomRestriction);
+		db.setJointConstraint(JointType.INDEX_BOTTOM, fingerBottomRestriction);
+		
+		Restriction thumbBottomRestriction = new Restriction(
+				-AngleHelper.radFromDeg(50), AngleHelper.radFromDeg(30), -AngleHelper.radFromDeg(25),
+				AngleHelper.radFromDeg(10), 0, 0);
+		db.setJointConstraint(JointType.THUMB_BOTTOM, thumbBottomRestriction);
+
+	}
+
+	public static void writeDefaultJointRelations(Database db) {
+
+		JointRelation relation = new JointRelation(new Joint(null,
+				JointType.INDEX_TOP, null), new Joint(null,
+				JointType.INDEX_MID, null), 2f / 3f);
+		db.setJointRelation(relation);
+		relation = new JointRelation(
+				new Joint(null, JointType.MIDDLE_TOP, null), new Joint(null,
+						JointType.MIDDLE_MID, null), 2f / 3f);
+		db.setJointRelation(relation);
+		relation = new JointRelation(new Joint(null, JointType.RING_TOP, null),
+				new Joint(null, JointType.RING_MID, null), 2f / 3f);
+		db.setJointRelation(relation);
+		relation = new JointRelation(
+				new Joint(null, JointType.LITTLE_TOP, null), new Joint(null,
+						JointType.LITTLE_MID, null), 2f / 3f);
+		db.setJointRelation(relation);
+		relation = new JointRelation(
+				new Joint(null, JointType.THUMB_TOP, null), new Joint(null,
+						JointType.THUMB_MID, null), 2f / 3f);
+		db.setJointRelation(relation);
 	}
 
 }

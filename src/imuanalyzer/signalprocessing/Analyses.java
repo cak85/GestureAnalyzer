@@ -24,7 +24,7 @@ public class Analyses {
 			.getName());
 
 	public enum AnalysesMode {
-		AVG, SUM, GRAPH, NONE
+		AVG, SUM, WITHOUTPOSTPROCCESIG, NONE
 	};
 
 	private AnalysesMode mode = AnalysesMode.SUM;
@@ -113,37 +113,45 @@ public class Analyses {
 			FilterTypes _filterType, ArrayList<JointType> _movementStartJoint,
 			ArrayList<JointType> _touchJoint,
 			ArrayList<Float> specialPercentPoints,
-			IAnalysisExtension chartFiller, boolean withTouchBox,
+			IAnalysisExtension extension, boolean withTouchBox,
 			boolean withMinMotionBox, boolean withMaxMotionBox) {
 
 		this.markers = _markers;
 		this.mode = mode;
 		this.specialPercentPoints = specialPercentPoints;
-		this.analysisExtension = chartFiller;
+		this.analysisExtension = extension;
 
-		progress.setMaxSteps(markers.size() + 2);
-		progress.setStepSize(1);
+		if (progress != null) {
+			progress.setMaxSteps(markers.size() + 2);
+			progress.setStepSize(1);
+		}
 
 		prepare(_markers, _filterType, _movementStartJoint, _touchJoint);
 
 		switch (mode) {
 		case AVG:
 			calculateMotionAvg();
-			progress.stepUp();
-			progress.stepUp();
+			if (progress != null) {
+				progress.stepUp();
+				progress.stepUp();
+			}
 			break;
 		case SUM:
 			calculateMotionSum();
-			progress.stepUp();
+			if (progress != null) {
+				progress.stepUp();
+			}
 			calculateBoxPlots(specialPercentPoints, withTouchBox,
 					withMinMotionBox, withMaxMotionBox);
-			progress.stepUp();
+			if (progress != null) {
+				progress.stepUp();
+			}
 			break;
-		case GRAPH:
+		case WITHOUTPOSTPROCCESIG:
 		default:
 			break;
 		}
-		LOGGER.info("Calculation complete");
+//		LOGGER.info("Calculation complete");
 	}
 
 	private void prepare(ArrayList<Marker> _markers, FilterTypes _filterType,
@@ -153,9 +161,6 @@ public class Analyses {
 		this.filterType = _filterType;
 		this.saveMotionJoints = _saveMotionJoints;
 		this.saveTouchJoints = _touchJoints;
-
-		LOGGER.debug("Start calulation with FilterType " + filterType
-				+ " and startJoint: " + saveMotionJoints);
 
 		hands.clear();
 
@@ -219,8 +224,8 @@ public class Analyses {
 
 								double samplePeriod = newData.getSamplePeriod();
 								sumSamplePeriod += samplePeriod;
-								
-								//we have only one scale entry per set
+
+								// we have only one scale entry per set
 								if (feelingData.size() > currentSet.length) {
 									hand.getComfortScale().setAllValues(
 											feelingData.get(currentSet.length));
@@ -232,8 +237,7 @@ public class Analyses {
 								currentSet[newData.getId()] = newData;
 
 								if (analysisExtension != null) {
-									analysisExtension.update(hand, markerIdx,
-											sumSamplePeriod);
+									analysisExtension.update(hand, markerIdx);
 								}
 							}
 						}
@@ -244,7 +248,9 @@ public class Analyses {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				progress.stepUp();
+				if (progress != null) {
+					progress.stepUp();
+				}
 			}
 		});
 		analysisExtension.finished();

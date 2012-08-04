@@ -26,6 +26,7 @@ import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -86,13 +87,13 @@ public class MarkerControl extends JPanel {
 
 	protected JComboBox markerComboBox;
 
-	protected Marker currentActiveMarker;
-
 	protected Hand hand;
 
 	private MarkerControl myInstance;
 
 	protected MainFrame frame;
+
+	protected Marker currentActiveMarker;
 
 	protected ArrayList<Marker> markers;
 
@@ -105,6 +106,8 @@ public class MarkerControl extends JPanel {
 	protected JToggleButton buttonRec;
 
 	protected JToggleButton buttonRepeat;
+
+	protected JToggleButton buttonSpeed;
 
 	protected AnalysisProgress progress;
 
@@ -340,7 +343,7 @@ public class MarkerControl extends JPanel {
 		buttonPanel.add(new JLabel("Speed: "));
 
 		// speed slider
-		JSlider speedSlider = new JSlider(SwingConstants.HORIZONTAL,
+		final JSlider speedSlider = new JSlider(SwingConstants.HORIZONTAL,
 				(int) (1 / playback.getSpeed()), 9, 1);
 		speedSlider.setMajorTickSpacing(4);
 		speedSlider.setMinorTickSpacing(1);
@@ -352,11 +355,47 @@ public class MarkerControl extends JPanel {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				int value = ((JSlider) e.getSource()).getValue();
-				playback.setSpeed(1 / (float) value);
+				if (buttonSpeed.isSelected()) {// slow down
+					playback.setSpeed(1 * (float) value);
+				} else { // speed uo
+					playback.setSpeed(1 / (float) value);
+				}
 			}
 		});
 
 		buttonPanel.add(speedSlider);
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		// speed switcher
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_up.png"));
+		buttonSpeed = new JToggleButton(icon);
+		icon = new ImageIcon(getClass().getResource("/Icons/sq_br_down.png"));
+		buttonSpeed.setSelectedIcon(icon);
+		final ImageIcon speedUpSelect = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_up_select.png"));
+		buttonSpeed.setRolloverIcon(speedUpSelect);
+		buttonSpeed.setSelectedIcon(icon);
+		final ImageIcon speedDownSelect = new ImageIcon(getClass().getResource(
+				"/Icons/sq_br_down_select.png"));
+		buttonSpeed.setRolloverSelectedIcon(speedDownSelect);
+		buttonSpeed.setMargin(new java.awt.Insets(0, 0, 0, 0));
+		buttonSpeed.setContentAreaFilled(false);
+		buttonSpeed
+				.setToolTipText("Change behavior of speed slider from speed up to speed down or vice versa");
+		buttonSpeed.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (buttonSpeed.isSelected()) {
+					speedSlider.setValue(1);
+					speedSlider.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+				} else {
+					speedSlider.setValue(1);
+					speedSlider.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+				}
+			}
+		});
+
+		buttonPanel.add(buttonSpeed);
 		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		// analysis button
@@ -447,7 +486,7 @@ public class MarkerControl extends JPanel {
 		icon = new ImageIcon(getClass().getResource("/Icons/edit.png"));
 
 		final JButton buttonEditData = new JButton(icon);
-		icon = new ImageIcon(getClass().getResource("/Icons/edit.png"));
+		icon = new ImageIcon(getClass().getResource("/Icons/edit_select.png"));
 		buttonEditData.setRolloverIcon(icon);
 		buttonEditData.setMargin(new java.awt.Insets(0, 0, 0, 0));
 		buttonEditData.setContentAreaFilled(false);
@@ -456,6 +495,11 @@ public class MarkerControl extends JPanel {
 		buttonEditData.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+
+				final int numberOfItems = markerComboBox.getItemCount();
+
+				final int selectedIndex = markerComboBox.getSelectedIndex();
+
 				FinishListenerHandler finishHandler = new FinishListenerHandler();
 
 				finishHandler.addFinishListener(new IPopUpFinished() {
@@ -463,6 +507,12 @@ public class MarkerControl extends JPanel {
 					@Override
 					public void notifyFinished() {
 						updateMarkers();
+						if (numberOfItems != markerComboBox.getItemCount()) {
+							int newIndex = selectedIndex - 1;
+							if (newIndex > -1) {
+								markerComboBox.setSelectedIndex(newIndex);
+							}
+						}
 					}
 				});
 
@@ -474,6 +524,8 @@ public class MarkerControl extends JPanel {
 		});
 
 		buttonPanel.add(buttonEditData);
+
+		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		playback.setNotifyer(new IPlaybackNotify() {
 
@@ -536,6 +588,10 @@ public class MarkerControl extends JPanel {
 				db.deleteFeelingData(currentActiveMarker);
 				db.removeMarker(currentActiveMarker);
 				updateMarkers();
+				index--;
+				if (index > -1) {
+					markerComboBox.setSelectedIndex(index);
+				}
 			}
 		}
 	}
@@ -699,11 +755,16 @@ public class MarkerControl extends JPanel {
 							menuFactory.getChartOrientation(),
 							menuFactory.getChartsAcceleration(),
 							menuFactory.getFeelingChart(),
-							menuFactory.getChartsRelation(),
-							selectedMarkers, maxSize,
-							selector.isShowRelationsBoxplot());
+							menuFactory.getChartsRelation(), selectedMarkers,
+							maxSize, selector.isShowRelationsBoxplot());
 				}
 				progress.setVisible(true);
+
+				if (selector.isCalculateSingleRelations()) {
+
+					filler.setChartsRelation(null);
+				}
+
 				newAnalysis.calculate(mode, selectedMarkers,
 						sensor.getCurrentFilter(), currentSavedMotionJoints,
 						currentSavedTouchJoints, selector.getSpecialPoints(),
@@ -711,7 +772,27 @@ public class MarkerControl extends JPanel {
 						selector.isShowBoxplotMotionMin3d(),
 						selector.isShowBoxplotMotionMax3d());
 
-				if (!mode.equals(AnalysesMode.GRAPH)) {
+				if (selector.isCalculateSingleRelations()) {
+					for (Marker m : selectedMarkers) {
+						ArrayList<Marker> markerList = new ArrayList<Marker>();
+						markerList.add(m);
+
+						NonDynamicChartFiller relationFiller = new NonDynamicChartFiller(
+								null, null, null,
+								menuFactory.getChartsRelation(), markerList,
+								maxSize, selector.isShowRelationsBoxplot());
+
+						newAnalysis.calculate(
+								AnalysesMode.WITHOUTPOSTPROCCESIG, markerList,
+								sensor.getCurrentFilter(),
+								new ArrayList<Hand.JointType>(1),
+								new ArrayList<Hand.JointType>(1),
+								new ArrayList<Float>(1), relationFiller, false,
+								false, false);
+					}
+				}
+
+				if (!mode.equals(AnalysesMode.WITHOUTPOSTPROCCESIG)) {
 					visual3d.setAnalyses(newAnalysis);
 				}
 

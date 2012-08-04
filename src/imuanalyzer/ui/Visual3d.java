@@ -4,6 +4,7 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.IJoint;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
@@ -12,7 +13,7 @@ import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
 import imuanalyzer.ui.swing.menu.MenuFactory;
 
-import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -20,7 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
@@ -65,11 +65,6 @@ public class Visual3d extends SimpleApplication {
 	private static final float MANUAL_ANGLE_CHANGE = 0.5f;
 
 	private static final float OPACITY_STEP = 0.005f;
-
-	/**
-	 * JPanel holding the JME3 3d view
-	 */
-	protected JPanel panel3d;
 
 	/**
 	 * Visual threedimensional representation of the hand
@@ -148,6 +143,8 @@ public class Visual3d extends SimpleApplication {
 
 	private MenuFactory menuFactory;
 
+	private JmeCanvasContext ctx;
+
 	/**
 	 * Constructor, needs handmodel
 	 * 
@@ -168,16 +165,11 @@ public class Visual3d extends SimpleApplication {
 		settings.setHeight(480);
 		this.setSettings(settings);
 		this.createCanvas();
-		JmeCanvasContext ctx = (JmeCanvasContext) this.getContext();
+		ctx = (JmeCanvasContext) this.getContext();
 		ctx.setSystemListener(this);
 		ctx.getCanvas().setSize(settings.getWidth(), settings.getHeight());
 
-		panel3d = new JPanel(new BorderLayout()); // a panel
-
-		// add the JME canvas
-		panel3d.add(ctx.getCanvas(), BorderLayout.CENTER);
-
-		HelpManager.getInstance().enableHelpKey(panel3d, "3dview");
+		ctx.getCanvas().setMinimumSize(new java.awt.Dimension(10, 10));
 
 		this.startCanvas();
 
@@ -349,6 +341,16 @@ public class Visual3d extends SimpleApplication {
 				+ currentManipulatedJoint.toString());
 	}
 
+	/**
+	 * Manual joint manipulation
+	 * 
+	 * @param joint
+	 *            joint to change
+	 * @param axis
+	 *            axis to change
+	 * @param value
+	 *            value to add
+	 */
 	private void manualAddToQuat(JointType joint, Axis axis, double value) {
 		Quaternion quat = hand.getLocalJointOrientation(joint);
 
@@ -359,16 +361,14 @@ public class Visual3d extends SimpleApplication {
 
 		Quaternion newQuat = new Quaternion(angles[0], angles[1], angles[2]);
 
-		// System.out.printf("R%.3f: P%.3f: Y%.3f\n", angles[0], angles[1],
-		// angles[2]);
-		//
-		// newQuat.print(3);
-
 		hand.setLocalJointOrientation(joint, newQuat);
 
 	}
-	
-	private void updateCollisionData(){
+
+	/**
+	 * Update model bounds
+	 */
+	private void updateCollisionData() {
 		for (Geometry geo : linesPoolMotion) {
 			geo.getMesh().createCollisionData();
 			geo.updateModelBound();
@@ -377,10 +377,15 @@ public class Visual3d extends SimpleApplication {
 			geo.getMesh().createCollisionData();
 			geo.updateModelBound();
 		}
-		
+
 		visualHand.updateCollisionData();
 	}
 
+	/**
+	 * Pick nearest geometry by mouse
+	 * 
+	 * @return picked geometry, null if none available
+	 */
 	private Geometry mousePick() {
 		// Reset results list.
 		CollisionResults results = new CollisionResults();
@@ -415,6 +420,12 @@ public class Visual3d extends SimpleApplication {
 				// The closest result is the target that the player picked:
 				Geometry target = mousePick();
 
+				Vector2f click2d = inputManager.getCursorPosition();
+
+				int x = (int) (click2d.x);
+
+				int y = (int) (ctx.getCanvas().getSize().getHeight() - click2d.y);
+
 				if (target != null) {
 
 					String targetName = target.getName();
@@ -433,9 +444,7 @@ public class Visual3d extends SimpleApplication {
 
 					}
 					if (menu != null) {
-						Vector2f click2d = inputManager.getCursorPosition();
-						menu.show(panel3d, (int) click2d.x + 10,
-								settings.getHeight() - (int) click2d.y);
+						menu.show(ctx.getCanvas(), x + 10, y);
 					}
 				}
 			}
@@ -657,6 +666,9 @@ public class Visual3d extends SimpleApplication {
 		}
 	}
 
+	/**
+	 * Update all types of lines painted on this 3d screen
+	 */
 	private void updateLines() {
 		// update touch lines
 		ArrayList<TouchAnalysis> touchAnalysises = hand
@@ -694,6 +706,7 @@ public class Visual3d extends SimpleApplication {
 			MotionAnalysis m = motionAnalysises.get(i);
 			JointType type = m.getObservedJoint().getType();
 			JointSetting setting = visualJointSettings.get(type);
+
 
 			if (linesPoolMotion.size() <= i * 2) {
 				Geometry geom = Utils.CreateLinesVec(assetManager,
@@ -909,8 +922,8 @@ public class Visual3d extends SimpleApplication {
 		setDisplayStatView(isShown);
 	}
 
-	public JPanel get3dPanel() {
-		return panel3d;
+	public Canvas getCanvas() {
+		return ctx.getCanvas();
 	}
 
 	public void setDeviceVisible(final boolean isVisible) {

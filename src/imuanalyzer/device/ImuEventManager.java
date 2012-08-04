@@ -60,7 +60,7 @@ public class ImuEventManager {
 
 		double samplePeriod = ((double) newFilterUpdate - (double) lastFilterUpdate)
 				/ (double) 1000;
-		// LOGGER.debug("SamplePeriod: " + samplePeriod);
+		//LOGGER.debug("SamplePeriod: " + samplePeriod);
 
 		lastFilterUpdate = newFilterUpdate;
 

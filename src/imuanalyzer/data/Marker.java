@@ -13,7 +13,7 @@ public class Marker {
 	protected Date start = null;
 	protected Date end = null;
 
-	private static final String DEFAULT_MARKER_NAME = "DefaultMarker";
+	private static final String DEFAULT_MARKER_NAME = "Default";
 
 	public static Marker getDefaultMarker() {
 		return new Marker(DEFAULT_MARKER_NAME, "", 1, new Date(0),new Date(0));

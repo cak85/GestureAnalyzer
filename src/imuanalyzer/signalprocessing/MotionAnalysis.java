@@ -114,14 +114,10 @@ public class MotionAnalysis implements IInfoContent {
 		if (newState.compareTo(getMinMovementStep().move) < 0) {
 			minId = savedMovementFlow.size() - 1;
 			minIds.add(minId);
-			minLines = getLineToId(minIds);
-			// LOGGER.debug("new min " + minId);
 		}
 		if (newState.compareTo(getMaxMovementStep().move) > 0) {
 			maxId = savedMovementFlow.size() - 1;
 			maxIds.add(maxId);
-			maxLines = getLineToId(maxIds);
-			// LOGGER.debug("new max " + maxId);
 		}
 	}
 
@@ -166,10 +162,12 @@ public class MotionAnalysis implements IInfoContent {
 	}
 
 	public ArrayList<VectorLine> getMaxLine() {
+		maxLines = getLineToId(maxIds);
 		return maxLines;
 	}
 
 	public ArrayList<VectorLine> getMinLine() {
+		minLines = getLineToId(minIds);
 		return minLines;
 	}
 

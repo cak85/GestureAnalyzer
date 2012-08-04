@@ -5,9 +5,10 @@ import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.JointRelation;
-import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.Restriction;
 import imuanalyzer.utils.SensorVector;
 
 import java.sql.Connection;
@@ -59,6 +60,16 @@ public class Database {
 	final static String IMU_RELATION_TABLE_JOINT_ID_INDEPT = "JointIdIndept";
 	final static String IMU_RELATION_TABLE_ID = "ID";
 
+	final static String JOINT_CONSTRAINT_TABLE_NAME = "JointConstraint";
+	final static String JOINT_CONSTRAINT_TABLE_ID = "ConstraintId";
+	final static String JOINT_CONSTRAINT_TABLE_JOINT_ID = "JointId";
+	final static String JOINT_CONSTRAINT_TABLE_XMIN = "xmin";
+	final static String JOINT_CONSTRAINT_TABLE_XMAX = "xmax";
+	final static String JOINT_CONSTRAINT_TABLE_YMIN = "ymin";
+	final static String JOINT_CONSTRAINT_TABLE_YMAX = "ymax";
+	final static String JOINT_CONSTRAINT_TABLE_ZMIN = "zmin";
+	final static String JOINT_CONSTRAINT_TABLE_ZMAX = "zmax";
+
 	final static String IMU_CONFIGURATION_TABLE_NAME = "Configuration";
 	final static String IMU_CONFIGURATION_TABLE_ID = "Id";
 	final static String IMU_CONFIGURATION_TABLE_FILTER_ID = "FilterId";
@@ -96,7 +107,8 @@ public class Database {
 
 	Connection conn;
 
-	// TODO extends with temp
+	// TODO extends with temp --> not important right now, temperature is not
+	// used
 	static final StringBuilder writeImuData = new StringBuilder("insert into ")
 			.append(IMU_DATA_TABLE_NAME).append(" (")
 			.append(IMU_DATA_TABLE_TIME).append(",")
@@ -246,22 +258,28 @@ public class Database {
 			execute(createString.toString());
 			// init default
 			// define relation between joints
-			JointRelation relation = new JointRelation(new Joint(null,
-					JointType.INDEX_TOP, null), new Joint(null,
-					JointType.INDEX_MID, null), 2f / 3f);
-			setJointRelation(relation);
-			relation = new JointRelation(new Joint(null, JointType.MIDDLE_TOP,
-					null), new Joint(null, JointType.MIDDLE_MID, null), 2f / 3f);
-			setJointRelation(relation);
-			relation = new JointRelation(new Joint(null, JointType.RING_TOP,
-					null), new Joint(null, JointType.RING_MID, null), 2f / 3f);
-			setJointRelation(relation);
-			relation = new JointRelation(new Joint(null, JointType.LITTLE_TOP,
-					null), new Joint(null, JointType.LITTLE_MID, null), 2f / 3f);
-			setJointRelation(relation);
-			relation = new JointRelation(new Joint(null, JointType.THUMB_TOP,
-					null), new Joint(null, JointType.THUMB_MID, null), 2f / 3f);
-			setJointRelation(relation);
+			Hand.writeDefaultJointRelations(this);
+
+		}
+
+		if (!existsTable(JOINT_CONSTRAINT_TABLE_NAME)) {
+			// create joint relation table
+			createString = new StringBuilder("create table ")
+					.append(JOINT_CONSTRAINT_TABLE_NAME).append(" (")
+					.append(JOINT_CONSTRAINT_TABLE_ID)
+					.append(" BIGINT IDENTITY PRIMARY KEY, ")
+					.append(JOINT_CONSTRAINT_TABLE_JOINT_ID).append(" INT, ")
+					.append(JOINT_CONSTRAINT_TABLE_XMIN).append(" DOUBLE, ")
+					.append(JOINT_CONSTRAINT_TABLE_XMAX).append(" DOUBLE, ")
+					.append(JOINT_CONSTRAINT_TABLE_YMIN).append(" DOUBLE, ")
+					.append(JOINT_CONSTRAINT_TABLE_YMAX).append(" DOUBLE, ")
+					.append(JOINT_CONSTRAINT_TABLE_ZMIN).append(" DOUBLE, ")
+					.append(JOINT_CONSTRAINT_TABLE_ZMAX).append(" DOUBLE, ")
+					.append(");");
+			execute(createString.toString());
+			// init default
+			// define constraints for joints
+			Hand.writeDefaultJointConstraints(this);
 
 		}
 
@@ -865,6 +883,10 @@ public class Database {
 	}
 
 	public ArrayList<Marker> getAvailableMarkers() {
+		return getAvailableMarkers(false);
+	}
+
+	public ArrayList<Marker> getAvailableMarkers(boolean withDefault) {
 		ArrayList<Marker> markers = new ArrayList<Marker>();
 
 		Statement statement = null;
@@ -876,8 +898,13 @@ public class Database {
 				.append(IMU_MARKER_TABLE_MARKER_DESCRIPTION).append(",")
 				.append(IMU_MARKER_TABLE_START_TIME).append(",")
 				.append(IMU_MARKER_TABLE_END_TIME).append(" from ")
-				.append(IMU_MARKER_TABLE_NAME).append(" where ")
-				.append(IMU_MARKER_TABLE_ID).append("!=1");
+				.append(IMU_MARKER_TABLE_NAME);
+
+		// decide if you want to select default first marker or not
+		if (!withDefault) {
+			select = select.append(" where ").append(IMU_MARKER_TABLE_ID)
+					.append("!=1");
+		}
 
 		try {
 			statement = conn.createStatement();
@@ -1188,6 +1215,133 @@ public class Database {
 			}
 		}
 		return retID;
+	}
+
+	public Restriction getJointConstraint(JointType id) {
+
+		Restriction restrict = null;
+
+		StringBuilder select = new StringBuilder("select ")
+				.append(JOINT_CONSTRAINT_TABLE_XMIN).append(", ")
+				.append(JOINT_CONSTRAINT_TABLE_XMAX).append(", ")
+				.append(JOINT_CONSTRAINT_TABLE_YMIN).append(", ")
+				.append(JOINT_CONSTRAINT_TABLE_YMAX).append(", ")
+				.append(JOINT_CONSTRAINT_TABLE_ZMIN).append(", ")
+				.append(JOINT_CONSTRAINT_TABLE_ZMAX).append(" from ")
+				.append(JOINT_CONSTRAINT_TABLE_NAME).append(" where ")
+				.append(JOINT_CONSTRAINT_TABLE_JOINT_ID).append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(select.toString());
+			stmt.setInt(1, id.ordinal());
+			ResultSet res = stmt.executeQuery();
+
+			if (res.next()) {
+				double xmin = res.getDouble(JOINT_CONSTRAINT_TABLE_XMIN);
+				double xmax = res.getDouble(JOINT_CONSTRAINT_TABLE_XMAX);
+				double ymin = res.getDouble(JOINT_CONSTRAINT_TABLE_YMIN);
+				double ymax = res.getDouble(JOINT_CONSTRAINT_TABLE_YMAX);
+				double zmin = res.getDouble(JOINT_CONSTRAINT_TABLE_ZMIN);
+				double zmax = res.getDouble(JOINT_CONSTRAINT_TABLE_ZMAX);
+
+				restrict = new Restriction(xmin, xmax, ymin, ymax, zmin, zmax);
+			}
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return restrict;
+	}
+
+	private boolean updateJointConstraint(JointType id, Restriction constraint) {
+
+		boolean ret = false;
+
+		StringBuilder update = new StringBuilder("update ")
+				.append(JOINT_CONSTRAINT_TABLE_NAME).append(" set ")
+				.append(JOINT_CONSTRAINT_TABLE_XMIN).append("=? ,")
+				.append(JOINT_CONSTRAINT_TABLE_XMAX).append("=? ,")
+				.append(JOINT_CONSTRAINT_TABLE_YMIN).append("=? ,")
+				.append(JOINT_CONSTRAINT_TABLE_YMAX).append("=? ,")
+				.append(JOINT_CONSTRAINT_TABLE_ZMIN).append("=? ,")
+				.append(JOINT_CONSTRAINT_TABLE_ZMAX).append("=? ")
+				.append(" where ").append(JOINT_CONSTRAINT_TABLE_JOINT_ID)
+				.append("=?");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(update.toString());
+			stmt.setDouble(1, constraint.minRoll);
+			stmt.setDouble(2, constraint.maxRoll);
+			stmt.setDouble(3, constraint.minPitch);
+			stmt.setDouble(4, constraint.maxPitch);
+			stmt.setDouble(5, constraint.minYaw);
+			stmt.setDouble(6, constraint.maxYaw);
+			stmt.setInt(7, id.ordinal());
+			ret = stmt.executeUpdate() > 0; // updated or not
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
+		return ret;
+	}
+
+	public void setJointConstraint(JointType id, Restriction constraint) {
+		if (updateJointConstraint(id, constraint)) {
+			return;
+		}
+
+		StringBuilder insert = new StringBuilder("insert into ")
+				.append(JOINT_CONSTRAINT_TABLE_NAME).append(" (")
+				.append(JOINT_CONSTRAINT_TABLE_XMIN).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_XMAX).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_YMIN).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_YMAX).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_ZMIN).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_ZMAX).append(",")
+				.append(JOINT_CONSTRAINT_TABLE_JOINT_ID)
+				.append(") values (?,?,?,?,?,?,?)");
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(insert.toString());
+			stmt.setDouble(1, constraint.minRoll);
+			stmt.setDouble(2, constraint.maxRoll);
+			stmt.setDouble(3, constraint.minPitch);
+			stmt.setDouble(4, constraint.maxPitch);
+			stmt.setDouble(5, constraint.minYaw);
+			stmt.setDouble(6, constraint.maxYaw);
+			stmt.setInt(7, id.ordinal());
+			stmt.execute();
+			stmt.close();
+		} catch (SQLException ex) {
+			LOGGER.error(ex);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					LOGGER.error(e);
+				}
+			}
+		}
 	}
 
 	public ArrayList<JointRelation> getJointRelation(Hand hand,

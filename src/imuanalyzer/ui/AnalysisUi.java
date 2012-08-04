@@ -84,6 +84,8 @@ public class AnalysisUi extends JDialog {
 
 	boolean showRelationsBoxplot = false;
 
+	boolean calculateSingleRelations = false;
+
 	JComboBox chartList = null;
 	JComboBox pointList = null;
 	JButton graphButton = null;
@@ -237,6 +239,8 @@ public class AnalysisUi extends JDialog {
 
 		bottomPanel.add(createChartsPanel(showChartAnalysis));
 
+		bottomPanel.add(createRelationsPanel(showChartAnalysis));
+
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout());
 
@@ -271,7 +275,7 @@ public class AnalysisUi extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				handleButton(AnalysesMode.GRAPH);
+				handleButton(AnalysesMode.WITHOUTPOSTPROCCESIG);
 			}
 		});
 		if (!showChartAnalysis) {
@@ -312,6 +316,7 @@ public class AnalysisUi extends JDialog {
 	}
 
 	protected void updateDatasetList() {
+		markers = getDatasetList();
 		list.setListData(getDatasetList().toArray());
 	}
 
@@ -428,8 +433,18 @@ public class AnalysisUi extends JDialog {
 		}
 		chartPanel.add(checkAssumeCharts);
 
+		return chartPanel;
+	}
+
+	private JPanel createRelationsPanel(boolean showChartAnalysis) {
+
+		// TODO use showChartAnalysis
+		JPanel relationPanel = new JPanel(new FlowLayout());
+
 		JCheckBox checkShowRelationsBoxplot = new JCheckBox(
 				"Show relations boxplot");
+		checkShowRelationsBoxplot
+				.setToolTipText("Show an additional 2D boxplot for calculated relations");
 		checkShowRelationsBoxplot.setSelected(false);
 		checkShowRelationsBoxplot.addChangeListener(new ChangeListener() {
 
@@ -440,9 +455,23 @@ public class AnalysisUi extends JDialog {
 			}
 		});
 
-		chartPanel.add(checkShowRelationsBoxplot);
+		relationPanel.add(checkShowRelationsBoxplot);
 
-		return chartPanel;
+		JCheckBox checkSingleRelationPlots = new JCheckBox(
+				"Calculate single relations");
+		checkSingleRelationPlots.setSelected(false);
+		checkSingleRelationPlots.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				JCheckBox source = (JCheckBox) arg0.getSource();
+				calculateSingleRelations = source.isSelected();
+			}
+		});
+
+		relationPanel.add(checkSingleRelationPlots);
+
+		return relationPanel;
 	}
 
 	private void refreshChartList() {
@@ -551,6 +580,21 @@ public class AnalysisUi extends JDialog {
 
 	public boolean isShowRelationsBoxplot() {
 		return showRelationsBoxplot;
+	}
+
+	/**
+	 * @return the calculateSingleRelations
+	 */
+	public boolean isCalculateSingleRelations() {
+		return calculateSingleRelations;
+	}
+
+	/**
+	 * @param calculateSingleRelations
+	 *            the calculateSingleRelations to set
+	 */
+	public void setCalculateSingleRelations(boolean calculateSingleRelations) {
+		this.calculateSingleRelations = calculateSingleRelations;
 	}
 
 }

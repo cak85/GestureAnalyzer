@@ -33,11 +33,11 @@ public class Restriction {
 		return (minYaw != maxYaw);
 	}
 
-	public double maxYaw = Double.MAX_VALUE;
-	public double minYaw = -Double.MAX_VALUE;
-	public double maxRoll = Double.MAX_VALUE;
-	public double minRoll = -Double.MAX_VALUE;
-	public double maxPitch = Double.MAX_VALUE;
-	public double minPitch = -Double.MAX_VALUE;
+	public double maxYaw = Math.PI;
+	public double minYaw = -Math.PI;
+	public double maxRoll = Math.PI;
+	public double minRoll = -Math.PI;
+	public double maxPitch = Math.PI;
+	public double minPitch = -Math.PI;
 
 }

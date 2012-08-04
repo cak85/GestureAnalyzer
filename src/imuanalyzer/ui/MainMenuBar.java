@@ -257,23 +257,6 @@ public class MainMenuBar extends JMenuBar {
 
 		this.add(menu);
 
-//		// options
-//		menu = new JMenu("Options");
-//
-//		menuItem = new JMenuItem("3D Settings");
-//		menuItem.addActionListener(new ActionListener() {
-//
-//			@Override
-//			public void actionPerformed(ActionEvent arg0) {
-//				visual3d.showSettings();
-//			}
-//		});
-//
-//		menu.add(menuItem);
-
-		//TODO may enable later
-		//this.add(menu);
-
 		// Build the ? menu.
 		menu = new JMenu("?");
 

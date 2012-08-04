@@ -4,6 +4,7 @@ import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.IOrientationSensors;
 import imuanalyzer.signalprocessing.OrientationSensorManagerFactory;
+import imuanalyzer.ui.swing.ConstraintPanel;
 import imuanalyzer.ui.swing.RelationPanel;
 import imuanalyzer.ui.swing.SettingsPanel;
 import imuanalyzer.ui.swing.charts.AccelerationChartManager;
@@ -80,6 +81,7 @@ public class MainFrame extends JFrame {
 	protected JPanel settingsPanel;
 	protected JPanel fingerSensorMapping;
 	protected JPanel relationPanel;
+	protected JPanel constraintPanel;
 	protected InfoBox infoBox;
 	protected ToolbarPanel rightToolBarPanel;
 
@@ -152,14 +154,17 @@ public class MainFrame extends JFrame {
 		relationPanel = new RelationPanel(hand);
 		jtp.addTab("Relations", relationPanel);
 
+		constraintPanel = new ConstraintPanel(hand);
+		jtp.addTab("Constraints", constraintPanel);
+
 		settingsPanel = new SettingsPanel(sensors);
 		jtp.addTab("Settings", settingsPanel);
 	}
 
 	private void configureFrame() {
-		this.setTitle("IMUAnalyzer");
+		this.setTitle("GestureAnalyzer");
 		this.setMinimumSize(new Dimension(250, 250));
-		this.setSize(1024, 600);
+		this.setPreferredSize(new Dimension(1024, 600));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
 				.getResource("/Icons/hand.png"));
@@ -183,9 +188,9 @@ public class MainFrame extends JFrame {
 		c.gridy = 2;
 		c.insets = new Insets(10, 0, 0, 0);
 		visual3d = new Visual3d(hand);
+		mainPanel.setMinimumSize(new Dimension(10, 10));
+		mainPanel.add(visual3d.getCanvas(), c);
 
-		JPanel jme3Panel = visual3d.get3dPanel();
-		mainPanel.add(jme3Panel, c);
 	}
 
 	protected void createChartManager() {
@@ -209,10 +214,11 @@ public class MainFrame extends JFrame {
 
 	protected void createToolbars(MenuFactory menuFactory) {
 
+		// TOP
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
-		c.gridwidth = 5;
+		c.gridwidth = 4;
 		c.gridheight = 1;
 		c.gridx = 0;
 		c.gridy = 0;
@@ -220,20 +226,22 @@ public class MainFrame extends JFrame {
 		TopToolbar topBar = new TopToolbar(sensors, visual3d);
 		mainPanel.add(topBar, c);
 
+		// SIDE
 		rightToolBarPanel = new ToolbarPanel(hand, sensors, this, visual3d);
 
 		c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1; // request any extra vertical space
-		c.weightx = 1; // request any extra vertical space
+		c.weightx = 0; // request any extra vertical space
 		c.gridx = 3; // aligned with button 2
-		c.gridwidth = 2; // 1 columns wide
+		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 2;
 		c.gridheight = 3;
 		c.insets = new Insets(10, 10, 10, 10);
 
 		mainPanel.add(rightToolBarPanel, c);
 
+		// BOTTOM
 		// marker panel
 		MarkerControl markerControl = new MarkerControl(this, visual3d,
 				sensors, hand, chartOrientation, chartsAcceleration,
@@ -243,12 +251,12 @@ public class MainFrame extends JFrame {
 		c.fill = GridBagConstraints.BOTH;
 		c.ipady = 0; // reset to default
 		c.weighty = 0; // request any extra vertical space
-		c.weightx = 2; // request any extra vertical space
+		c.weightx = 1; // request any extra vertical space
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 4; // 1 columns wide
 		c.gridy = 5;
 		c.gridheight = 0;
-		c.insets = new Insets(0, 0, 10, 0);
+		c.insets = new Insets(10, 0, 10, 0);
 
 		mainPanel.add(markerControl, c);
 	}

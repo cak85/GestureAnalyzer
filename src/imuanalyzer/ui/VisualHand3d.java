@@ -168,6 +168,7 @@ public class VisualHand3d extends Node {
 	}
 
 	private void findGeometries(Node node) {
+
 		for (Spatial s : node.getChildren()) {
 			if (s instanceof Node) {
 				findGeometries((Node) s);
@@ -246,7 +247,7 @@ public class VisualHand3d extends Node {
 	public static void setTransform(Bone bone, Vector3f pos, Quaternion rot,
 			boolean restoreBoneControl) {
 		// we ensure that we have the control
-
+		
 		bone.setUserControl(true);
 		// we set te user transforms of the bone
 		bone.setUserTransformsWorld(pos, rot);
@@ -285,15 +286,7 @@ public class VisualHand3d extends Node {
 		colorDiffuse.a = MAX_OPACITY * percentOfMax;
 
 		for (Geometry geo : geometries.get(type)) {
-			Material mat = geo.getMaterial();
-			mat.setColor("Diffuse", colorDiffuse);
-			mat.setColor("Ambient", colorAmbient);
-			mat.setBoolean("UseMaterialColors", true);
-			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-			mat.setFloat("Shininess", 0.5f);
-			geo.setMaterial(mat);
-			geo.setQueueBucket(Bucket.Transparent);
-
+			setGeomOpacity(colorAmbient, colorDiffuse, geo);
 		}
 	}
 
@@ -318,15 +311,7 @@ public class VisualHand3d extends Node {
 		}
 
 		for (Geometry geo : geometries.get(type)) {
-			Material mat = geo.getMaterial();
-			mat.setColor("Diffuse", colorDiffuse);
-			mat.setColor("Ambient", colorAmbient);
-			mat.setBoolean("UseMaterialColors", true);
-			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-			mat.setFloat("Shininess", 0.5f);
-			geo.setMaterial(mat);
-			geo.setQueueBucket(Bucket.Transparent);
-
+			setGeomOpacity(colorAmbient, colorDiffuse, geo);
 		}
 	}
 
@@ -350,16 +335,20 @@ public class VisualHand3d extends Node {
 		}
 
 		for (Geometry geo : geomtryList) {
-			Material mat = geo.getMaterial();
-			mat.setColor("Diffuse", colorDiffuse);
-			mat.setColor("Ambient", colorAmbient);
-			mat.setBoolean("UseMaterialColors", true);
-			mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-			mat.setFloat("Shininess", 0.5f);
-			geo.setMaterial(mat);
-			geo.setQueueBucket(Bucket.Transparent);
-
+			setGeomOpacity(colorAmbient, colorDiffuse, geo);
 		}
+	}
+
+	protected void setGeomOpacity(ColorRGBA colorAmbient,
+			ColorRGBA colorDiffuse, Geometry geo) {
+		Material mat = geo.getMaterial();
+		mat.setColor("Diffuse", colorDiffuse);
+		mat.setColor("Ambient", colorAmbient);
+		mat.setBoolean("UseMaterialColors", true);
+		mat.getAdditionalRenderState().setBlendMode(BlendMode.AlphaAdditive);
+		mat.setFloat("Shininess", 0.5f);
+		geo.setMaterial(mat);
+		geo.setQueueBucket(Bucket.Transparent);
 	}
 
 	public void setVisible(JointType type, boolean visible) {
@@ -378,6 +367,10 @@ public class VisualHand3d extends Node {
 				skeletonDebug.setCullHint(CullHint.Always);
 			}
 		}
+	}
+	
+	public ArrayList<Geometry> getJointGeometries(JointType type){
+		return geometries.get(type);
 	}
 
 	public void updateCollisionData() {

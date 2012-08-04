@@ -148,7 +148,7 @@ public class FeelingScale implements IRecordDataNotify {
 		} else {
 			descriptions.add(description);
 		}
-		LOGGER.debug("new feeling description: " + description);
+		//LOGGER.debug("new feeling description: " + description);
 		db.setFeeling(this);
 	}
 }

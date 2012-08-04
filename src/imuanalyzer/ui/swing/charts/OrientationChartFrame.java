@@ -81,7 +81,7 @@ public class OrientationChartFrame extends JFrame {
 		this.setIconImage(icon.getImage());
 		// add the chart to the frame:
 		this.getContentPane().add(chartpanel);
-		this.setSize(400, 200);
+		this.setSize(500, 200);
 		this.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
 		// Enable the termination button [cross on the upper right edge]:
 		this.addWindowListener(new WindowAdapter() {

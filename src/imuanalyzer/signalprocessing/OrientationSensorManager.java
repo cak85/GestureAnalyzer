@@ -1,5 +1,6 @@
 package imuanalyzer.signalprocessing;
 
+import imuanalyzer.configuration.Configuration;
 import imuanalyzer.device.IIMUDataProvider;
 import imuanalyzer.device.ImuEvent;
 import imuanalyzer.device.ImuRawData;
@@ -123,7 +124,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 		// update filters in logical order
 		for (FilterMapping fm : filters) {
-			
+
 			int id = fm.getListener().getSensorID();
 
 			if (id > -1) {
@@ -243,11 +244,9 @@ public class OrientationSensorManager implements IOrientationSensors {
 
 	@Override
 	public ITuneFilter getCurrentTuning() {
-		if (filters.size() > 0) {
-			return filters.first().getFilter();
-		} else {
-			return null;
-		}
+		//THIS works because conficutation in Filter is always static!
+		return FilterFactory.getFilter(Configuration.getInstance()
+				.getFilterType());
 	}
 
 	@Override

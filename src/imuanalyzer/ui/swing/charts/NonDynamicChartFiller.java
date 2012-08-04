@@ -1,17 +1,17 @@
 package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.data.Marker;
-import imuanalyzer.signalprocessing.IAnalysisExtension;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.signalprocessing.IAnalysisExtension;
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.RelationStatistics;
 import imuanalyzer.ui.Boxplot2d;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.swing.JFrame;
 
@@ -51,58 +51,64 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 		this.showRelationBoxplot = showRelationBoxplot;
 
 		// relations
-		int i = 0;
-		for (JointRelationChartFrame chart : chartsRelation.getCharts()) {
-			JointRelationChartFrame frame = chartsRelation.getStaticChart(
-					selectedMarkers.get(i).getName(), chart.type1, chart.type2,
-					maxData);
-			staticRelationCharts.add(frame);
-			i++;
+		if (chartsRelation != null) {
+			int i = 0;
+			for (JointRelationChartFrame chart : chartsRelation.getCharts()) {
+				JointRelationChartFrame frame = chartsRelation.getStaticChart(
+						selectedMarkers.get(i).getName(), chart.type1,
+						chart.type2, maxData);
+				staticRelationCharts.add(frame);
+				i++;
+			}
 		}
 
 		// orientations
-		Set<Entry<JointType, OrientationChartFrame>> orientationCharts = chartOrientation
-				.getCharts().entrySet();
-		for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
-			OrientationChartFrame frame = chartOrientation.getStaticChart(
-					chart.getKey(), orientationCharts.size(), maxData);
-			staticOrientationCharts.add(frame);
+		if (chartOrientation != null) {
+			Set<Entry<JointType, OrientationChartFrame>> orientationCharts = chartOrientation
+					.getCharts().entrySet();
+			for (Entry<JointType, OrientationChartFrame> chart : orientationCharts) {
+				OrientationChartFrame frame = chartOrientation.getStaticChart(
+						chart.getKey(), orientationCharts.size(), maxData);
+				staticOrientationCharts.add(frame);
+			}
 		}
 
 		// acceleration
-		for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
-			AccelerationChartFrame frame = chartsAcceleration.getStaticChart(
-					chart.getType(), maxData);
-			staticAccelerationCharts.add(frame);
+		if (chartsAcceleration != null) {
+			for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
+				AccelerationChartFrame frame = chartsAcceleration
+						.getStaticChart(chart.getType(), maxData);
+				staticAccelerationCharts.add(frame);
+			}
 		}
 
 		// feeling
-		if (feelingChart.isEnabled()) {
+		if (feelingChart != null && feelingChart.isEnabled()) {
 			staticFeelingChart = feelingChart.getStaticChart(maxData);
 		}
 
 	}
 
-	public synchronized void update(Hand hand, int idx, Double sumSamplePeriod) {
+	public synchronized void update(Hand hand, int idx) {
 
-		if (sumSamplePeriod % JointRelationChartManager.UPDATE_CYCLE < 10) {
-			for (JointRelationChartFrame chart : staticRelationCharts) {
-				chart.setHand(hand);
-				chart.update();
-			}
+		// if (sumSamplePeriod % JointRelationChartManager.UPDATE_CYCLE < 10) {
+		for (JointRelationChartFrame chart : staticRelationCharts) {
+			chart.setHand(hand);
+			chart.update();
 		}
-		if (sumSamplePeriod % OrientationChartManager.UPDATE_CYCLE < 10) {
-			for (OrientationChartFrame chart : staticOrientationCharts) {
-				chart.setHand(hand);
-				chart.update(idx);
-			}
+		// }
+		// if (sumSamplePeriod % OrientationChartManager.UPDATE_CYCLE < 10) {
+		for (OrientationChartFrame chart : staticOrientationCharts) {
+			chart.setHand(hand);
+			chart.update(idx);
 		}
-		if (sumSamplePeriod % AccelerationChartManager.UPDATE_CYCLE < 10) {
-			for (AccelerationChartFrame chart : staticAccelerationCharts) {
-				chart.setHand(hand);
-				chart.update();
-			}
+		// }
+		// if (sumSamplePeriod % AccelerationChartManager.UPDATE_CYCLE < 10) {
+		for (AccelerationChartFrame chart : staticAccelerationCharts) {
+			chart.setHand(hand);
+			chart.update();
 		}
+		// }
 		if (staticFeelingChart != null) {
 			staticFeelingChart.setHand(hand);
 			staticFeelingChart.update();
@@ -130,7 +136,7 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 			frame.setVisible(true);
 		}
 		// feeling
-		if (feelingChart.isEnabled()) {
+		if (feelingChart != null && feelingChart.isEnabled()) {
 			staticFeelingChart.setVisible(true);
 		}
 
@@ -159,5 +165,20 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 			new Boxplot2d("Joint Relations", boxplotDataSets);
 
 		}
+	}
+
+	/**
+	 * @return the chartsRelation
+	 */
+	public JointRelationChartManager getChartsRelation() {
+		return chartsRelation;
+	}
+
+	/**
+	 * @param chartsRelation
+	 *            the chartsRelation to set
+	 */
+	public void setChartsRelation(JointRelationChartManager chartsRelation) {
+		this.chartsRelation = chartsRelation;
 	}
 }

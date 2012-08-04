@@ -52,7 +52,11 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		this.hand = hand;
 		this.type = f;
 		this.sensors = sensors;
-		this.restriction = restriction;
+		if (restriction == null) {
+			this.restriction = new Restriction();
+		} else {
+			this.restriction = restriction;
+		}
 		name = Hand.jointTypeToName(type);
 	}
 

@@ -1,5 +1,7 @@
 package imuanalyzer.ui;
 
+import imuanalyzer.data.Database;
+import imuanalyzer.data.Marker;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.swing.extensions.RelativeLayout;
@@ -12,13 +14,20 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -46,11 +55,26 @@ public class FingerSensorMapping extends JPanel {
 
 	Hand hand;
 
+	JComboBox datasetComboBox;
+	protected ArrayList<Marker> markers;
+	protected Marker currentActiveMarker;
+
+	Database db;
+
+	FingerSensorMapping myInstance;
+
 	public FingerSensorMapping(Hand hand, int numberOfSensors) {
 		this.numberOfSensors = numberOfSensors;
 		this.hand = hand;
+		myInstance = this;
 
 		HelpManager.getInstance().enableHelpKey(this, "jointsensormapping");
+
+		try {
+			db = Database.getInstance();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
 
 		BufferedImage img = null;
 		try {
@@ -67,11 +91,30 @@ public class FingerSensorMapping extends JPanel {
 
 		this.setLayout(new BorderLayout());
 
+		JPanel datasetPanel = new JPanel(new FlowLayout());
+
 		JLabel infoText = new JLabel(
-				"<html><h2>Select sensor-id's for hand links</h2></html>",
+				"<html><h2>Select sensor-id's for hand links of dataset: </h2></html>",
 				SwingConstants.CENTER);
 
-		this.add(infoText, BorderLayout.NORTH);
+		datasetPanel.add(infoText);
+
+		datasetComboBox = new JComboBox();
+		datasetComboBox.setToolTipText("Select dataset joint mapping");
+		datasetComboBox.setEditable(true);
+
+		updateDatasetList();
+		datasetComboBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				updateCurrentMarker();
+			}
+
+		});
+
+		datasetPanel.add(datasetComboBox);
+
+		this.add(datasetPanel, BorderLayout.NORTH);
 
 		this.add(picturePanel, BorderLayout.CENTER);
 
@@ -136,6 +179,40 @@ public class FingerSensorMapping extends JPanel {
 
 		this.add(buttonPanel, BorderLayout.SOUTH);
 
+		this.addHierarchyListener(new HierarchyListener() {
+			public void hierarchyChanged(HierarchyEvent e) {
+				if ((HierarchyEvent.SHOWING_CHANGED & e.getChangeFlags()) != 0
+						&& myInstance.isShowing()) {
+					updateDatasetList();
+					updateCurrentMarker();
+				}
+			}
+		});
+		updateCurrentMarker();
+
+	}
+	
+	protected void updateCurrentMarker() {
+		int index = datasetComboBox.getSelectedIndex();
+		if (index > -1) {
+			currentActiveMarker = markers.get(index);
+			updateSpinners();
+		}else{
+			currentActiveMarker = markers.get(0);
+		}
+	}
+
+	/**
+	 * Update marker combobox list
+	 */
+	private void updateDatasetList() {
+		datasetComboBox.removeAllItems();
+		markers = db.getAvailableMarkers(true);
+		for (int i = 0; i < markers.size(); i++) {
+
+			datasetComboBox.addItem(markers.get(i).getName());
+		}
+		datasetComboBox.setSelectedIndex(0);
 	}
 
 	private JSpinner addHandSpinner(JointType finger, int xOffset, int yOffset) {
@@ -157,12 +234,31 @@ public class FingerSensorMapping extends JPanel {
 		return spinner;
 	}
 
+	/**
+	 * set all markers to zero
+	 */
 	private void resetAllSpinners() {
 		for (Entry<JointType, JSpinner> e : spinners.entrySet()) {
 			e.getValue().setValue(0);
 		}
 	}
 
+	/**
+	 * Load mapping from db to spinners
+	 */
+	private void updateSpinners() {
+		for (Entry<JointType, JSpinner> e : spinners.entrySet()) {
+			int id = db.getJointSensorMapping(currentActiveMarker, e.getKey());
+			e.getValue().setValue(id + 1);
+			updateSpinnerColor(id, e.getValue());
+		}
+	}
+
+	/***
+	 * Update color of spinner regarding sensor id
+	 * @param id
+	 * @param spinner
+	 */
 	private void updateSpinnerColor(int id, JSpinner spinner) {
 		JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner
 				.getEditor();
@@ -174,6 +270,11 @@ public class FingerSensorMapping extends JPanel {
 		}
 	}
 
+	/***
+	 * handle sensor id changes 
+	 * @author "Christopher-Eyk Hrabia"
+	 *
+	 */
 	class SensorChangeListener implements ChangeListener {
 
 		JointType f;
@@ -186,11 +287,18 @@ public class FingerSensorMapping extends JPanel {
 
 		@Override
 		public void stateChanged(ChangeEvent e) {
+
 			JSpinner s = (JSpinner) e.getSource();
 			int id = ((Integer) s.getValue()) - 1;
-			hand.setSensorID(f, id);
-			hand.saveJointSensorMapping(f);
+			// set mapping of current live motion hand
+			if (hand.getCurrentMarker() == currentActiveMarker) {
 
+				hand.setSensorID(f, id);
+				hand.saveJointSensorMapping(f);
+
+			} else { // set stored mapping
+				db.setJointSensorMapping(currentActiveMarker, f, id);
+			}
 			updateSpinnerColor(id, s);
 		}
 

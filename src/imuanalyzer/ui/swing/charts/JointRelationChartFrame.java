@@ -6,7 +6,6 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.Restriction;
 import imuanalyzer.utils.math.AngleHelper;
 import imuanalyzer.utils.math.LinearRegression;
-import imuanalyzer.utils.math.RunningAvg;
 import imuanalyzer.utils.parallel.IIntervalUpdate;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
@@ -37,7 +36,9 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 	 */
 	private static final long serialVersionUID = -3870599753179111998L;
 
-	protected double[] currentRelation = { 0, 0, 0 };
+	protected double[] currentAngles1 = { 0, 0, 0 };
+
+	protected double[] currentAngles2 = { 0, 0, 0 };
 
 	protected JointType type1;
 	protected JointType type2;
@@ -81,8 +82,11 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 		chart = new Chart2D();
 
-		String j1Name = hand.getJoint(type1).getInfoName();
-		String j2Name = hand.getJoint(type2).getInfoName();
+		Joint j1 = hand.getJoint(type1);
+		Joint j2 = hand.getJoint(type2);
+
+		String j1Name = j1.getInfoName();
+		String j2Name = j2.getInfoName();
 
 		chart.getAxisX().setAxisTitle(
 				new AxisTitle("Angle in degree of " + j1Name));
@@ -91,10 +95,6 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 		LayoutFactory lfct = LayoutFactory.getInstance();
 		ChartPanel chartpanel = new ChartPanel(chart);
-
-		Joint j1 = hand.getJoint(type1);
-
-		Joint j2 = hand.getJoint(type2);
 
 		Restriction r1 = j1.getRestriction();
 		Restriction r2 = j2.getRestriction();
@@ -154,7 +154,7 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 		}
 		this.add(allResultPanel, BorderLayout.SOUTH);
 
-		this.setSize(400, 200);
+		this.setSize(500, 200);
 		this.setJMenuBar(lfct.createChartMenuBar(chartpanel, false));
 		// Enable the termination button [cross on the upper right edge]:
 		this.addWindowListener(new WindowAdapter() {
@@ -178,13 +178,15 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 		double[] angles2 = hand.getJoint(type2).getRotationBetweenParent()
 				.getAnglesRad();
 
-		double[] newReleation = { angles1[0] / angles2[0],
-				angles1[1] / angles2[1], angles1[2] / angles2[2] };
-
-		if (Math.abs(currentRelation[0] - newReleation[0]) > 0.001
-				|| Math.abs(currentRelation[1] - newReleation[1]) > 0.001
-				|| Math.abs(currentRelation[2] - newReleation[2]) > 0.001) {
-			currentRelation = newReleation;
+		if (Math.abs(angles1[0] - currentAngles1[0]) > 0.0001
+				|| Math.abs(angles1[1] - currentAngles1[1]) > 0.0001
+				|| Math.abs(angles1[2] - currentAngles1[2]) > 0.0001
+				|| Math.abs(angles2[0] - currentAngles2[0]) > 0.0001
+				|| Math.abs(angles2[1] - currentAngles2[1]) > 0.0001
+				|| Math.abs(angles2[2] - currentAngles2[2]) > 0.0001) {
+			
+			currentAngles1 = angles1;
+			currentAngles2 = angles2;
 			int i = 0;
 			for (ITrace2D trace : rawPoints) {
 				double x = Math.abs(AngleHelper.degFromRad(angles1[i]));

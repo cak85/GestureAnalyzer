@@ -33,7 +33,7 @@ public class TouchAnalysis implements IInfoContent {
 
 	VectorLine currentLine;
 
-	LowPass directionLowPass = new LowPass(0.5f);
+	LowPass directionLowPass = new LowPass(0.8f);
 
 	String infoName;
 

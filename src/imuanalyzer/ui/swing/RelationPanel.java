@@ -288,8 +288,6 @@ public class RelationPanel extends JPanel {
 		for (JointType type : JointType.values()) {
 			for (JointRelation relation : hand.getJoint(type)
 					.getRelationsToOtherJoints()) {
-				System.out.println(type + " "
-						+ relation.getDependent().getType());
 
 				tableModel.addRow(new Object[] {
 						""
