@@ -127,6 +127,12 @@ public class Hand {
 		loadJointRelations();
 	}
 
+	public void refreshJointConstraintsFromDB() {
+		for (JointType j : JointType.values()) {
+			getJoint(j).setRestriction(db.getJointConstraint(j));
+		}
+	}
+
 	/**
 	 * refresh current sensor mapping from marker
 	 */

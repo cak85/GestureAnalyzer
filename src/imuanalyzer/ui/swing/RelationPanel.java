@@ -7,6 +7,7 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.JointRelation;
 import imuanalyzer.ui.HelpManager;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -79,11 +80,11 @@ public class RelationPanel extends JPanel {
 		JPanel listPanel = createRelationsListing();
 
 		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.NONE;
+		c.fill = GridBagConstraints.BOTH;
 		c.anchor = GridBagConstraints.NORTHWEST;
 		c.ipady = 0; // reset to default
-		c.weighty = 1; // request any extra vertical space
-		c.weightx = 1;
+		c.weighty = 2; // request any extra vertical space
+		c.weightx = 2;
 		c.gridx = 0; // aligned with button 2
 		c.gridwidth = 1; // 1 columns wide
 		c.gridy = 1;
@@ -154,9 +155,10 @@ public class RelationPanel extends JPanel {
 		refreshTable();
 
 		JScrollPane scrollPane = new JScrollPane(table);
-		JPanel listing = new JPanel();
+		//scrollPane.setPreferredSize(new Dimension(300,180));
+		JPanel listing = new JPanel(new BorderLayout());
 
-		listing.add(scrollPane);
+		listing.add(scrollPane,BorderLayout.CENTER);
 
 		return listing;
 	}

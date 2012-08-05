@@ -14,6 +14,7 @@ import imuanalyzer.ui.swing.charts.OrientationChartManager;
 import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -163,7 +164,7 @@ public class MainFrame extends JFrame {
 
 	private void configureFrame() {
 		this.setTitle("GestureAnalyzer");
-		this.setMinimumSize(new Dimension(250, 250));
+		this.setMinimumSize(new Dimension(450, 350));
 		this.setPreferredSize(new Dimension(1024, 600));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ImageIcon icon = new ImageIcon(getClass()
@@ -188,8 +189,9 @@ public class MainFrame extends JFrame {
 		c.gridy = 2;
 		c.insets = new Insets(10, 0, 0, 0);
 		visual3d = new Visual3d(hand);
-		mainPanel.setMinimumSize(new Dimension(10, 10));
-		mainPanel.add(visual3d.getCanvas(), c);
+		Canvas canvas = visual3d.getCanvas();
+		canvas.setMinimumSize(new Dimension(10, 10));
+		mainPanel.add(canvas, c);
 
 	}
 

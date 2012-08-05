@@ -78,6 +78,7 @@ public class VisualHand3d extends Node {
 
 	/**
 	 * Selects model based on given quality
+	 * 
 	 * @param quality
 	 * @return
 	 */
@@ -195,8 +196,15 @@ public class VisualHand3d extends Node {
 				findGeometries((Node) s);
 			} else if (s instanceof Geometry) {
 				Geometry geom = (Geometry) s;
-				geometries.get(Utils.getJointTypeFromGeometry(geom)).add(geom);
-				geomtryList.add(geom);
+				//two possibilities
+				JointType type = Utils
+						.getJointTypeFromGeomertyByOrderMapping(geom);
+				// JointType type =
+				// Utils.getJointTypeFromGeometryNamePostfix(geom);
+				if (type != null) {
+					geometries.get(type).add(geom);
+					geomtryList.add(geom);
+				}
 			}
 		}
 	}

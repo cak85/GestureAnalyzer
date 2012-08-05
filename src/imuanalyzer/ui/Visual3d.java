@@ -297,7 +297,7 @@ public class Visual3d extends SimpleApplication {
 			Quaternion quat = Utils.getSensorQuad(visualHand
 					.getBoneRotation(type));
 
-			entry.getValue().setLocalOrientation(quat);
+			entry.getValue().setLocalRestOrientation(quat);
 
 			Vector3f pos = visualHand.getBonePosition(type);
 			entry.getValue().setLocalPosition(
@@ -441,10 +441,16 @@ public class Visual3d extends SimpleApplication {
 						// create popUp with further options
 						menu = menuFactory.getDevicePopUpMenu(myInstance,
 								deviceDummy);
-					} else if (targetName.contains("HAND")) {
+					} else if (targetName.toLowerCase().contains("hand")) {
 						// create popUp with further options
-						menu = menuFactory.getHandPopUpMenu(myInstance,
-								Utils.getJointTypeFromGeometry(target));
+						// JointType type = Utils
+						// .getJointTypeFromGeometryNamePostfix(target);
+						JointType type = Utils
+								.getJointTypeFromGeomertyByOrderMapping(target);
+						if (type != null) {
+							menu = menuFactory.getHandPopUpMenu(myInstance,
+									type);
+						}
 
 					}
 					if (menu != null) {

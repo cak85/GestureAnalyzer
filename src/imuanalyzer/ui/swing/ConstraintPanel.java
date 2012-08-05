@@ -214,7 +214,8 @@ public class ConstraintPanel extends JPanel {
 
 	private SpinnerModel getRestrictionModel() {
 		SpinnerModel restrictionSpinnerModel = new SpinnerNumberModel(
-				new Double(0), new Double(-180), new Double(180), new Double(0.01));
+				new Double(0), new Double(-180), new Double(180), new Double(
+						0.01));
 		return restrictionSpinnerModel;
 	}
 
@@ -234,6 +235,8 @@ public class ConstraintPanel extends JPanel {
 				AngleHelper.radFromDeg(zmax));
 
 		db.setJointConstraint(type, constraint);
+
+		hand.refreshJointConstraintsFromDB();
 	}
 
 	private void updateRestrictions() {

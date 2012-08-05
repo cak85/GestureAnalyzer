@@ -343,7 +343,7 @@ public class Utils {
 	 * @param geom
 	 * @return
 	 */
-	public static JointType getJointTypeFromGeometry(Geometry geom) {
+	public static JointType getJointTypeFromGeometryNamePostfix(Geometry geom) {
 		String name = geom.getName();
 
 		int pointIdx = name.indexOf(".");
@@ -363,6 +363,62 @@ public class Utils {
 		} else {
 			return null;
 		}
+	}
+
+	public static JointType getJointTypeFromGeomertyByOrderMapping(Geometry geom) {
+
+		String name = geom.getName();
+
+		if (name.equals("Hand-geom-1")) {
+			return JointType.HAND_ROOT;
+		}
+		if (name.equals("Hand-geom-2")) {
+			return JointType.THUMB_BOTTOM;
+		}
+		if (name.equals("Hand-geom-3")) {
+			return JointType.THUMB_MID;
+		}
+		if (name.equals("Hand-geom-4") || name.equals("Hand-geom-18")) {
+			return JointType.THUMB_TOP;
+		}
+		if (name.equals("Hand-geom-5")) {
+			return JointType.INDEX_BOTTOM;
+		}
+		if (name.equals("Hand-geom-6")) {
+			return JointType.INDEX_MID;
+		}
+		if (name.equals("Hand-geom-7") || name.equals("Hand-geom-17")) {
+			return JointType.INDEX_TOP;
+		}
+		if (name.equals("Hand-geom-8")) {
+			return JointType.MIDDLE_BOTTOM;
+		}
+		if (name.equals("Hand-geom-9")) {
+			return JointType.MIDDLE_MID;
+		}
+		if (name.equals("Hand-geom-10") || name.equals("Hand-geom-19")) {
+			return JointType.MIDDLE_TOP;
+		}
+		if (name.equals("")) {
+			return JointType.RING_BOTTOM;
+		}
+		if (name.equals("Hand-geom-11")) {
+			return JointType.RING_MID;
+		}
+		if (name.equals("Hand-geom-12") || name.equals("Hand-geom-20")) {
+			return JointType.RING_TOP;
+		}
+		if (name.equals("Hand-geom-13")) {
+			return JointType.LITTLE_BOTTOM;
+		}
+		if (name.equals("Hand-geom-14")) {
+			return JointType.LITTLE_MID;
+		}
+		if (name.equals("Hand-geom-15") || name.equals("Hand-geom-16")) {
+			return JointType.LITTLE_TOP;
+		}
+
+		return null;
 	}
 
 	public static Node findNodeByName(Node node, String name) {

@@ -108,7 +108,7 @@ public class Database {
 	Connection conn;
 
 	// TODO extends with temp --> not important right now, temperature is not
-	// used
+	// used on pc
 	static final StringBuilder writeImuData = new StringBuilder("insert into ")
 			.append(IMU_DATA_TABLE_NAME).append(" (")
 			.append(IMU_DATA_TABLE_TIME).append(",")

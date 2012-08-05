@@ -31,6 +31,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	protected Quaternion localOrientation = new Quaternion();
 
+	protected Quaternion localRestOrientation = new Quaternion();
+
 	protected Quaternion localPosition = new Quaternion();
 
 	protected Restriction restriction;
@@ -147,31 +149,48 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		boolean update = false;
 
+		// restriction constraints are relative to rest position
+		Quaternion restOrientation = getWorldRestOrientation();
+
+		if (parent != null) {
+			restOrientation = restOrientation.quaternionProduct(parent
+					.getWorldRestOrientation().getConjugate());
+		}
+
+		double[] anglesRest = restOrientation.getAnglesRad();
+
+		double maxRoll = restriction.maxRoll + anglesRest[0];
+		double minRoll = restriction.minRoll + anglesRest[0];
+		double maxPitch = restriction.maxPitch + anglesRest[1];
+		double minPitch = restriction.minPitch + anglesRest[1];
+		double maxYaw = restriction.maxYaw + anglesRest[2];
+		double minYaw = restriction.minYaw + anglesRest[2];
+
 		// System.out.printf("R[%.3f;%.3f] P[%.3f;%.3f] Y[%.3f;%.3f]\n",
 		// restriction.minRoll, restriction.maxRoll, restriction.minPitch,
 		// restriction.maxPitch, restriction.minYaw, restriction.maxYaw);
 		//
 		// System.out.printf("Diff R%.3f: P%.3f: Y%.3f\n", roll, pitch, yaw);
 
-		if (roll > restriction.maxRoll) {
-			rollOff = restriction.maxRoll - roll;
+		if (roll > maxRoll) {
+			rollOff = maxRoll - roll;
 			update = true;
-		} else if (roll < restriction.minRoll) {
-			rollOff = restriction.minRoll - roll;
-			update = true;
-		}
-		if (pitch > restriction.maxPitch) {
-			pitchOff = restriction.maxPitch - pitch;
-			update = true;
-		} else if (pitch < restriction.minPitch) {
-			pitchOff = restriction.minPitch - pitch;
+		} else if (roll < minRoll) {
+			rollOff = minRoll - roll;
 			update = true;
 		}
-		if (yaw > restriction.maxYaw) {
-			yawOff = restriction.maxYaw - yaw;
+		if (pitch > maxPitch) {
+			pitchOff = maxPitch - pitch;
 			update = true;
-		} else if (yaw < restriction.minYaw) {
-			yawOff = restriction.minYaw - yaw;
+		} else if (pitch < minPitch) {
+			pitchOff = minPitch - pitch;
+			update = true;
+		}
+		if (yaw > maxYaw) {
+			yawOff = maxYaw - yaw;
+			update = true;
+		} else if (yaw < minYaw) {
+			yawOff = minYaw - yaw;
 			update = true;
 		}
 
@@ -268,6 +287,29 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 			// first could be removed with some improvements in sensor
 			sensors.addListener(this);
 		}
+	}
+
+	public void setLocalRestOrientation(Quaternion orientation) {
+		localRestOrientation = orientation;
+		setLocalOrientation(localRestOrientation);
+		calcWorldRestOrientation();
+	}
+
+	Quaternion wordRestOrientation;
+
+	public Quaternion getWorldRestOrientation() {
+		return wordRestOrientation;
+	}
+
+	protected void calcWorldRestOrientation() {
+		Quaternion worldOrientation;
+		if (parent != null) {
+			worldOrientation = parent.getWorldRestOrientation()
+					.quaternionProduct(localRestOrientation);
+		} else {
+			worldOrientation = localRestOrientation;
+		}
+		wordRestOrientation = worldOrientation;
 	}
 
 	public void setLocalPosition(Quaternion pos) {
