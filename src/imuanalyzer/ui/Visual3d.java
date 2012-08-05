@@ -4,13 +4,13 @@ import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Analyses;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.signalprocessing.IJoint;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.MotionAnalysis;
 import imuanalyzer.signalprocessing.MovementStep;
 import imuanalyzer.signalprocessing.StoredJointState;
 import imuanalyzer.signalprocessing.TouchAnalysis;
 import imuanalyzer.ui.VisualHand3d.HandOrientation;
+import imuanalyzer.ui.VisualHand3d.ModelQuality;
 import imuanalyzer.ui.swing.menu.MenuFactory;
 
 import java.awt.Canvas;
@@ -70,6 +70,8 @@ public class Visual3d extends SimpleApplication {
 	 * Visual threedimensional representation of the hand
 	 */
 	protected VisualHand3d visualHand;
+
+	protected ModelQuality modelQuality = ModelQuality.HIGH;
 
 	/**
 	 * Datamodel of the hand
@@ -216,7 +218,8 @@ public class Visual3d extends SimpleApplication {
 
 		attachLight();
 
-		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true);
+		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true,
+				modelQuality);
 
 		visualHand.getModel().setShadowMode(ShadowMode.CastAndReceive);
 
@@ -579,7 +582,7 @@ public class Visual3d extends SimpleApplication {
 			// add additional hand geometries for movement if necessary
 			while (numberOfLiveSteps > liveMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
-						HandOrientation.LEFT, false);
+						HandOrientation.LEFT, false, modelQuality);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				liveMovementSteps.add(newHand);
 				visualHand.attachChild(newHand);
@@ -592,7 +595,7 @@ public class Visual3d extends SimpleApplication {
 			// add additional hand geometries for movement if necessary
 			while (numberOfStoredSteps > analysesMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
-						HandOrientation.LEFT, false);
+						HandOrientation.LEFT, false, modelQuality);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				analysesMovementSteps.add(newHand);
 				visualHand.attachChild(newHand);
@@ -707,7 +710,6 @@ public class Visual3d extends SimpleApplication {
 			MotionAnalysis m = motionAnalysises.get(i);
 			JointType type = m.getObservedJoint().getType();
 			JointSetting setting = visualJointSettings.get(type);
-
 
 			if (linesPoolMotion.size() <= i * 2) {
 				Geometry geom = Utils.CreateLinesVec(assetManager,

@@ -30,7 +30,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
 
 public class VisualHand3d extends Node {
-	
+
 	public static final float MAX_OPACITY = 0.95f;
 
 	private static ExecutorService executor = Executors.newCachedThreadPool();
@@ -43,6 +43,10 @@ public class VisualHand3d extends Node {
 	public enum HandOrientation {
 		LEFT, RIGHT
 	};
+
+	public enum ModelQuality {
+		LOW, HIGH
+	}
 
 	HandOrientation orientation;
 
@@ -61,17 +65,34 @@ public class VisualHand3d extends Node {
 	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
 			JointType.class);
 
-	public VisualHand3d(AssetManager assetManager) {
-		this(assetManager, HandOrientation.RIGHT, false);
-
-	}
-
 	public VisualHand3d(AssetManager assetManager, HandOrientation orientation,
-			boolean showSkeleton) {
-		Spatial loadedAsset = assetManager.loadModel("Models/Hand/Hand.j3o");
+			boolean showSkeleton, ModelQuality quality) {
+
+		String modelPath = getModelPath(quality);
+
+		Spatial loadedAsset = assetManager.loadModel(modelPath);
 
 		model = Utils.findNodeByName((Node) loadedAsset, "Hand-ogremesh");
 		init(assetManager, orientation, showSkeleton);
+	}
+
+	/**
+	 * Selects model based on given quality
+	 * @param quality
+	 * @return
+	 */
+	protected String getModelPath(ModelQuality quality) {
+		String modelPath;
+		switch (quality) {
+		case LOW:
+			modelPath = "Models/Hand/Hand.j3o";
+			break;
+		case HIGH:
+		default:
+			modelPath = "Models/HandHi/Hand.j3o";
+			break;
+		}
+		return modelPath;
 	}
 
 	private void init(AssetManager assetManager, HandOrientation orientation,
@@ -152,9 +173,9 @@ public class VisualHand3d extends Node {
 		} catch (ExecutionException e) {
 			LOGGER.error(e);
 		}
-		
-		//force cull settings
-		for(JointType t:JointType.values()){
+
+		// force cull settings
+		for (JointType t : JointType.values()) {
 			setVisible(t, true);
 		}
 	}
@@ -247,7 +268,7 @@ public class VisualHand3d extends Node {
 	public static void setTransform(Bone bone, Vector3f pos, Quaternion rot,
 			boolean restoreBoneControl) {
 		// we ensure that we have the control
-		
+
 		bone.setUserControl(true);
 		// we set te user transforms of the bone
 		bone.setUserTransformsWorld(pos, rot);
@@ -273,9 +294,11 @@ public class VisualHand3d extends Node {
 
 	/**
 	 * Set hand part color and opacticy
+	 * 
 	 * @param type
 	 * @param color
-	 * @param percentOfMax percentage of the hardcoded max opacity value
+	 * @param percentOfMax
+	 *            percentage of the hardcoded max opacity value
 	 */
 	public void setOpacity(JointType type, ColorRGBA color, float percentOfMax) {
 
@@ -292,6 +315,7 @@ public class VisualHand3d extends Node {
 
 	/***
 	 * Set color and opacity of hand part based of count and step size
+	 * 
 	 * @param type
 	 * @param color
 	 * @param opaStep
@@ -317,6 +341,7 @@ public class VisualHand3d extends Node {
 
 	/***
 	 * Set color and opacity of whole hand based of count and step size
+	 * 
 	 * @param type
 	 * @param color
 	 * @param opaStep
@@ -368,8 +393,8 @@ public class VisualHand3d extends Node {
 			}
 		}
 	}
-	
-	public ArrayList<Geometry> getJointGeometries(JointType type){
+
+	public ArrayList<Geometry> getJointGeometries(JointType type) {
 		return geometries.get(type);
 	}
 

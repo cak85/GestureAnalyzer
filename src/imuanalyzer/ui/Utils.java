@@ -76,7 +76,7 @@ public class Utils {
 		lineGeom.setMaterial(matWireframe);
 		return lineGeom;
 	}
-	
+
 	public static Geometry CreateLinesVec(AssetManager assetManager,
 			ArrayList<VectorLine> lines, ColorRGBA color, boolean isClosedLoop,
 			float lineWidth) {
@@ -366,6 +366,9 @@ public class Utils {
 	}
 
 	public static Node findNodeByName(Node node, String name) {
+		if (node.getName().equals(name)) {
+			return node;
+		}
 		for (Spatial s : node.getChildren()) {
 			if (s instanceof Node) {
 				Node n = (Node) s;
