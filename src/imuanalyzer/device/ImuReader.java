@@ -49,6 +49,8 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 
 	private String portName;
 
+	private SerialListener listener;
+
 	protected ArrayList<IImuReaderStatusNotifier> notifiers = new ArrayList<IImuReaderStatusNotifier>();
 
 	public ImuReader(String portName, int numberOfIMUs, Boolean continousMode)
@@ -97,9 +99,13 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 				inSerial = serialPort.getInputStream();
 				outSerial = serialPort.getOutputStream();
 
-				serialPort.addEventListener(this);
-				serialPort.notifyOnDataAvailable(true);
+				//polling is more efficient in our case
+//				 serialPort.addEventListener(this);
+//				 serialPort.notifyOnDataAvailable(true);
 
+				listener = new SerialListener();
+
+				new Thread(listener).start();
 			}
 		}
 	}
@@ -125,6 +131,10 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 	 * Read data from IMUs
 	 */
 	public void serialEvent(SerialPortEvent arg0) {
+		readSerial();
+	}
+
+	protected void readSerial() {
 		int data;
 
 		try {
@@ -228,7 +238,7 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 								samplePeriodToken.length() - 1); // remove \n
 						Long bits = Long.valueOf(samplePeriodToken, 16);
 						// convert from mikroseconds to seconds
-						double samplePeriod = (bits.intValue() / 1000000.0); 
+						double samplePeriod = (bits.intValue() / 1000000.0);
 
 						eventManager.fireEvent(new ImuEvent(imuData,
 								samplePeriod));
@@ -251,6 +261,9 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 		// disable continous mode
 		try {
 			if (portName != null) {
+				if (listener != null) {
+					listener.stopListener();
+				}
 				outSerial.write(COMMAND_DISABLE_CONTINOUS_MODE);
 				serialPort.removeEventListener();
 				serialPort.close();
@@ -307,6 +320,23 @@ public class ImuReader implements SerialPortEventListener, IIMUDataProvider {
 	@Override
 	public void deregisterStatusNotifier(IImuReaderStatusNotifier notifier) {
 		notifiers.remove(notifier);
+	}
+
+	private class SerialListener implements Runnable {
+
+		boolean stop = false;
+
+		@Override
+		public void run() {
+			while (!stop) {
+				readSerial();
+			}
+		}
+
+		public synchronized void stopListener() {
+			stop = true;
+		}
+
 	}
 
 }
