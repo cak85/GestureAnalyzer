@@ -13,7 +13,7 @@ public class AHRSFilterMadgwick extends Filter {
 
 	private Quaternion state_filtered;
 
-	private static double beta = 0.001;// 0.005;
+	private static double beta = 0.0;
 	private static final double dT = 0.5;
 
 	public AHRSFilterMadgwick() {
