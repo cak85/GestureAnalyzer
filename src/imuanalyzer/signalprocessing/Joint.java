@@ -149,22 +149,12 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		boolean update = false;
 
-		// restriction constraints are relative to rest position
-		Quaternion restOrientation = getWorldRestOrientation();
-
-		if (parent != null) {
-			restOrientation = restOrientation.quaternionProduct(parent
-					.getWorldRestOrientation().getConjugate());
-		}
-
-		double[] anglesRest = restOrientation.getAnglesRad();
-
-		double maxRoll = restriction.maxRoll + anglesRest[0];
-		double minRoll = restriction.minRoll + anglesRest[0];
-		double maxPitch = restriction.maxPitch + anglesRest[1];
-		double minPitch = restriction.minPitch + anglesRest[1];
-		double maxYaw = restriction.maxYaw + anglesRest[2];
-		double minYaw = restriction.minYaw + anglesRest[2];
+		double maxRoll = restriction.maxRoll;
+		double minRoll = restriction.minRoll;
+		double maxPitch = restriction.maxPitch;
+		double minPitch = restriction.minPitch;
+		double maxYaw = restriction.maxYaw;
+		double minYaw = restriction.minYaw;
 
 		// System.out.printf("R[%.3f;%.3f] P[%.3f;%.3f] Y[%.3f;%.3f]\n",
 		// restriction.minRoll, restriction.maxRoll, restriction.minPitch,
@@ -207,16 +197,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	private Quaternion updateWithRestrictions(Quaternion measuredOrientation,
 			boolean carryOffsetToChild) {
 
-		// System.out.println(this.type);
-
-		Quaternion parentWR = parent.getWorldOrientation();
-
-		// transfer new measured orientation in world coordinates calculate
-		// difference with parent
-		Quaternion rotDiff = measuredOrientation.quaternionProduct(parentWR)
-				.quaternionProduct(parentWR.getConjugate());
-
-		Quaternion diff = getRestrictionOffset(rotDiff);
+		Quaternion diff = getRestrictionOffset(measuredOrientation);
 
 		if (diff != null && carryOffsetToChild) {
 
@@ -485,24 +466,10 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		return ret;
 	}
 
-	public Quaternion getRotationBetweenParent() {
-		Joint joint = this;
-		IJoint parent = joint.getParent();
-
-		Quaternion quat = null;
-		if (parent != null) {
-			quat = joint.getWorldOrientation().quaternionProduct(
-					parent.getWorldOrientation().getConjugate());
-		} else {
-			quat = joint.getLocalOrientation();
-		}
-		return quat;
-	}
-
 	@Override
 	public String getInfoValue() {
 
-		Quaternion quat = getRotationBetweenParent();
+		Quaternion quat = getLocalOrientation();
 
 		double[] angles = quat.getAnglesDeg();
 		Restriction restriction = getRestriction();
@@ -541,6 +508,12 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	public ArrayList<JointRelation> getRelationsToOtherJoints() {
 		return relationsToOtherJoints;
+	}
+
+	@Override
+	public Quaternion getCurrentWRFilterOrientation() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

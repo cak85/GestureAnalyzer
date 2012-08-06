@@ -188,7 +188,7 @@ public class Analyses {
 						JointType type = entry.getKey();
 						Joint joint = entry.getValue();
 						// initial orientation
-						joint.setLocalOrientation(db.getInitialOrientation(
+						joint.setLocalRestOrientation(db.getInitialOrientation(
 								marker, type));
 						joint.setLocalPosition(db.getInitialPosition(marker,
 								type));
@@ -279,7 +279,7 @@ public class Analyses {
 				Quaternion nullQuat = new Quaternion(0, 0, 0, 0);
 
 				for (Entry<JointType, Joint> j : emptyhand.getJointSet()) {
-					j.getValue().setLocalOrientation(nullQuat);
+					j.getValue().setLocalRestOrientation(nullQuat);
 				}
 
 				JointType saveMotionJoint = saveMotionJoints.get(n);

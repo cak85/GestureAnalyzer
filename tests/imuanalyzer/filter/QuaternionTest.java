@@ -13,6 +13,40 @@ public class QuaternionTest {
 	}
 
 	@Test
+	public void testMultiplicationAndConjugate() {
+		Quaternion qInitial = new Quaternion(AngleHelper.radFromDeg(40),
+				AngleHelper.radFromDeg(10), AngleHelper.radFromDeg(20));
+		Quaternion qTransition = new Quaternion(AngleHelper.radFromDeg(20),
+				AngleHelper.radFromDeg(30), AngleHelper.radFromDeg(10));
+
+		Quaternion qFinal = qTransition.quaternionProduct(qInitial);
+
+		Quaternion qResolveInitial = qTransition.getConjugate().quaternionProduct(qFinal);
+
+		Quaternion qResolveTransition = qFinal.quaternionProduct(qInitial.getConjugate());
+
+		// Quaternion q5 = qFinal.quaternionProduct(qTransition.getConjugate());
+
+		qInitial.printDegree(3);
+
+		qResolveInitial.printDegree(3);
+
+		qResolveTransition.printDegree(3);
+
+		qTransition.printDegree(3);
+
+		assertEquals("q1=q4", qResolveInitial.equals(qInitial), true);
+
+		assertEquals("q1=q4", qResolveTransition.equals(qTransition), true);
+
+		//
+		// q5.printDegree(3);
+		//
+		// assertEquals("q5=q4", q4.equals(q5), true);
+
+	}
+
+	@Test
 	public void testLog() {
 
 		Quaternion input = new Quaternion(0.766, 0.643, 0, 0);
@@ -41,37 +75,34 @@ public class QuaternionTest {
 		assertEquals("y", 0, input.getY(), 0.001);
 		assertEquals("z", 0, input.getY(), 0.001);
 	}
-	
+
 	@Test
 	public void testPowToSquare() {
 
 		// power must be higher than 1
 		float power = 0.5f;
 
-			int angleX = 80;
-			int angleY = 40;
-			int angleZ = 20;
+		int angleX = 80;
+		int angleY = 40;
+		int angleZ = 20;
 
-			Quaternion input = new Quaternion(AngleHelper.radFromDeg(angleX),
-					AngleHelper.radFromDeg(angleY),
-					AngleHelper.radFromDeg(angleZ));
-			
-			input.print(3);
-			
+		Quaternion input = new Quaternion(AngleHelper.radFromDeg(angleX),
+				AngleHelper.radFromDeg(angleY), AngleHelper.radFromDeg(angleZ));
 
-			Quaternion resPow = input.pow(power);
-			
-			double[] angles = resPow.getAnglesDeg();
+		// input.print(3);
 
-			for (int i = 0; i < angles.length; i++) {
-				System.out.println(angles[i]);
-			}
-		
-			assertEquals("angle w", 0.914, resPow.get(0), 0.001);
-			assertEquals("angle x", 0.350, resPow.get(1), 0.001);
-			assertEquals("angle y", 0.187, resPow.get(2), 0.001);
-			assertEquals("angle z", 0.084, resPow.get(3), 0.001);
+		Quaternion resPow = input.pow(power);
 
+		double[] angles = resPow.getAnglesDeg();
+
+		for (int i = 0; i < angles.length; i++) {
+			System.out.println(angles[i]);
+		}
+
+		assertEquals("angle w", 0.914, resPow.get(0), 0.001);
+		assertEquals("angle x", 0.350, resPow.get(1), 0.001);
+		assertEquals("angle y", 0.187, resPow.get(2), 0.001);
+		assertEquals("angle z", 0.084, resPow.get(3), 0.001);
 
 	}
 

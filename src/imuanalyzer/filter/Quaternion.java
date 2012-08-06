@@ -46,8 +46,13 @@ public class Quaternion implements Comparable<Quaternion> {
 		this.z = quad.z;
 	}
 
+	/**
+	 * Assumes the angles are in radian.
+	 * @param roll
+	 * @param pitch
+	 * @param yaw
+	 */
 	public Quaternion(double roll, double pitch, double yaw) {
-		// Assuming the angles are in radians.
 		double c1 = Math.cos(yaw / 2);
 		double s1 = Math.sin(yaw / 2);
 		double c2 = Math.cos(pitch / 2);
@@ -352,6 +357,16 @@ public class Quaternion implements Comparable<Quaternion> {
 		System.out.printf(format, this.z);
 	}
 
+	public void printDegree(int precision) {
+
+		double[] degree = this.getAnglesDeg();
+		System.out.println();
+		String format = "\t%." + precision + "f\n";
+		System.out.printf(format, degree[0]);
+		System.out.printf(format, degree[1]);
+		System.out.printf(format, degree[2]);
+	}
+
 	@Override
 	public String toString() {
 		String format = "\n \t%.3f";
@@ -408,9 +423,18 @@ public class Quaternion implements Comparable<Quaternion> {
 			return false;
 		} else {
 			Quaternion obj_q = (Quaternion) obj;
-			return this.w == obj_q.w && this.x == obj_q.x && this.y == obj_q.y
-					&& this.z == obj_q.z;
+			return fuzzyEquals(this.w, obj_q.w) && fuzzyEquals(this.x, obj_q.x)
+					&& fuzzyEquals(this.y, obj_q.y)
+					&& fuzzyEquals(this.z, obj_q.z);
 		}
+	}
+
+	public static boolean fuzzyEquals(double a, double b) {
+		return fuzzyEquals(a, b, 0.00000000000001);
+	}
+
+	public static boolean fuzzyEquals(double a, double b, double eps) {
+		return Math.abs(a - b) < (eps * Math.abs(a));
 	}
 
 	@Override

@@ -54,10 +54,10 @@ public class JointAngleCollector implements IAnalysisExtension {
 
 	public synchronized void update(Hand hand, int idx) {
 
-		double[] angles1 = hand.getJoint(type1).getRotationBetweenParent()
+		double[] angles1 = hand.getJoint(type1).getLocalOrientation()
 				.getAnglesRad();
 
-		double[] angles2 = hand.getJoint(type2).getRotationBetweenParent()
+		double[] angles2 = hand.getJoint(type2).getLocalOrientation()
 				.getAnglesRad();
 
 		if (Math.abs(angles1[0] - currentAngles1[0]) > 0.0001

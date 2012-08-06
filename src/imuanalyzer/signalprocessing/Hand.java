@@ -174,7 +174,7 @@ public class Hand {
 
 	public void setInitialOrientation(JointType finger, Quaternion quad) {
 		Joint joint = ((Joint) joints.get(finger));
-		joint.setLocalOrientation(quad);
+		joint.setLocalRestOrientation(quad);
 
 	}
 

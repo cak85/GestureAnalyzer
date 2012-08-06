@@ -81,8 +81,8 @@ public class Playback {
 			for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 				JointType type = entry.getKey();
 				Joint joint = entry.getValue();
-				joint.setLocalOrientation(db
-						.getInitialOrientation(marker, type));
+				joint.setLocalRestOrientation(db.getInitialOrientation(marker,
+						type));
 				joint.setLocalPosition(db.getInitialPosition(marker, type));
 			}
 

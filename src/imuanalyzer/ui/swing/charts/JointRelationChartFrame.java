@@ -172,10 +172,10 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 	public void update() {
 
-		double[] angles1 = hand.getJoint(type1).getRotationBetweenParent()
+		double[] angles1 = hand.getJoint(type1).getLocalOrientation()
 				.getAnglesRad();
 
-		double[] angles2 = hand.getJoint(type2).getRotationBetweenParent()
+		double[] angles2 = hand.getJoint(type2).getLocalOrientation()
 				.getAnglesRad();
 
 		if (Math.abs(angles1[0] - currentAngles1[0]) > 0.0001
@@ -184,7 +184,7 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 				|| Math.abs(angles2[0] - currentAngles2[0]) > 0.0001
 				|| Math.abs(angles2[1] - currentAngles2[1]) > 0.0001
 				|| Math.abs(angles2[2] - currentAngles2[2]) > 0.0001) {
-			
+
 			currentAngles1 = angles1;
 			currentAngles2 = angles2;
 			int i = 0;
