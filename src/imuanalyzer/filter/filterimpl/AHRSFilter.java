@@ -41,6 +41,8 @@ public class AHRSFilter extends Filter {
 										// convergence of gyroscope
 										// biases
 
+	protected static double SamplePeriodFactor = 0.9;
+
 	// ---------------------------------------------------------------------------------------------------
 	// Variable definitions
 
@@ -86,8 +88,8 @@ public class AHRSFilter extends Filter {
 		double q2q3 = q2 * q3;
 		double q3q3 = q3 * q3;
 
-		// half the sample period (inverse of sample rate) in s
-		double halfT = samplePeriod / 2;
+		// factorized part of the sample period (inverse of sample rate) in s
+		double subT = samplePeriod * SamplePeriodFactor;
 
 		// normalise the measurements
 		norm = Math.sqrt(ax * ax + ay * ay + az * az);
@@ -135,10 +137,10 @@ public class AHRSFilter extends Filter {
 		gz = gz + Kp * ez + ezInt;
 
 		// integrate quaternion rate and normalise
-		q0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * halfT;
-		q1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * halfT;
-		q2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * halfT;
-		q3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * halfT;
+		q0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * subT;
+		q1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * subT;
+		q2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * subT;
+		q3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * subT;
 
 		// normalise quaternion
 		norm = Math.sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
@@ -171,7 +173,7 @@ public class AHRSFilter extends Filter {
 
 	@Override
 	public int getNumberOfParameters() {
-		return 2;
+		return 3;
 	}
 
 	@Override
@@ -181,8 +183,10 @@ public class AHRSFilter extends Filter {
 		case 0:
 			return Kp;
 		case 1:
-		default:
 			return Ki;
+		case 2:
+		default:
+			return SamplePeriodFactor;
 		}
 	}
 
@@ -193,8 +197,10 @@ public class AHRSFilter extends Filter {
 			Kp = value;
 			break;
 		case 1:
-		default:
 			Ki = value;
+		case 2:
+		default:
+			SamplePeriodFactor = value;
 		}
 	}
 
@@ -204,6 +210,7 @@ public class AHRSFilter extends Filter {
 		case 0:
 			return 10;
 		case 1:
+		case 2:
 		default:
 			return 1;
 		}
@@ -219,8 +226,10 @@ public class AHRSFilter extends Filter {
 		case 0:
 			return "Kp";
 		case 1:
-		default:
 			return "Ki";
+		case 2:
+		default:
+			return "Sampleperiodfactor";
 		}
 	}
 
