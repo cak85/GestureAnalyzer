@@ -1,0 +1,688 @@
+
+material _missing_material_ 
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            ambient 0.1 0.1 0.1 1.0
+            diffuse 0.8 0.0 0.0 1.0
+            specular 0.5 0.5 0.5 1.0 12.5
+            emissive 0.3 0.3 0.3 1.0
+        }
+    }
+}
+
+
+// blender material: Hand.HR
+material Hand.HR 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.DD
+material Hand.DD 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.DM
+material Hand.DM 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.DT
+material Hand.DT 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.ZD
+material Hand.ZD 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.6400000190734865 0.3414816192013266 0.24258115653069545 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.ZM
+material Hand.ZM 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.ZT
+material Hand.ZT 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.881
+    {
+        pass b2ogre_1341218961.881
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MD
+material Hand.MD 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MM
+material Hand.MM 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MT
+material Hand.MT 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RD
+material Hand.RD 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RM
+material Hand.RM 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RT
+material Hand.RT 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.KD
+material Hand.KD 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.KM
+material Hand.KM 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.KT
+material Hand.KT 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.D
+material Nail.D 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.Z
+material Nail.Z 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.M
+material Nail.M 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.R
+material Nail.R 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.K
+material Nail.K 
+{
+    receive_shadows on
+    technique b2ogre_1341218961.891
+    {
+        pass b2ogre_1341218961.891
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}

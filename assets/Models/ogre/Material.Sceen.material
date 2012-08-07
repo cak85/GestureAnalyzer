@@ -1,0 +1,16 @@
+material Material.Sceen 
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			ambient 0.2529367208480835 0.2529367208480835 0.2529367208480835 1.0
+			diffuse 0.15013890432922494 0.15013890432922494 0.15013890432922494 1.0
+			specular 0.9358288645744324 0.9358288645744324 0.9358288645744324 1.0 27.0
+			emissive 0.0 0.0 0.0 1.0
+			scene_blend one zero
+		}
+	}
+}

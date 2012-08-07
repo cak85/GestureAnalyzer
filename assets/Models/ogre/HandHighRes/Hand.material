@@ -1,0 +1,688 @@
+
+material _missing_material_ 
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            ambient 0.1 0.1 0.1 1.0
+            diffuse 0.8 0.0 0.0 1.0
+            specular 0.5 0.5 0.5 1.0 12.5
+            emissive 0.3 0.3 0.3 1.0
+        }
+    }
+}
+
+
+// blender material: Hand.HAND_ROOT
+material Hand.HAND_ROOT 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.HAND_ROOT
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.THUMB_BOTTOM
+material Hand.THUMB_BOTTOM 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.THUMB_BOTTOM
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.THUMB_MID
+material Hand.THUMB_MID 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.THUMB_MID
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.THUMB_TOP
+material Hand.THUMB_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.THUMB_TOP
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.INDEX_BOTTOM
+material Hand.INDEX_BOTTOM 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.INDEX_BOTTOM
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.INDEX_MID
+material Hand.INDEX_MID 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.INDEX_MID
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.INDEX_TOP
+material Hand.INDEX_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.INDEX_TOP
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MIDDLE_BOTTOM
+material Hand.MIDDLE_BOTTOM 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.MIDDLE_BOTTOM
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MIDDLE_MID
+material Hand.MIDDLE_MID 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.MIDDLE_MID
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.MIDDLE_TOP
+material Hand.MIDDLE_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.MIDDLE_TOP
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RING_BOTTOM
+material Hand.RING_BOTTOM 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.RING_BOTTOM
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RING_MID
+material Hand.RING_MID 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.RING_MID
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.RING_TOP
+material Hand.RING_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.RING_TOP
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.LITTLE_BOTTOM
+material Hand.LITTLE_BOTTOM 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.LITTLE_BOTTOM
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.LITTLE_MID
+material Hand.LITTLE_MID 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.LITTLE_MID
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Hand.LITTLE_TOP
+material Hand.LITTLE_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Hand.LITTLE_TOP
+        {
+            ambient 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            diffuse 0.800000011920929 0.4268520176410675 0.30322644114494324 1.0
+            specular 0.020270269364118576 0.019461363489478245 0.014107159840941907 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.THUMB_TOP
+material Nail.THUMB_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Nail.THUMB_TOP
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.INDEX_TOP
+material Nail.INDEX_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Nail.INDEX_TOP
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.MIDDLE_TOP
+material Nail.MIDDLE_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Nail.MIDDLE_TOP
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.RING_TOP
+material Nail.RING_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Nail.RING_TOP
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}
+
+// blender material: Nail.LITTLE_TOP
+material Nail.LITTLE_TOP 
+{
+    receive_shadows on
+    technique
+    {
+        pass Nail.LITTLE_TOP
+        {
+            ambient 0.800000011920929 0.6870781779289246 0.6137146949768066 1.0
+            diffuse 0.6400000190734865 0.5496625505337498 0.4909717632974946 1.0
+            specular 0.25 0.24221742153167725 0.20986135303974152 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
+}

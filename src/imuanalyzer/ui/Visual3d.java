@@ -71,7 +71,9 @@ public class Visual3d extends SimpleApplication {
 	 */
 	protected VisualHand3d visualHand;
 
-	protected ModelQuality modelQuality = ModelQuality.HIGH;
+	protected ModelQuality modelQualityMain = ModelQuality.HIGH;
+	
+	protected ModelQuality modelQualityOverlays = ModelQuality.MID;
 
 	/**
 	 * Datamodel of the hand
@@ -219,7 +221,7 @@ public class Visual3d extends SimpleApplication {
 		attachLight();
 
 		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true,
-				modelQuality);
+				modelQualityMain);
 
 		visualHand.getModel().setShadowMode(ShadowMode.CastAndReceive);
 
@@ -591,7 +593,7 @@ public class Visual3d extends SimpleApplication {
 			// add additional hand geometries for movement if necessary
 			while (numberOfLiveSteps > liveMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
-						HandOrientation.LEFT, false, modelQuality);
+						HandOrientation.LEFT, false, modelQualityOverlays);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				liveMovementSteps.add(newHand);
 				visualHand.attachChild(newHand);
@@ -604,7 +606,7 @@ public class Visual3d extends SimpleApplication {
 			// add additional hand geometries for movement if necessary
 			while (numberOfStoredSteps > analysesMovementSteps.size()) {
 				VisualHand3d newHand = new VisualHand3d(assetManager,
-						HandOrientation.LEFT, false, modelQuality);
+						HandOrientation.LEFT, false, modelQualityOverlays);
 				newHand.setOpacity(OPACITY_STEP, 0);
 				analysesMovementSteps.add(newHand);
 				visualHand.attachChild(newHand);

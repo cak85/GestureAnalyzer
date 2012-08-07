@@ -45,7 +45,7 @@ public class VisualHand3d extends Node {
 	};
 
 	public enum ModelQuality {
-		LOW, HIGH
+		LOW, MID, HIGH
 	}
 
 	HandOrientation orientation;
@@ -89,7 +89,11 @@ public class VisualHand3d extends Node {
 		String modelPath;
 		switch (quality) {
 		case LOW:
-			modelPath = "Models/Hand/Hand.j3o";
+			modelPath = "Models/HandLow/Hand.j3o";
+			break;
+
+		case MID:
+			modelPath = "Models/HandMid/Hand.j3o";
 			break;
 		case HIGH:
 		default:
