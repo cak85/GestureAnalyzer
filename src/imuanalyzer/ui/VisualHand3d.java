@@ -65,9 +65,12 @@ public class VisualHand3d extends Node {
 	EnumMap<JointType, Quaternion> loadedOrientation = new EnumMap<JointType, Quaternion>(
 			JointType.class);
 
+	ModelQuality quality;
+
 	public VisualHand3d(AssetManager assetManager, HandOrientation orientation,
 			boolean showSkeleton, ModelQuality quality) {
 
+		this.quality = quality;
 		String modelPath = getModelPath(quality);
 
 		Spatial loadedAsset = assetManager.loadModel(modelPath);
@@ -196,15 +199,14 @@ public class VisualHand3d extends Node {
 				findGeometries((Node) s);
 			} else if (s instanceof Geometry) {
 				Geometry geom = (Geometry) s;
-				//two possibilities
-				JointType type = Utils
-						.getJointTypeFromGeomertyByOrderMapping(geom);
-				// JointType type =
-				// Utils.getJointTypeFromGeometryNamePostfix(geom);
+				// two possibilities
+				JointType type;
+				type = Utils.getJointTypeFromGeometryNamePostfix(geom);
+
 				if (type != null) {
 					geometries.get(type).add(geom);
-					geomtryList.add(geom);
 				}
+				geomtryList.add(geom);
 			}
 		}
 	}

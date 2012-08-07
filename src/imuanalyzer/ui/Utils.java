@@ -338,7 +338,9 @@ public class Utils {
 
 	/**
 	 * This method assumes that all geometries with reference to a bone have a
-	 * postfix with .JOINTTYPE
+	 * postfix with .JOINTTYPE this is working automatically with Blender 2.63a
+	 * JME3 SDK Nighly build from begin of August 2012 and ORGRE Exporter from
+	 * nightly build JME3 SDK
 	 * 
 	 * @param geom
 	 * @return
@@ -365,6 +367,13 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Usable for Blender prior 2.63 with corresponding ogre exporter and older
+	 * JME SDK nightly build
+	 * 
+	 * @param geom
+	 * @return
+	 */
 	public static JointType getJointTypeFromGeomertyByOrderMapping(Geometry geom) {
 
 		String name = geom.getName();
@@ -378,7 +387,7 @@ public class Utils {
 		if (name.equals("Hand-geom-3")) {
 			return JointType.THUMB_MID;
 		}
-		if (name.equals("Hand-geom-4") || name.equals("Hand-geom-18")) {
+		if (name.equals("Hand-geom-4") || name.equals("Hand-geom-17")) {
 			return JointType.THUMB_TOP;
 		}
 		if (name.equals("Hand-geom-5")) {
@@ -387,7 +396,7 @@ public class Utils {
 		if (name.equals("Hand-geom-6")) {
 			return JointType.INDEX_MID;
 		}
-		if (name.equals("Hand-geom-7") || name.equals("Hand-geom-17")) {
+		if (name.equals("Hand-geom-7") || name.equals("Hand-geom-18")) {
 			return JointType.INDEX_TOP;
 		}
 		if (name.equals("Hand-geom-8")) {
@@ -399,28 +408,36 @@ public class Utils {
 		if (name.equals("Hand-geom-10") || name.equals("Hand-geom-19")) {
 			return JointType.MIDDLE_TOP;
 		}
-		if (name.equals("")) {
+		if (name.equals("Hand-geom-11")) {
 			return JointType.RING_BOTTOM;
 		}
-		if (name.equals("Hand-geom-11")) {
+		if (name.equals("Hand-geom-12")) {
 			return JointType.RING_MID;
 		}
-		if (name.equals("Hand-geom-12") || name.equals("Hand-geom-20")) {
+		if (name.equals("Hand-geom-13") || name.equals("Hand-geom-20")) {
 			return JointType.RING_TOP;
 		}
-		if (name.equals("Hand-geom-13")) {
+		if (name.equals("Hand-geom-14")) {
 			return JointType.LITTLE_BOTTOM;
 		}
-		if (name.equals("Hand-geom-14")) {
+		if (name.equals("Hand-geom-15")) {
 			return JointType.LITTLE_MID;
 		}
-		if (name.equals("Hand-geom-15") || name.equals("Hand-geom-16")) {
+		if (name.equals("Hand-geom-16") || name.equals("Hand-geom-21")) {
 			return JointType.LITTLE_TOP;
 		}
 
 		return null;
 	}
 
+	/**
+	 * Search for one node in scenegraph below given node for a node with given
+	 * name
+	 * 
+	 * @param node
+	 * @param name
+	 * @return null if no node equals given name or first node with name
+	 */
 	public static Node findNodeByName(Node node, String name) {
 		if (node.getName().equals(name)) {
 			return node;

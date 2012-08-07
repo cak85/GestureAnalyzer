@@ -4,6 +4,7 @@ import imuanalyzer.filter.IFilterListener;
 import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.IInfoContent;
+import imuanalyzer.utils.math.AngleHelper;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -21,6 +22,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
 			0.7, 0);
 
+	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0, 3, 0);
+
 	protected final Lock id_lock = new ReentrantLock();
 
 	protected int sensorID = -1;
@@ -31,9 +34,15 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	protected Quaternion localOrientation = new Quaternion();
 
+	protected Quaternion worldOrientation = new Quaternion();
+
 	protected Quaternion localRestOrientation = new Quaternion();
 
+	protected Quaternion wordRestOrientation;
+
 	protected Quaternion localPosition = new Quaternion();
+
+	Quaternion lastSensorPos;
 
 	protected Restriction restriction;
 
@@ -41,9 +50,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	protected Hand hand;
 
-	protected Quaternion lastActiveChange = new Quaternion();
-
-	protected Quaternion lastMeasuredOrientation = new Quaternion();
+	protected Quaternion lastMeasuredWROrientation = new Quaternion();
 
 	protected String name;
 
@@ -67,79 +74,115 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	}
 
 	@Override
-	public Quaternion updateOrientation(Quaternion measuredOrientation) {
-
-		return update(measuredOrientation, true);
+	public Quaternion updateOrientation(Quaternion measuredWROrientation) {
+//		System.out.println("-------------------");
+//		System.out.println("updated with:");
+//		measuredWROrientation.print(3);
+//		measuredWROrientation.printDegree(3);
+		return update(measuredWROrientation, false);
 	}
 
-	public Quaternion update(Quaternion measuredOrientation,
-			boolean storeLastMovement) {
-		if (lastMeasuredOrientation.equals(measuredOrientation)) {
-			lastActiveChange.set(1, 0, 0, 0);
-			return localOrientation;
-		} else {
-			lastMeasuredOrientation = measuredOrientation;
+	/**
+	 * Process new orientation data
+	 * 
+	 * @param measuredWROrientation
+	 * @param updateChildrensWorldOrientation
+	 * @return
+	 */
+	public Quaternion update(Quaternion measuredWROrientation,
+			boolean updateChildrensWorldOrientation) {
+
+		if (this.worldOrientation.equals(measuredWROrientation)) {
+			return this.worldOrientation;
 		}
 
-		Quaternion oldOrientation = this.localOrientation;
+		// save old/current valid world orientation
+		Quaternion oldLocalOrientation = this.localOrientation;
 
-		if (parent != null) { // adjust measured orientation with known
-								// restrictions
-
-			// substract change of parent/reference for getting the local frame
-			measuredOrientation = measuredOrientation.quaternionProduct(parent
-					.getLastActiveChange().getConjugate());
-
-			this.localOrientation = updateWithRestrictions(measuredOrientation,
-					true);
+		if (parent != null) {
+			// adjust measured orientation with known
+			// restrictions
+			this.worldOrientation = updateWithRestrictions(
+					measuredWROrientation, true);
 
 		} else {
-			this.localOrientation = measuredOrientation;
+			this.worldOrientation = measuredWROrientation;
+		}
+		updateLocalOrientation();
+
+		if (updateChildrensWorldOrientation) {
+			updateChildrenWorldOrientation();
 		}
 
-		if (!oldOrientation.equals(this.localOrientation)) {
-			// store last orientation change,
-			if (storeLastMovement) {
-				lastActiveChange = localOrientation
-						.quaternionProduct(oldOrientation.getConjugate());
+		// update dependent objects
+		if (!oldLocalOrientation.equals(this.worldOrientation)) {
+			// update joints in relation to this one
+			Quaternion lastChange = this.localOrientation
+					.quaternionProduct(oldLocalOrientation.getConjugate());
 
-				// update joints in relation to this one
+			double dotProduct = lastChange.dotProdcut(Quaternion.EMPTY);
+			if (dotProduct < 0.999999999) // Dotproduct near 1 means equal
 				for (JointRelation relation : relationsToOtherJoints) {
-					relation.update(lastActiveChange);
+
+					relation.update(lastChange);
 				}
-			}
+
 			hand.informJointsUpdated(this);
-		} else {
-			lastActiveChange.set(1, 0, 0, 0);
 		}
-		return this.localOrientation;
+
+		return this.worldOrientation;
 	}
 
-	public void carryOrientationFromOther(Quaternion carry,
+	/**
+	 * Check if new measured orientation is influenced by constraints and update
+	 * orientation with constraints if necessary
+	 * 
+	 * @param measuredWROrientation
+	 * @param carryOffsetToChild
+	 * @return
+	 */
+	private Quaternion updateWithRestrictions(Quaternion measuredWROrientation,
 			boolean carryOffsetToChild) {
 
-		// only handle carry if we do not know it better from out own sensor
-		if (isActive()) {
-			return;
-		}
+		Quaternion parentWR = parent.getWorldOrientation();
 
-		// rotate by restiction offset from child
-		Quaternion measuredOrientation = carry
-				.quaternionProduct(localOrientation);
+		// calculate difference with parent = local orientation
+		Quaternion tmpLocalOrientation = parentWR.getConjugate()
+				.quaternionProduct(measuredWROrientation);
 
-		if (parent != null) { // adjust measured orientation with known
-			// restrictions
-			// adjust rotation if it conflicts with restrictions
-			this.localOrientation = updateWithRestrictions(measuredOrientation,
-					carryOffsetToChild);
+		Quaternion diff = getConstraintOffset(tmpLocalOrientation);
+
+		if (diff != null) {
+
+			// correct orientation with constraint offset
+			tmpLocalOrientation = diff.quaternionProduct(tmpLocalOrientation);
+
+			if (carryOffsetToChild) {
+				// give difference offset as carry to parent and get updated
+				// parentWR
+				parentWR = parent.carryOrientationFromOther(
+						diff.getConjugate(), carryOffsetToChild);
+			}
+
+			// update world orientation after carry processing in parent
+			measuredWROrientation = parentWR
+					.quaternionProduct(tmpLocalOrientation);
+
+			return measuredWROrientation;
 
 		} else {
-			this.localOrientation = measuredOrientation;
+			return measuredWROrientation;
 		}
 	}
 
-	private Quaternion getRestrictionOffset(Quaternion rotDiff) {
-		double[] angles = rotDiff.getAnglesRad();
+	/**
+	 * Calculate violation offset from joint constraints
+	 * 
+	 * @param newlocalOrientation
+	 * @return
+	 */
+	private Quaternion getConstraintOffset(Quaternion newlocalOrientation) {
+		double[] angles = newlocalOrientation.getAnglesRad();
 
 		double roll = angles[0];
 		double pitch = angles[1];
@@ -149,18 +192,15 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		boolean update = false;
 
-		double maxRoll = restriction.maxRoll;
-		double minRoll = restriction.minRoll;
-		double maxPitch = restriction.maxPitch;
-		double minPitch = restriction.minPitch;
-		double maxYaw = restriction.maxYaw;
-		double minYaw = restriction.minYaw;
+		// restriction constraints are relative to rest position
+		double[] anglesRest = localRestOrientation.getAnglesRad();
 
-		// System.out.printf("R[%.3f;%.3f] P[%.3f;%.3f] Y[%.3f;%.3f]\n",
-		// restriction.minRoll, restriction.maxRoll, restriction.minPitch,
-		// restriction.maxPitch, restriction.minYaw, restriction.maxYaw);
-		//
-		// System.out.printf("Diff R%.3f: P%.3f: Y%.3f\n", roll, pitch, yaw);
+		double maxRoll = restriction.maxRoll + anglesRest[0];
+		double minRoll = restriction.minRoll + anglesRest[0];
+		double maxPitch = restriction.maxPitch + anglesRest[1];
+		double minPitch = restriction.minPitch + anglesRest[1];
+		double maxYaw = restriction.maxYaw + anglesRest[2];
+		double minYaw = restriction.minYaw + anglesRest[2];
 
 		if (roll > maxRoll) {
 			rollOff = maxRoll - roll;
@@ -185,34 +225,53 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		}
 
 		if (update) {
-			// System.out.printf("Diff Offset R%.8f: P%.8f: Y%.8f\n", rollOff,
-			// pitchOff, yawOff);
-
 			return new Quaternion(rollOff, pitchOff, yawOff);
 		} else {
 			return null;
 		}
 	}
 
-	private Quaternion updateWithRestrictions(Quaternion measuredOrientation,
+	/**
+	 * Takes carry from other joint for updating orientation
+	 * 
+	 * @param carry
+	 * @param carryOffsetToChild
+	 */
+	public Quaternion carryOrientationFromOther(Quaternion carry,
 			boolean carryOffsetToChild) {
 
-		Quaternion diff = getRestrictionOffset(measuredOrientation);
+		// only handle carry if we do not know it better from out own sensor
+		if (isActive()) {
+			return worldOrientation;
+		}
+		
+		worldOrientation = getWorldOrientation();
 
-		if (diff != null && carryOffsetToChild) {
+		// rotate by restiction offset from child
+		Quaternion measuredOrientation = worldOrientation
+				.quaternionProduct(carry);
 
-			measuredOrientation = diff.quaternionProduct(measuredOrientation);
-
-			parent.carryOrientationFromOther(diff.getConjugate(),
+		// adjust measured orientation with known restrictions
+		if (parent != null) {
+			// adjust rotation if it conflicts with restrictions
+			this.worldOrientation = updateWithRestrictions(measuredOrientation,
 					carryOffsetToChild);
 
-			return measuredOrientation;
-
 		} else {
-			return measuredOrientation;
+			this.worldOrientation = measuredOrientation;
 		}
+
+		// update local orientation from new world orientation
+		updateLocalOrientation();
+
+		return worldOrientation;
 	}
 
+	/**
+	 * Check if current joint has an attached sensor
+	 * 
+	 * @return
+	 */
 	public boolean isActive() {
 		if (id_lock.tryLock()) {
 			boolean ret = sensorID > -1;
@@ -245,26 +304,53 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		id_lock.unlock();
 	}
 
-	public Quaternion getWorldOrientation() {
-		Quaternion worldOrientation;
-		if (parent != null) {
-			worldOrientation = parent.getWorldOrientation().quaternionProduct(
-					localOrientation);
-		} else {
-			worldOrientation = localOrientation;
+	public void updateChildrenWorldOrientation() {
+		for (Joint j : children) {
+			j.setLocalOrientation(j.localOrientation);
 		}
-		return worldOrientation;
+	}
+
+	public Quaternion getWorldOrientation() {
+		if (isActive() || parent == null) {
+			return worldOrientation;
+		} else {
+			return parent.getWorldOrientation().quaternionProduct(
+					localOrientation);
+		}
 	}
 
 	public Quaternion getLocalOrientation() {
+		if (parent != null) {
 
-		return localOrientation;
+			return parent.getWorldOrientation().getConjugate()
+					.quaternionProduct(worldOrientation);
+		} else {
+			return worldOrientation;
+		}
+	}
+
+	/**
+	 * Update local orientation from world orientation
+	 */
+	public void updateLocalOrientation() {
+		localOrientation = getLocalOrientation();
 	}
 
 	public void setLocalOrientation(Quaternion orientation) {
+
+		if (parent != null) {
+			worldOrientation = parent.getWorldOrientation().quaternionProduct(
+					orientation);
+		} else {
+			worldOrientation = orientation;
+		}
 		localOrientation = orientation;
+
+		updateChildrenWorldOrientation();
+
 		if (isActive()) {
 			sensors.removeListner(this);
+			// TODO think about
 			// first could be removed with some improvements in sensor
 			sensors.addListener(this);
 		}
@@ -276,8 +362,6 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		calcWorldRestOrientation();
 	}
 
-	Quaternion wordRestOrientation;
-
 	public Quaternion getWorldRestOrientation() {
 		return wordRestOrientation;
 	}
@@ -285,8 +369,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	protected void calcWorldRestOrientation() {
 		Quaternion worldOrientation;
 		if (parent != null) {
-			worldOrientation = parent.getWorldRestOrientation()
-					.quaternionProduct(localRestOrientation);
+			worldOrientation = localRestOrientation.quaternionProduct(parent
+					.getWorldRestOrientation());
 		} else {
 			worldOrientation = localRestOrientation;
 		}
@@ -328,7 +412,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	@Override
 	public Quaternion getInitialOrientation() {
-		return localOrientation;
+		return getWorldRestOrientation();
 	}
 
 	public String getInfoName() {
@@ -378,19 +462,6 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		return this.type.ordinal();
 	}
 
-	public Quaternion getLastActiveChange() {
-		if (!isActive()) {
-			lastActiveChange.set(1, 0, 0, 0);
-		}
-		if (parent == null) {
-			return lastActiveChange;
-
-		} else {
-			return lastActiveChange.quaternionProduct(parent
-					.getLastActiveChange());
-		}
-	}
-
 	Quaternion acceleration = new Quaternion();
 
 	public float[] getAcceleration() {
@@ -407,10 +478,6 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	public void updateAcceleration(Quaternion acceleration) {
 		this.acceleration = acceleration;
 	}
-
-	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0, 3, 0);
-
-	Quaternion lastSensorPos;
 
 	private Quaternion getSensorPosition() {
 		Quaternion bonePos = getWorldPosition();
@@ -512,8 +579,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	@Override
 	public Quaternion getCurrentWRFilterOrientation() {
-		// TODO Auto-generated method stub
-		return null;
+		return worldOrientation;
 	}
 
 }

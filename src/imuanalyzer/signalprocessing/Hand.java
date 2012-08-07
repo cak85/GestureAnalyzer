@@ -39,6 +39,8 @@ public class Hand {
 
 	protected ArrayList<MotionAnalysis> runningMotionAnalysis = new ArrayList<MotionAnalysis>();
 
+	Object analysisLock = new Object();
+
 	/**
 	 * save subjective feelings about gesture
 	 */
@@ -212,11 +214,15 @@ public class Hand {
 
 	public synchronized void informJointsUpdated(Joint updatedBy) {
 
-		for (TouchAnalysis touchAnalyis : runningTouchAnalysis) {
-			touchAnalyis.update(updatedBy);
-		}
-		for (MotionAnalysis motionAnalyis : runningMotionAnalysis) {
-			motionAnalyis.update(updatedBy);
+		synchronized (analysisLock) {
+
+			for (TouchAnalysis touchAnalyis : runningTouchAnalysis) {
+				touchAnalyis.update(updatedBy);
+			}
+			for (MotionAnalysis motionAnalyis : runningMotionAnalysis) {
+				motionAnalyis.update(updatedBy);
+			}
+
 		}
 
 	}
@@ -276,18 +282,24 @@ public class Hand {
 			// create new analysis
 			MotionAnalysis newAnalysis = new MotionAnalysis(this,
 					newObservedJoint);
-			runningMotionAnalysis.add(newAnalysis);
+			synchronized (analysisLock) {
+				runningMotionAnalysis.add(newAnalysis);
+			}
 		}
 		return haveRemovedOldOnes;
 	}
 
 	public void removeSaveMotionJoint(JointType joint) {
 		MotionAnalysis current = getMotionAnalysis(joint);
-		runningMotionAnalysis.remove(current);
+		synchronized (analysisLock) {
+			runningMotionAnalysis.remove(current);
+		}
 	}
 
 	public void disableMotionAnalysis() {
-		runningMotionAnalysis.clear();
+		synchronized (analysisLock) {
+			runningMotionAnalysis.clear();
+		}
 	}
 
 	public int getNumberOfSavedMotionSteps() {
@@ -317,17 +329,24 @@ public class Hand {
 		} else {
 			TouchAnalysis newAnalysis = new TouchAnalysis(this,
 					getJoint(saveMovementLineJoint));
-			runningTouchAnalysis.add(newAnalysis);
+			synchronized (analysisLock) {
+				runningTouchAnalysis.add(newAnalysis);
+			}
 		}
 	}
 
 	public void removeSaveTouchLineJoint(JointType saveMovementLineJoint) {
+
 		TouchAnalysis current = getTouchAnalysis(saveMovementLineJoint);
-		runningTouchAnalysis.remove(current);
+		synchronized (analysisLock) {
+			runningTouchAnalysis.remove(current);
+		}
 	}
 
 	public void disableTouchAnalysis() {
-		runningTouchAnalysis.clear();
+		synchronized (analysisLock) {
+			runningTouchAnalysis.clear();
+		}
 	}
 
 	public ArrayList<TouchAnalysis> getRunningTouchAnalysis() {
@@ -407,10 +426,10 @@ public class Hand {
 		db.setJointConstraint(JointType.RING_BOTTOM, fingerBottomRestriction);
 		db.setJointConstraint(JointType.MIDDLE_BOTTOM, fingerBottomRestriction);
 		db.setJointConstraint(JointType.INDEX_BOTTOM, fingerBottomRestriction);
-		
+
 		Restriction thumbBottomRestriction = new Restriction(
-				-AngleHelper.radFromDeg(50), AngleHelper.radFromDeg(30), -AngleHelper.radFromDeg(25),
-				AngleHelper.radFromDeg(10), 0, 0);
+				-AngleHelper.radFromDeg(50), AngleHelper.radFromDeg(30),
+				-AngleHelper.radFromDeg(25), AngleHelper.radFromDeg(10), 0, 0);
 		db.setJointConstraint(JointType.THUMB_BOTTOM, thumbBottomRestriction);
 
 	}

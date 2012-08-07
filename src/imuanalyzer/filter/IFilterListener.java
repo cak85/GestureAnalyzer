@@ -3,6 +3,8 @@ package imuanalyzer.filter;
 public interface IFilterListener {
 	Quaternion updateOrientation(Quaternion quad);
 	
+	Quaternion getCurrentWRFilterOrientation();
+	
 	void updateAcceleration(Quaternion quad);
 	
 	Quaternion getInitialOrientation();

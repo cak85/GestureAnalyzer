@@ -125,21 +125,21 @@ public class Quaternion implements Comparable<Quaternion> {
 
 	public static Quaternion quaternionProduct(Quaternion quaternion,
 			Quaternion matrix) {
-		double a1 = quaternion.w;
-		double a2 = quaternion.x;
-		double a3 = quaternion.y;
-		double a4 = quaternion.z;
-		double b1 = matrix.w;
-		double b2 = matrix.x;
-		double b3 = matrix.y;
-		double b4 = matrix.z;
+		double a0 = quaternion.w;
+		double a1 = quaternion.x;
+		double a2 = quaternion.y;
+		double a3 = quaternion.z;
+		double b0 = matrix.w;
+		double b1 = matrix.x;
+		double b2 = matrix.y;
+		double b3 = matrix.z;
 
 		Quaternion quad = new Quaternion();
 
-		quad.w = a1 * b1 - a2 * b2 - a3 * b3 - a4 * b4;
-		quad.x = a1 * b2 + a2 * b1 + a3 * b4 - a4 * b3;
-		quad.y = a1 * b3 - a2 * b4 + a3 * b1 + a4 * b2;
-		quad.z = a1 * b4 + a2 * b3 - a3 * b2 + a4 * b1;
+		quad.w = a0 * b0 - a1 * b1 - a2 * b2 - a3 * b3;
+		quad.x = a0 * b1 + a1 * b0 + a2 * b3 - a3 * b2;
+		quad.y = a0 * b2 - a1 * b3 + a2 * b0 + a3 * b1;
+		quad.z = a0 * b3 + a1 * b2 - a2 * b1 + a3 * b0;
 
 		return quad;
 	}

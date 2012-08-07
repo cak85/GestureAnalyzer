@@ -356,7 +356,9 @@ public class Visual3d extends SimpleApplication {
 	 *            value to add
 	 */
 	private void manualAddToQuat(JointType joint, Axis axis, double value) {
-		Quaternion quat = hand.getLocalJointOrientation(joint);
+
+		Joint j = hand.getJoint(joint);
+		Quaternion quat = j.getWorldOrientation();
 
 		double[] angles = quat.getAnglesRad();
 
@@ -365,7 +367,7 @@ public class Visual3d extends SimpleApplication {
 
 		Quaternion newQuat = new Quaternion(angles[0], angles[1], angles[2]);
 
-		hand.setLocalJointOrientation(joint, newQuat);
+		j.update(newQuat, true);
 
 	}
 
@@ -443,10 +445,11 @@ public class Visual3d extends SimpleApplication {
 								deviceDummy);
 					} else if (targetName.toLowerCase().contains("hand")) {
 						// create popUp with further options
-						// JointType type = Utils
-						// .getJointTypeFromGeometryNamePostfix(target);
-						JointType type = Utils
-								.getJointTypeFromGeomertyByOrderMapping(target);
+						JointType type;
+
+						type = Utils
+								.getJointTypeFromGeometryNamePostfix(target);
+
 						if (type != null) {
 							menu = menuFactory.getHandPopUpMenu(myInstance,
 									type);
@@ -614,6 +617,7 @@ public class Visual3d extends SimpleApplication {
 				JointType currentJointType = entry.getKey();
 				Quaternion currentJointOrientation = currentJoint
 						.getWorldOrientation();
+
 				visualHand.setBoneRotationAbs(currentJointType,
 						Utils.getJMEQuad(currentJointOrientation));
 
