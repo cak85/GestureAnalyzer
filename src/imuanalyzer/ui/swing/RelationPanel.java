@@ -254,8 +254,9 @@ public class RelationPanel extends JPanel {
 				String str2 = (String) tableModel.getValueAt(rowIndex, 3);
 
 				JointType jointType1 = Hand.nameToJointType(str1);
-				float factor = Float.valueOf((String) tableModel.getValueAt(
-						rowIndex, 1));
+				String number = (String) tableModel.getValueAt(
+						rowIndex, 2);
+				float factor = Float.valueOf(number);
 				JointType jointType2 = Hand.nameToJointType(str2);
 
 				factorSpinner.setValue(factor);

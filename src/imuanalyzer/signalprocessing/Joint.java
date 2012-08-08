@@ -75,10 +75,10 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	@Override
 	public Quaternion updateOrientation(Quaternion measuredWROrientation) {
-//		System.out.println("-------------------");
-//		System.out.println("updated with:");
-//		measuredWROrientation.print(3);
-//		measuredWROrientation.printDegree(3);
+		// System.out.println("-------------------");
+		// System.out.println("updated with:");
+		// measuredWROrientation.print(3);
+		// measuredWROrientation.printDegree(3);
 		return update(measuredWROrientation, false);
 	}
 
@@ -244,7 +244,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		if (isActive()) {
 			return worldOrientation;
 		}
-		
+
 		worldOrientation = getWorldOrientation();
 
 		// rotate by restiction offset from child
@@ -323,7 +323,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		if (parent != null) {
 
 			return parent.getWorldOrientation().getConjugate()
-					.quaternionProduct(worldOrientation);
+					.quaternionProduct(getWorldOrientation());
 		} else {
 			return worldOrientation;
 		}
@@ -369,8 +369,8 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	protected void calcWorldRestOrientation() {
 		Quaternion worldOrientation;
 		if (parent != null) {
-			worldOrientation = localRestOrientation.quaternionProduct(parent
-					.getWorldRestOrientation());
+			worldOrientation = parent.getWorldRestOrientation()
+					.quaternionProduct(localRestOrientation);
 		} else {
 			worldOrientation = localRestOrientation;
 		}
