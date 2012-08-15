@@ -181,7 +181,7 @@ public class MainMenuBar extends JMenuBar {
 		menu.add(checkMenuItem);
 
 		checkMenuItem = new JCheckBoxMenuItem("Show Skeleton");
-		checkMenuItem.setSelected(true);
+		checkMenuItem.setSelected(false);
 		checkMenuItem.addChangeListener(new ChangeListener() {
 
 			@Override

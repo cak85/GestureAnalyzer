@@ -147,7 +147,7 @@ public class Boxplot3d extends Node {
 			IBoxplotData t = statistics.get(i);
 
 			// one option with based on max line
-			// VectorLine boxBaseLine = (VectorLine) t.getMaxObj();
+			//VectorLine boxBaseLine = (VectorLine) t.getMaxObj();
 			// better option with using calculated avg line for base
 			VectorLine boxBaseLine = (VectorLine) t.getAvgObj();
 			lines.add(boxBaseLine);

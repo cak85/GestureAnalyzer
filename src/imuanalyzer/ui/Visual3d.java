@@ -43,6 +43,7 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -184,11 +185,11 @@ public class Visual3d extends SimpleApplication {
 	public void simpleInitApp() {
 
 		// optional
-		FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-
-		// anitalasing
-		// FXAAFilter fxaaFilter = new FXAAFilter();
-		// fpp.addFilter(fxaaFilter);
+//		FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//
+//		// anitalasing
+//		 FXAAFilter fxaaFilter = new FXAAFilter();
+//		 fpp.addFilter(fxaaFilter);
 
 		// fpp.setNumSamples(4);
 		// SSAOFilter ssaoFilter = new SSAOFilter(0.92f, 2.2f, 0.46f, 0.2f);
@@ -209,7 +210,7 @@ public class Visual3d extends SimpleApplication {
 		// fpp.addFilter(bloom);
 
 		// fpp.addFilter(ssaoFilter);
-		viewPort.addProcessor(fpp);
+		//		viewPort.addProcessor(fpp);
 
 		for (JointType t : JointType.values()) {
 			visualJointSettings.put(t, new JointSetting(t));
@@ -220,7 +221,7 @@ public class Visual3d extends SimpleApplication {
 
 		attachLight();
 
-		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, true,
+		visualHand = new VisualHand3d(assetManager, HandOrientation.LEFT, false,
 				modelQualityMain);
 
 		visualHand.getModel().setShadowMode(ShadowMode.CastAndReceive);
