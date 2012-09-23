@@ -16,6 +16,11 @@ public class IntervalUpdater extends Thread {
 
 	private long update_cycle;
 
+	/**
+	 * Constructor
+	 * @param items to be updated 
+	 * @param update_cycle milliseconds to wait between updates
+	 */
 	public IntervalUpdater(ArrayList<IIntervalUpdate> items, long update_cycle) {
 		this.items = items;
 		this.update_cycle = update_cycle;
@@ -29,7 +34,7 @@ public class IntervalUpdater extends Thread {
 			try {
 
 				for (IIntervalUpdate jR : items) {
-					jR.update();
+					jR.update(System.currentTimeMillis());
 				}
 
 				Thread.sleep(update_cycle);

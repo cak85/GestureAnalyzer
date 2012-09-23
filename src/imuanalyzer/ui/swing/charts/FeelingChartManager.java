@@ -6,6 +6,13 @@ import imuanalyzer.utils.parallel.IntervalUpdater;
 
 import java.util.ArrayList;
 
+/**
+ * Manager for several feeling chart frames,
+ * handles updates, creation and so on
+ * 
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class FeelingChartManager {
 
 	/**

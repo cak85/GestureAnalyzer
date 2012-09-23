@@ -1,13 +1,20 @@
 package imuanalyzer.ui.swing.menu;
 
-import imuanalyzer.ui.DeviceDummy;
-import imuanalyzer.ui.Visual3d;
+import imuanalyzer.ui.jmonkey.DeviceDummy;
+import imuanalyzer.ui.jmonkey.Visual3d;
+import imuanalyzer.ui.swing.help.HelpManager;
 
 import java.awt.event.ActionEvent;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+/**
+ * Popup for context sensitive tablet device configuration
+ * allows moving an rotation of device
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 class Visual3dDevicePopUpMenu extends JPopupMenu {
 
 	/**
@@ -23,6 +30,8 @@ class Visual3dDevicePopUpMenu extends JPopupMenu {
 	public Visual3dDevicePopUpMenu(Visual3d visual3d, final DeviceDummy device) {
 		this.visual3d = visual3d;
 		this.device = device;
+		
+		HelpManager.getInstance().enableHelpKey(this, "device");
 
 		JMenuItem anItem;
 

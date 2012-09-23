@@ -1,8 +1,8 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.ui.IInfoContent;
-import imuanalyzer.utils.math.LowPass;
+import imuanalyzer.utils.math.LowPassQuad;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 
@@ -10,10 +10,18 @@ import org.apache.log4j.Logger;
 
 import com.jme3.math.Vector3f;
 
+/**
+ * Stores and calculates data of touch analysis
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class TouchAnalysis implements IInfoContent {
 
 	private static final Logger LOGGER = Logger.getLogger(TouchAnalysis.class
 			.getName());
+
+	final static double MINCUTOFFDIRECTION = 0.03f;
 
 	Hand hand;
 
@@ -33,19 +41,30 @@ public class TouchAnalysis implements IInfoContent {
 
 	VectorLine currentLine;
 
-	LowPass directionLowPass = new LowPass(0.8f);
+	LowPassQuad directionLowPass = new LowPassQuad(0.7f);
 
 	String infoName;
 
+	/**
+	 * Constructor touch analysis
+	 * 
+	 * @param hand
+	 *            for starting analysis
+	 * @param observedJoint
+	 *            joint which will be observed
+	 */
 	public TouchAnalysis(Hand hand, Joint observedJoint) {
 		this.hand = hand;
 		this.observedJoint = observedJoint;
-		lastPos = observedJoint.getFingertipPosition();
+		lastPos = observedJoint.getFingerTouchPosition();
 		currentLine = new VectorLine();
 		lines.add(currentLine);
 		infoName = "Touch " + observedJoint.getInfoName();
 	}
 
+	/**
+	 * Clear all analysis data
+	 */
 	public void clear() {
 		synchronized (clearLock) {
 			currentLine = new VectorLine();
@@ -57,6 +76,12 @@ public class TouchAnalysis implements IInfoContent {
 		}
 	}
 
+	/**
+	 * Will be upadted from external, checks if observed joint or a parent is
+	 * updated before doing further calculation
+	 * 
+	 * @param updatedJoint
+	 */
 	public void update(Joint updatedJoint) {
 
 		if (updatedJoint != observedJoint
@@ -64,16 +89,19 @@ public class TouchAnalysis implements IInfoContent {
 			return;
 		}
 
-		Quaternion newPos = observedJoint.getFingertipPosition();
+		Quaternion newPos = observedJoint.getFingerTouchPosition();
+
 		synchronized (clearLock) {
 			if (!lastPos.equals(newPos)) {
 
 				Quaternion newDirection = newPos.minus(lastPos);
 
+				newDirection.print(3);
+
 				// low pass
 				newDirection = directionLowPass.filter(newDirection);
 
-				// newDirection.print(8);
+				newDirection.print(8);
 
 				float directionLength = (float) newDirection.getNorm();
 
@@ -83,19 +111,25 @@ public class TouchAnalysis implements IInfoContent {
 
 					int signChangeCounter = 0;
 					// check direction change
-					if (newDirection.getX() > 0 && currentDirection.getX() < 0
+					if (Math.abs(newDirection.getX()) > MINCUTOFFDIRECTION
+							&& newDirection.getX() > 0
+							&& currentDirection.getX() < 0
 							|| currentDirection.getX() > 0
 							&& newDirection.getX() < 0) {
 						signChangeCounter++;
 						// LOGGER.debug("x sign changed");
 					}
-					if (newDirection.getY() > 0 && currentDirection.getY() < 0
+					if (Math.abs(newDirection.getY()) > MINCUTOFFDIRECTION
+							&& newDirection.getY() > 0
+							&& currentDirection.getY() < 0
 							|| currentDirection.getY() > 0
 							&& newDirection.getY() < 0) {
 						signChangeCounter++;
 						// LOGGER.debug("y sign changed");
 					}
-					if (newDirection.getZ() > 0 && currentDirection.getZ() < 0
+					if (Math.abs(newDirection.getZ()) > MINCUTOFFDIRECTION
+							&& newDirection.getZ() > 0
+							&& currentDirection.getZ() < 0
 							|| currentDirection.getZ() > 0
 							&& newDirection.getZ() < 0) {
 						signChangeCounter++;
@@ -108,6 +142,8 @@ public class TouchAnalysis implements IInfoContent {
 						lines.add(currentLine);
 					}
 					currentDirection = newDirection;
+
+					lastPos = newPos;
 				}
 
 				// LOGGER.debug(currentDirection);
@@ -121,8 +157,6 @@ public class TouchAnalysis implements IInfoContent {
 					// LOGGER.debug("Max Length: " + maxLengthTouch);
 				}
 
-				lastPos = newPos;
-
 				// conversion to jme representation not sure why it is different
 				// from
 				// that one in utils ....?
@@ -134,27 +168,57 @@ public class TouchAnalysis implements IInfoContent {
 		}
 	}
 
+	/**
+	 * Get all lines from this touch analysis
+	 * 
+	 * @return
+	 */
 	public ArrayList<VectorLine> getAllLines() {
 		return lines;
 	}
 
+	/**
+	 * Get the maximum line
+	 * 
+	 * @return
+	 */
 	public VectorLine getMaxLine() {
 		return lines.get(maxIdTouch);
 	}
 
+	/**
+	 * Get the currently recognized line
+	 * 
+	 * @return
+	 */
 	public VectorLine getCurrentLine() {
 
 		return currentLine;
 	}
 
+	/**
+	 * Get observed joint
+	 * 
+	 * @return
+	 */
 	public Joint getObservedJoint() {
 		return observedJoint;
 	}
 
+	/**
+	 * Get line id of max line
+	 * 
+	 * @return
+	 */
 	public int getMaxIdTouch() {
 		return maxIdTouch;
 	}
 
+	/**
+	 * Get maximum touch length
+	 * 
+	 * @return
+	 */
 	public float getMaxLengthTouch() {
 		return maxLengthTouch;
 	}

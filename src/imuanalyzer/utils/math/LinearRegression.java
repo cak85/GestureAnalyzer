@@ -28,6 +28,10 @@ public class LinearRegression {
 		calculate(values);
 	}
 
+	/**
+	 * Calculate the linear regression
+	 * @param values
+	 */
 	private void calculate(Iterable<double[]> values) {
 		// first pass: read in data, compute xbar and ybar
 		double sumx = 0.0, sumy = 0.0, sumx2 = 0.0;
@@ -55,7 +59,7 @@ public class LinearRegression {
 		beta0 = ybar - beta1 * xbar;
 
 		// print results
-		LOGGER.debug("y   = " + beta1 + " * x + " + beta0);
+//		LOGGER.debug("y   = " + beta1 + " * x + " + beta0);
 
 		// analyze results
 		int df = numberOfElements - 2;
@@ -69,7 +73,7 @@ public class LinearRegression {
 		double svar = rss / df;
 		double svar1 = svar / xxbar;
 		double svar0 = svar / numberOfElements + xbar * xbar * svar1;
-		LOGGER.debug("R^2                 = " + R2);
+//		LOGGER.debug("R^2                 = " + R2);
 
 		stdErrorBeta1 = Math.sqrt(svar1);
 		//LOGGER.debug("std error of beta_1 = " + stdErrorBeta1);

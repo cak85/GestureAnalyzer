@@ -5,16 +5,16 @@ package imuanalyzer.signalprocessing;
 
 import static org.junit.Assert.assertEquals;
 import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
-import imuanalyzer.device.IIMUDataProvider;
-import imuanalyzer.device.IImuReaderStatusNotifier;
-import imuanalyzer.device.ImuEvent;
-import imuanalyzer.device.ImuEventManager;
-import imuanalyzer.device.ImuRawData;
+import imuanalyzer.data.DatasetMetadata;
+import imuanalyzer.device.IMARGDataProvider;
+import imuanalyzer.device.IMARGReaderStatusListener;
+import imuanalyzer.device.MARGEvent;
+import imuanalyzer.device.MARGEventManager;
+import imuanalyzer.device.MARGRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.utils.SensorVector;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +32,7 @@ public class PlaybackRecordTest {
 
 	Database db;
 	Hand hand;
-	Marker currentActiveMarker;
+	DatasetMetadata currentActiveMarker;
 
 	/**
 	 * @throws java.lang.Exception
@@ -40,7 +40,7 @@ public class PlaybackRecordTest {
 	@Before
 	public void setUp() throws Exception {
 		db = Database.getInstance();
-		currentActiveMarker = new Marker("UNITTESTER", "UNITTESTER");
+		currentActiveMarker = new DatasetMetadata("UNITTESTER", "UNITTESTER");
 		db.setMarker(currentActiveMarker);
 	}
 
@@ -49,14 +49,14 @@ public class PlaybackRecordTest {
 		db.removeMarker(currentActiveMarker);
 	}
 
-	private ImuRawData[] buildData(Date date, double a_x, double a_y,
+	private MARGRawData[] buildData(Date date, double a_x, double a_y,
 			double a_z, double g_x, double g_y, double g_z, double m_x,
 			double m_y, double m_z) {
-		return new ImuRawData[] {
-				new ImuRawData(0, date, 0.031, new SensorVector(a_x, a_y, a_z),
+		return new MARGRawData[] {
+				new MARGRawData(0, date, 0.031, new SensorVector(a_x, a_y, a_z),
 						new SensorVector(g_x, g_y, g_z), new SensorVector(m_x,
 								m_y, m_z)),
-				new ImuRawData(1, date, 0.031, new SensorVector(a_x, a_y, a_z),
+				new MARGRawData(1, date, 0.031, new SensorVector(a_x, a_y, a_z),
 						new SensorVector(g_x, g_y, g_z), new SensorVector(m_x,
 								m_y, m_z)) };
 	}
@@ -68,7 +68,7 @@ public class PlaybackRecordTest {
 
 		int numberOfSensor = 2;
 		OrientationSensorManager sensors = new OrientationSensorManager(
-				FilterTypes.QUATERNION_COMPLEMENTARY, numberOfSensor);
+				FilterTypes.CF_QUATERNION, numberOfSensor);
 		sensors.setImuReader(imuReaderMockUp);
 
 		hand = new Hand(sensors, currentActiveMarker);
@@ -85,7 +85,7 @@ public class PlaybackRecordTest {
 		int testItems = 20;
 
 		// testdata
-		ArrayList<ImuRawData[]> testData = new ArrayList<ImuRawData[]>();
+		ArrayList<MARGRawData[]> testData = new ArrayList<MARGRawData[]>();
 		for (int i = 0; i < testItems / 5; i++) {
 
 			testData.add(buildData(new Date(), -2, 256, -5, -0.83, -0.83, 0.55,
@@ -120,8 +120,8 @@ public class PlaybackRecordTest {
 
 		for (int i = 0; i < testItems; i++) {
 
-			ImuRawData[] data = testData.get(i);
-			ImuEvent event = new ImuEvent(data);
+			MARGRawData[] data = testData.get(i);
+			MARGEvent event = new MARGEvent(data);
 
 			imuReaderMockUp.eventManager.fireEvent(event);
 			Thread.sleep(31);
@@ -133,7 +133,7 @@ public class PlaybackRecordTest {
 		db.setMarker(currentActiveMarker);
 
 		// test playback
-		ArrayList<ImuRawData> rawData = db.getImuData(currentActiveMarker);
+		ArrayList<MARGRawData> rawData = db.getImuData(currentActiveMarker);
 
 		assertEquals("DataSize", testData.size() * numberOfSensor,
 				rawData.size());
@@ -197,13 +197,13 @@ public class PlaybackRecordTest {
 		if (rawData.size() > 0) {
 
 			Date currentPeriod = rawData.get(0).getTimeStamp();
-			ImuRawData[] currentSet = new ImuRawData[numberOfSensor];
+			MARGRawData[] currentSet = new MARGRawData[numberOfSensor];
 			
 			int indexCalculatedOrientation = 0;
 
 			for (int i = 0; i < rawData.size(); i++) {
 
-				ImuRawData newData = rawData.get(i);
+				MARGRawData newData = rawData.get(i);
 				Date newPeriod = newData.getTimeStamp();
 
 				if (newPeriod.compareTo(currentPeriod) == 0
@@ -241,7 +241,7 @@ public class PlaybackRecordTest {
 
 	}
 
-	private void storeJointMapping(Marker marker) {
+	private void storeJointMapping(DatasetMetadata marker) {
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 			JointType type = entry.getKey();
 			Joint joint = entry.getValue();
@@ -254,7 +254,7 @@ public class PlaybackRecordTest {
 	 * save current local hand orientations as initial orientation for saved
 	 * movement
 	 */
-	private void storeInitialHandPosition(Marker marker) {
+	private void storeInitialHandPosition(DatasetMetadata marker) {
 		for (Entry<JointType, Joint> entry : hand.getJointSet()) {
 			JointType type = entry.getKey();
 			Joint joint = entry.getValue();
@@ -264,15 +264,15 @@ public class PlaybackRecordTest {
 		}
 	}
 
-	class IMUReaderMockUp implements IIMUDataProvider {
+	class IMUReaderMockUp implements IMARGDataProvider {
 
-		ImuEventManager eventManager = new ImuEventManager();
+		MARGEventManager eventManager = new MARGEventManager();
 
 		public IMUReaderMockUp() {
 		}
 
 		@Override
-		public ImuEventManager getEventManager() {
+		public MARGEventManager getEventManager() {
 			return eventManager;
 		}
 
@@ -294,11 +294,11 @@ public class PlaybackRecordTest {
 		}
 
 		@Override
-		public void registerStatusNotifier(IImuReaderStatusNotifier notifier) {
+		public void registerStatusListener(IMARGReaderStatusListener notifier) {
 		}
 
 		@Override
-		public void deregisterStatusNotifier(IImuReaderStatusNotifier notifier) {
+		public void deregisterStatusListener(IMARGReaderStatusListener notifier) {
 		}
 
 	}

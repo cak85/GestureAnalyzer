@@ -2,7 +2,7 @@ package imuanalyzer.filter.filterimpl;
 
 import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.IIRFilter;
-import imuanalyzer.filter.Quaternion;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	private static final int IIR_LENGTH = 10;
 
-	//gyro drift correction factor
+	// gyro drift correction factor
 	private static double k = 1;
 
 	public List<Double> aAcc;
@@ -109,7 +109,7 @@ public class QuaternionComplementaryFilter extends Filter {
 	@Override
 	public Quaternion filterStep(double w_x, double w_y, double w_z,
 			double a_x, double a_y, double a_z, double m_x, double m_y,
-			double m_z, float temp) {
+			double m_z, double temp) {
 
 		double norm = 0;
 
@@ -194,16 +194,16 @@ public class QuaternionComplementaryFilter extends Filter {
 			m_z /= normM;
 
 			Quaternion qFilt = this.qFilt;
-
-			double accelNorm = currentDynAcceleration.getNorm();
-			// System.out.printf("AccelNorm: %.3f\n", accelNorm);
-
-			if (accelNorm == 0) { // no Acceleration = no Rotation
-				// I think this is not necessary because orientation was already
-				// adjusted last time
-				// this.qFilt = updateAndAdjust(qFilt);
-				return qFilt;
-			}
+			//
+			// double accelNorm = currentDynAcceleration.getNorm();
+			// // System.out.printf("AccelNorm: %.3f\n", accelNorm);
+			//
+			// if (accelNorm == 0) { // no Acceleration = no Rotation
+			// // I think this is not necessary because orientation was already
+			// // adjusted last time
+			// // this.qFilt = updateAndAdjust(qFilt);
+			// return qFilt;
+			// }
 
 			// after testing it seems to be better to disable computing this
 			// average smoothing by using the last orientation
@@ -285,11 +285,21 @@ public class QuaternionComplementaryFilter extends Filter {
 
 	public String getParameterName(int index) {
 		switch (index) {
-		case 1:
+		case 0:
 			return "K";
 		default:
 			return "Optimization Algorithm";
 		}
-
+	}
+	
+	@Override
+	public String getParameterDescription(int index) {
+		switch (index) {
+		case 0:
+			return "Gyroskop Bias Gain";
+		case 1:
+		default:
+			return "Optimization Algorithm select 0 = Gradient-Decent-Method ; 1 = Gaus-Newton-Method ";
+		}
 	}
 }

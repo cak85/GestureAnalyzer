@@ -1,10 +1,10 @@
 package imuanalyzer.signalprocessing;
 
 import imuanalyzer.configuration.Configuration;
-import imuanalyzer.device.IIMUDataProvider;
-import imuanalyzer.device.ImuEvent;
-import imuanalyzer.device.ImuRawData;
-import imuanalyzer.device.ImuUpdateListener;
+import imuanalyzer.device.IMARGDataProvider;
+import imuanalyzer.device.MARGEvent;
+import imuanalyzer.device.MARGRawData;
+import imuanalyzer.device.MARGUpdateListener;
 import imuanalyzer.filter.Filter;
 import imuanalyzer.filter.FilterFactory;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
@@ -19,6 +19,11 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
+/**
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class OrientationSensorManager implements IOrientationSensors {
 
 	/**
@@ -73,7 +78,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 	private TreeSet<FilterMapping> filters = new TreeSet<FilterMapping>(
 			new PriorityComparator());
 
-	private IIMUDataProvider imureader;
+	private IMARGDataProvider imureader;
 
 	private Object filterEditLock = new Object();
 
@@ -88,15 +93,15 @@ public class OrientationSensorManager implements IOrientationSensors {
 		currentType = filterType;
 	}
 
-	public void setImuReader(IIMUDataProvider imureader) throws Exception {
+	public void setImuReader(IMARGDataProvider imureader) throws Exception {
 		try {
 
 			this.imureader = imureader;
 
 			imureader.getEventManager().addEventListener(
-					new ImuUpdateListener() {
+					new MARGUpdateListener() {
 						@Override
-						public void notifyImuDataUpdate(final ImuEvent event) {
+						public void notifyImuDataUpdate(final MARGEvent event) {
 
 							synchronized (filterEditLock) {
 								if (isRecording) {
@@ -117,7 +122,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 	/**
 	 * data array must be ordered by id!!
 	 */
-	public void processImuData(final ImuRawData data[],
+	public void processImuData(final MARGRawData data[],
 			final double samplePeriod) {
 
 		// LOGGER.debug("Process IMU Sampleperiod " + samplePeriod);
@@ -132,16 +137,16 @@ public class OrientationSensorManager implements IOrientationSensors {
 				SensorVector accel = data[id].getAccelerometer();
 				SensorVector magneto = data[id].getMagnetometer();
 				SensorVector gyro = data[id].getGyroskope();
-				float temp = data[id].getTemp();
+				double temp = 35 + ((data[id].getRawTemp()) + 13200) / 280.0;
+
+				double gyroX = AngleHelper.radFromDeg(gyro.x / 14.375);
+				double gyroY = AngleHelper.radFromDeg(gyro.y / 14.375);
+				double gyroZ = AngleHelper.radFromDeg(gyro.z / 14.375);
 
 				// degree to rad
-				fm.getFilter()
-						.filterStep(samplePeriod,
-								AngleHelper.radFromDeg(gyro.x / 14.375),
-								AngleHelper.radFromDeg(gyro.y / 14.375),
-								AngleHelper.radFromDeg(gyro.z / 14.375),
-								accel.x, accel.y, accel.z, magneto.x,
-								magneto.y, magneto.z, temp);
+				fm.getFilter().filterStep(samplePeriod, gyroX, gyroY, gyroZ,
+						accel.x, accel.y, accel.z, magneto.x, magneto.y,
+						magneto.z, temp);
 			}
 		}
 
@@ -184,17 +189,22 @@ public class OrientationSensorManager implements IOrientationSensors {
 		imureader.close();
 	}
 
+	
+	/**
+	 * Only the best working are shown
+	 */
 	@Override
 	public Vector<FilterTypes> getAvailableFilters() {
 		Vector<FilterTypes> types = new Vector<FilterFactory.FilterTypes>();
-		types.add(FilterTypes.AHRS);
+		types.add(FilterTypes.CF_MAHONY_MAGNETIC_DISTORSION);
 		types.add(FilterTypes.KALMAN);
-		types.add(FilterTypes.QUATERNION_COMPLEMENTARY);
-		types.add(FilterTypes.AHRSMAHONY);
-		types.add(FilterTypes.AHRSMADGWICK);
-		//not well usable
-//		types.add(FilterTypes.VARANESO_DOF);
-//		types.add(FilterTypes.AHRSMADGWICK_FREEIMU);
+		//types.add(FilterTypes.CF_QUATERNION);
+		types.add(FilterTypes.CF_MAHONY);
+		types.add(FilterTypes.CF_MADGWICK_GRADIENT_DECENT);
+		// not well usable
+		// types.add(FilterTypes.VARANESO_DOF);
+		// types.add(FilterTypes.CF_FREEIMU);
+		types.add(FilterTypes.MY_FILTER);
 		return types;
 	}
 
@@ -239,13 +249,13 @@ public class OrientationSensorManager implements IOrientationSensors {
 	}
 
 	@Override
-	public IIMUDataProvider getImuDataProvider() {
+	public IMARGDataProvider getImuDataProvider() {
 		return imureader;
 	}
 
 	@Override
 	public ITuneFilter getCurrentTuning() {
-		//THIS works because conficutation in Filter is always static!
+		// THIS works because conficutation in Filter is always static!
 		return FilterFactory.getFilter(Configuration.getInstance()
 				.getFilterType());
 	}

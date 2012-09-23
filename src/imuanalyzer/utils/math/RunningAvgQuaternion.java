@@ -1,9 +1,12 @@
 package imuanalyzer.utils.math;
 
-import imuanalyzer.filter.Quaternion;
-
 import java.util.ArrayDeque;
 
+/**
+ * Class for calculating a running average over quaternions
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class RunningAvgQuaternion {
 
 	int sizeLimit;

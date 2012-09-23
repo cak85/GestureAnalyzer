@@ -1,10 +1,9 @@
 package imuanalyzer.signalprocessing;
 
 import imuanalyzer.filter.IFilterListener;
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.IInfoContent;
-import imuanalyzer.utils.math.AngleHelper;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -14,6 +13,13 @@ import org.apache.log4j.Logger;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+/**
+ * General class for providing a customizable anatomie modell, currently used
+ * for hand joints
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	private static final Logger LOGGER = Logger
@@ -21,6 +27,9 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	private static final Quaternion FINGER_TIP_OFFSET = new Quaternion(0, 0,
 			0.7, 0);
+
+	private static final Quaternion FINGER_TOUCH_OFFSET = new Quaternion(0, 0,
+			0.5, -0.245);
 
 	private static final Quaternion SENSOR_OFFSET = new Quaternion(0, 0, 3, 0);
 
@@ -75,10 +84,6 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 	@Override
 	public Quaternion updateOrientation(Quaternion measuredWROrientation) {
-		// System.out.println("-------------------");
-		// System.out.println("updated with:");
-		// measuredWROrientation.print(3);
-		// measuredWROrientation.printDegree(3);
 		return update(measuredWROrientation, false);
 	}
 
@@ -108,7 +113,11 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		} else {
 			this.worldOrientation = measuredWROrientation;
 		}
-		updateLocalOrientation();
+		;
+
+		// I am not using the update function because this will male problems
+		// during manual update
+		updateLocalOrientationFromWorld();
 
 		if (updateChildrensWorldOrientation) {
 			updateChildrenWorldOrientation();
@@ -118,7 +127,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		if (!oldLocalOrientation.equals(this.worldOrientation)) {
 			// update joints in relation to this one
 			Quaternion lastChange = this.localOrientation
-					.quaternionProduct(oldLocalOrientation.getConjugate());
+			.quaternionProduct(oldLocalOrientation.getConjugate());
 
 			double dotProduct = lastChange.dotProdcut(Quaternion.EMPTY);
 			if (dotProduct < 0.999999999) // Dotproduct near 1 means equal
@@ -131,6 +140,15 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		}
 
 		return this.worldOrientation;
+	}
+
+	protected void updateLocalOrientationFromWorld() {
+		if (parent != null) {
+			this.localOrientation = parent.getWorldOrientation().getConjugate()
+					.quaternionProduct(this.worldOrientation);
+		} else {
+			this.localOrientation = this.worldOrientation;
+		}
 	}
 
 	/**
@@ -150,12 +168,18 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		Quaternion tmpLocalOrientation = parentWR.getConjugate()
 				.quaternionProduct(measuredWROrientation);
 
+		// System.out.println("Local");
+		// tmpLocalOrientation.print(3);
+
 		Quaternion diff = getConstraintOffset(tmpLocalOrientation);
 
 		if (diff != null) {
 
 			// correct orientation with constraint offset
 			tmpLocalOrientation = diff.quaternionProduct(tmpLocalOrientation);
+
+			// System.out.println("LocalRestricted");
+			// tmpLocalOrientation.printDegree(3);
 
 			if (carryOffsetToChild) {
 				// give difference offset as carry to parent and get updated
@@ -182,7 +206,12 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 	 * @return
 	 */
 	private Quaternion getConstraintOffset(Quaternion newlocalOrientation) {
-		double[] angles = newlocalOrientation.getAnglesRad();
+
+		// restriction constraints are relative to rest position
+		Quaternion diffToRest = localRestOrientation.getConjugate()
+				.quaternionProduct(newlocalOrientation);
+
+		double[] angles = diffToRest.getAnglesRad();
 
 		double roll = angles[0];
 		double pitch = angles[1];
@@ -192,15 +221,12 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 
 		boolean update = false;
 
-		// restriction constraints are relative to rest position
-		double[] anglesRest = localRestOrientation.getAnglesRad();
-
-		double maxRoll = restriction.maxRoll + anglesRest[0];
-		double minRoll = restriction.minRoll + anglesRest[0];
-		double maxPitch = restriction.maxPitch + anglesRest[1];
-		double minPitch = restriction.minPitch + anglesRest[1];
-		double maxYaw = restriction.maxYaw + anglesRest[2];
-		double minYaw = restriction.minYaw + anglesRest[2];
+		double maxRoll = restriction.maxRoll;
+		double minRoll = restriction.minRoll;
+		double maxPitch = restriction.maxPitch;
+		double minPitch = restriction.minPitch;
+		double maxYaw = restriction.maxYaw;
+		double minYaw = restriction.minYaw;
 
 		if (roll > maxRoll) {
 			rollOff = maxRoll - roll;
@@ -225,6 +251,9 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		}
 
 		if (update) {
+			// LOGGER.debug("Off x:" + AngleHelper.degFromRad(rollOff)
+			// + "y:" + AngleHelper.degFromRad(pitchOff) + "z:"
+			// + AngleHelper.degFromRad(yawOff));
 			return new Quaternion(rollOff, pitchOff, yawOff);
 		} else {
 			return null;
@@ -262,7 +291,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		}
 
 		// update local orientation from new world orientation
-		updateLocalOrientation();
+		updateLocalOrientationFromWorld();
 
 		return worldOrientation;
 	}
@@ -327,13 +356,6 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		} else {
 			return worldOrientation;
 		}
-	}
-
-	/**
-	 * Update local orientation from world orientation
-	 */
-	public void updateLocalOrientation() {
-		localOrientation = getLocalOrientation();
 	}
 
 	public void setLocalOrientation(Quaternion orientation) {
@@ -402,6 +424,15 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		Quaternion rotation = getWorldOrientation();
 
 		return bonePos.plus(rotation.quaternionProduct(FINGER_TIP_OFFSET)
+				.quaternionProduct(rotation.getConjugate()));
+
+	}
+
+	public Quaternion getFingerTouchPosition() {
+		Quaternion bonePos = getWorldPosition();
+		Quaternion rotation = getWorldOrientation();
+
+		return bonePos.plus(rotation.quaternionProduct(FINGER_TOUCH_OFFSET)
 				.quaternionProduct(rotation.getConjugate()));
 
 	}

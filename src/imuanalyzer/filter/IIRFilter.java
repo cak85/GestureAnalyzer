@@ -3,11 +3,21 @@ package imuanalyzer.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * IIR filter implementation Based on
+ * http://code.google.com/p/9dof-orientation-estimation/ coefficients are taken
+ * by matlab
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class IIRFilter {
 	private List<Double> a;
 	private List<Double> b;
 
-	// default Filter
+	/**
+	 * default Filter
+	 */
 	public IIRFilter() {
 
 		b = new ArrayList<Double>();
@@ -28,11 +38,23 @@ public class IIRFilter {
 
 	}
 
+	/**
+	 * Define filter coefficients
+	 * 
+	 * @param a
+	 * @param b
+	 */
 	public IIRFilter(List<Double> a, List<Double> b) {
 		this.a = a;
 		this.b = b;
 	}
 
+	/**
+	 * Use filter for given number of values
+	 * 
+	 * @param x
+	 * @param y
+	 */
 	public void Applyfilter(List<Double> x, List<Double> y) {
 		int ord = a.size() - 1;
 		int np = x.size() - 1;
@@ -42,9 +64,9 @@ public class IIRFilter {
 				x.add(0.0);
 			np = ord;
 		}
-		
+
 		y.clear();
-		
+
 		for (int k = 0; k < np + 1; k++) {
 			y.add(0.0);
 		}

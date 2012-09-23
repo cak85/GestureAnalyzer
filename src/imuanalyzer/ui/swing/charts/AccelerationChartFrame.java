@@ -3,6 +3,7 @@ package imuanalyzer.ui.swing.charts;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
+import imuanalyzer.ui.swing.help.HelpManager;
 import imuanalyzer.utils.parallel.IIntervalUpdate;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
@@ -19,6 +20,11 @@ import java.util.SortedSet;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+/**
+ * Frame which includes acceleration graph
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 
 	/**
@@ -36,7 +42,7 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 
 	protected Chart2D chart;
 
-	private long starttime = System.currentTimeMillis();
+	private long starttime = 0;
 
 	public AccelerationChartFrame(AccelerationChartManager _manager,
 			final Hand hand, final JointType type, final int valueLimit) {
@@ -45,6 +51,8 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 		this.manager = _manager;
 		this.hand = hand;
 		this.type = type;
+		
+		HelpManager.getInstance().enableHelpKey(this, "diagramms");
 
 		chart = new Chart2D();
 
@@ -95,7 +103,7 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 		return super.equals(obj);
 	}
 
-	public JointType getType() {
+	public JointType getJointType() {
 		return type;
 	}
 
@@ -107,7 +115,13 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 		this.hand = hand;
 	}
 
-	public void update() {
+	public void update(long currentTime) {
+		
+		// leave first update for getting starttime
+		if (starttime == 0) {
+			starttime = currentTime;
+			return;
+		}
 
 		Joint joint = hand.getJoint(type);
 
@@ -117,7 +131,7 @@ public class AccelerationChartFrame extends JFrame implements IIntervalUpdate {
 		int i = 0;
 		for (ITrace2D trace : traces) {
 			trace.addPoint(
-					((double) System.currentTimeMillis() - this.starttime),
+					((double) currentTime - this.starttime),
 					acceleration[i]);
 			i++;
 		}

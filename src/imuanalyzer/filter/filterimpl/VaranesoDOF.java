@@ -1,13 +1,16 @@
 package imuanalyzer.filter.filterimpl;
 
 import imuanalyzer.filter.Filter;
-import imuanalyzer.filter.Quaternion;
+import imuanalyzer.utils.math.Quaternion;
 
 /**
- * based on http://www.varesano.net/blog/fabio/my-first-6-dof-imu-sensors-fusion-implementation-adxl345-itg3200-arduino-and-processing
- * @author "Christopher-Eyk Hrabia"
- * but not working well, no z axis rotation...
- *
+ * based on
+ * http://www.varesano.net/blog/fabio/my-first-6-dof-imu-sensors-fusion-
+ * implementation-adxl345-itg3200-arduino-and-processing
+ * 
+ * @author "Christopher-Eyk Hrabia" but not working well, no z axis
+ *         rotation...messed up results
+ * 
  */
 public class VaranesoDOF extends Filter {
 
@@ -33,7 +36,7 @@ public class VaranesoDOF extends Filter {
 
 	@Override
 	public Quaternion filterStep(double gx, double gy, double gz, double ax,
-			double ay, double az, double mx, double my, double mz, float temp) {
+			double ay, double az, double mx, double my, double mz, double temp) {
 
 		double[] RwAcc = new double[3]; // projection of normalized gravitation
 										// force vector on x/y/z axis, as
@@ -77,7 +80,7 @@ public class VaranesoDOF extends Filter {
 					tmpf = Gyro[w]; // get current gyro rate in deg/s
 					tmpf *= samplePeriod; // get angle change in deg
 					// get angle and convert to degrees
-					Awz[w] = Math.atan2(RwEst[w], RwEst[2]) * 180 / Math.PI; 
+					Awz[w] = Math.atan2(RwEst[w], RwEst[2]) * 180 / Math.PI;
 					Awz[w] += tmpf; // get updated angle according to gyro
 									// movement
 				}

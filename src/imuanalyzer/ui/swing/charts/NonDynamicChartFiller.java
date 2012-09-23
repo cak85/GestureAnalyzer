@@ -1,12 +1,11 @@
 package imuanalyzer.ui.swing.charts;
 
-import imuanalyzer.data.Marker;
+import imuanalyzer.data.DatasetMetadata;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.IAnalysisExtension;
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.RelationStatistics;
-import imuanalyzer.ui.Boxplot2d;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -40,7 +39,7 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 			AccelerationChartManager _chartsAcceleration,
 			FeelingChartManager _feelingChart,
 			JointRelationChartManager _chartsRelation,
-			ArrayList<Marker> selectedMarkers, int maxData,
+			ArrayList<DatasetMetadata> selectedMarkers, int maxData,
 			boolean showRelationBoxplot) {
 
 		this.nrHands = selectedMarkers.size();
@@ -77,7 +76,7 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 		if (chartsAcceleration != null) {
 			for (AccelerationChartFrame chart : chartsAcceleration.getCharts()) {
 				AccelerationChartFrame frame = chartsAcceleration
-						.getStaticChart(chart.getType(), maxData);
+						.getStaticChart(chart.getJointType(), maxData);
 				staticAccelerationCharts.add(frame);
 			}
 		}
@@ -89,29 +88,29 @@ public class NonDynamicChartFiller implements IAnalysisExtension {
 
 	}
 
-	public synchronized void update(Hand hand, int idx) {
+	public synchronized void update(long time, Hand hand, int idx) {
 
 		// if (sumSamplePeriod % JointRelationChartManager.UPDATE_CYCLE < 10) {
 		for (JointRelationChartFrame chart : staticRelationCharts) {
 			chart.setHand(hand);
-			chart.update();
+			chart.update(time);
 		}
 		// }
 		// if (sumSamplePeriod % OrientationChartManager.UPDATE_CYCLE < 10) {
 		for (OrientationChartFrame chart : staticOrientationCharts) {
 			chart.setHand(hand);
-			chart.update(idx);
+			chart.update(time, idx);
 		}
 		// }
 		// if (sumSamplePeriod % AccelerationChartManager.UPDATE_CYCLE < 10) {
 		for (AccelerationChartFrame chart : staticAccelerationCharts) {
 			chart.setHand(hand);
-			chart.update();
+			chart.update(time);
 		}
 		// }
 		if (staticFeelingChart != null) {
 			staticFeelingChart.setHand(hand);
-			staticFeelingChart.update();
+			staticFeelingChart.update(time);
 		}
 	}
 

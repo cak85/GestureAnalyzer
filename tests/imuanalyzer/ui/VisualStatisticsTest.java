@@ -6,6 +6,7 @@ package imuanalyzer.ui;
 import imuanalyzer.signalprocessing.Helper;
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.VectorLineStatistics;
+import imuanalyzer.ui.jmonkey.Boxplot3d;
 
 import java.util.ArrayList;
 

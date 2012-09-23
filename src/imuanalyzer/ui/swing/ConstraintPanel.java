@@ -4,6 +4,7 @@ import imuanalyzer.data.Database;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Restriction;
+import imuanalyzer.ui.swing.help.HelpManager;
 import imuanalyzer.utils.math.AngleHelper;
 
 import java.awt.Dimension;
@@ -58,6 +59,8 @@ public class ConstraintPanel extends JPanel {
 		flowLayout.setHgap(20);
 		flowLayout.setVgap(20);
 		this.setLayout(flowLayout);
+		
+		HelpManager.getInstance().enableHelpKey(this, "constraints");
 
 		JPanel grid = new JPanel(new GridLayout(0, 2));
 

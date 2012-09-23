@@ -27,6 +27,8 @@ public class RelationStatistics implements IBoxplotData {
 	protected ArrayList<Float> elements;
 
 	protected ArrayList<IStatisticsValue> outliners = new ArrayList<IStatisticsValue>();
+	protected ArrayList<IStatisticsValue> outlinersUpper = new ArrayList<IStatisticsValue>();
+	protected ArrayList<IStatisticsValue> outlinersLower = new ArrayList<IStatisticsValue>();
 
 	protected ArrayList<Float> specialPoints = new ArrayList<Float>();
 
@@ -98,11 +100,16 @@ public class RelationStatistics implements IBoxplotData {
 		ArrayList<Float> cleanedLines = new ArrayList<Float>();
 
 		for (Float v : calcSet) {
-			if (v > lowOutlinersBorder && v < highOutlinersBorder) {
-				cleanedLines.add(v);
-			} else {
+			if (v < lowOutlinersBorder) {
+				outlinersLower.add(new FloatStatWrapper(v));
 				outliners.add(new FloatStatWrapper(v));
-				LOGGER.debug("Outliner detected: " + v);
+				LOGGER.debug("Outliner lower detected: " + v);
+			}else if ( v > highOutlinersBorder){
+				outlinersUpper.add(new FloatStatWrapper(v));
+				outliners.add(new FloatStatWrapper(v));
+				LOGGER.debug("Outliner upper detected: " + v);
+			} else {
+				cleanedLines.add(v);
 			}
 		}
 
@@ -182,7 +189,7 @@ public class RelationStatistics implements IBoxplotData {
 	}
 
 	@Override
-	public ArrayList<IStatisticsValue> getOutliners() {
+	public ArrayList<IStatisticsValue> getOutliers() {
 		return outliners;
 	}
 
@@ -219,6 +226,18 @@ public class RelationStatistics implements IBoxplotData {
 			return f;
 		}
 
+	}
+
+	@Override
+	public ArrayList<IStatisticsValue> getOutliersUpper() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ArrayList<IStatisticsValue> getOutliersLower() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

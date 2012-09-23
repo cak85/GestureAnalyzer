@@ -1,8 +1,13 @@
 package imuanalyzer.signalprocessing;
 
 import imuanalyzer.configuration.Configuration;
-import imuanalyzer.device.ImuReader;
+import imuanalyzer.device.MARGReader;
 
+/**
+ * 
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class OrientationSensorManagerFactory {
 	
 	public static final int NUMBER_OF_SENSORS = 4;
@@ -11,7 +16,7 @@ public class OrientationSensorManagerFactory {
 
 		OrientationSensorManager sensors;
 		
-		ImuReader imureader = new ImuReader("/dev/ttyUSB0", NUMBER_OF_SENSORS, true);
+		MARGReader imureader = new MARGReader("/dev/ttyUSB0", NUMBER_OF_SENSORS, true);
 
 		sensors = new OrientationSensorManager(Configuration.getInstance()
 				.getFilterType(),NUMBER_OF_SENSORS);

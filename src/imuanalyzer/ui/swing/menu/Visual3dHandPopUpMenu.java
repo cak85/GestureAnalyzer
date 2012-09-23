@@ -2,10 +2,11 @@ package imuanalyzer.ui.swing.menu;
 
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
-import imuanalyzer.ui.ColorSettingsDialog;
-import imuanalyzer.ui.InfoBox;
 import imuanalyzer.ui.JointSetting;
-import imuanalyzer.ui.Visual3d;
+import imuanalyzer.ui.jmonkey.Visual3d;
+import imuanalyzer.ui.swing.ColorSettingsDialog;
+import imuanalyzer.ui.swing.InfoBox;
+import imuanalyzer.ui.swing.help.HelpManager;
 
 import java.awt.event.ActionEvent;
 
@@ -15,6 +16,12 @@ import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Popupmenu of visual 3d hand allows configuration of view and analysis
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class Visual3dHandPopUpMenu extends JPopupMenu {
 
 	/**
@@ -45,6 +52,8 @@ public class Visual3dHandPopUpMenu extends JPopupMenu {
 		this.jointType = jointType;
 		this.hand = hand;
 		this.infoBox = infoBox;
+		
+		HelpManager.getInstance().enableHelpKey(this, "analysis");
 
 		JMenuItem anItem;
 

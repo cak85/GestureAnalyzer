@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import imuanalyzer.signalprocessing.Helper;
 import imuanalyzer.signalprocessing.IBoxplotData;
 import imuanalyzer.signalprocessing.VectorLineStatistics;
+import imuanalyzer.ui.swing.charts.Boxplot2d;
 
 import org.junit.Before;
 import org.junit.Test;

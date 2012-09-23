@@ -27,7 +27,9 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	protected ArrayList<VectorLine> lines;
 
-	protected ArrayList<IStatisticsValue> outliners = new ArrayList<IStatisticsValue>();
+	protected ArrayList<IStatisticsValue> outlinersUpper = new ArrayList<IStatisticsValue>();
+
+	protected ArrayList<IStatisticsValue> outlinersLower = new ArrayList<IStatisticsValue>();
 
 	protected ArrayList<Float> specialPoints = new ArrayList<Float>();
 
@@ -35,6 +37,16 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	protected VectorLine avgLine = new VectorLine();
 
+	/**
+	 * Constructor
+	 * 
+	 * @param description
+	 *            Description of statistics dataset
+	 * @param lines
+	 *            calculate statistics over these lines
+	 * @param specialPercentPoints
+	 *            add some special highlighters
+	 */
 	public VectorLineStatistics(String description,
 			ArrayList<VectorLine> lines, ArrayList<Float> specialPercentPoints) {
 		this.description = description;
@@ -87,6 +99,14 @@ public class VectorLineStatistics implements IBoxplotData {
 		}
 	}
 
+	/**
+	 * Remove outliners from calc set
+	 * 
+	 * @param calcSet
+	 * @param lowerQuantile
+	 * @param upperQuantile
+	 * @return
+	 */
 	private ArrayList<VectorLine> eliminateOutliners(
 			ArrayList<VectorLine> calcSet, float lowerQuantile,
 			float upperQuantile) {
@@ -103,11 +123,14 @@ public class VectorLineStatistics implements IBoxplotData {
 		ArrayList<VectorLine> cleanedLines = new ArrayList<VectorLine>();
 
 		for (VectorLine v : calcSet) {
-			if (v.length > lowOutlinersBorder && v.length < highOutlinersBorder) {
-				cleanedLines.add(v);
+			if (v.length < lowOutlinersBorder) {
+				LOGGER.debug("Outliner lower detected: " + v.length);
+				outlinersLower.add(v);
+			} else if (v.length > highOutlinersBorder) {
+				LOGGER.debug("Outliner upper detected: " + v.length);
+				outlinersUpper.add(v);
 			} else {
-				outliners.add(v);
-				LOGGER.debug("Outliner detected: " + v.length);
+				cleanedLines.add(v);
 			}
 		}
 
@@ -115,6 +138,12 @@ public class VectorLineStatistics implements IBoxplotData {
 
 	}
 
+	/**
+	 * Calculat median
+	 * 
+	 * @param calcSet
+	 * @return
+	 */
 	private float calcMedian(List<VectorLine> calcSet) {
 		int pos = calcSet.size() / 2;
 
@@ -133,6 +162,12 @@ public class VectorLineStatistics implements IBoxplotData {
 		return median;
 	}
 
+	/**
+	 * Calculate average line over all lines
+	 * 
+	 * @param calcSet
+	 * @return
+	 */
 	public static VectorLine calculateAvgLine(ArrayList<VectorLine> calcSet) {
 		VectorLine avg = new VectorLine();
 		ArrayList<Vector3f> avgPoints = avg.getLineBuffer();
@@ -145,6 +180,7 @@ public class VectorLineStatistics implements IBoxplotData {
 			for (int i = 0; i < currentPoints.size(); i++) {
 				// sum up
 				if (i < count.size()) {
+					// increase count
 					count.set(i, count.get(i) + 1);
 					avgPoints
 							.set(i, avgPoints.get(i).add(currentPoints.get(i)));
@@ -157,6 +193,8 @@ public class VectorLineStatistics implements IBoxplotData {
 				if (current.equals(lastOne)) {
 					avgPoints.set(i, avgPoints.get(i).divide(count.get(i)));
 				}
+				LOGGER.debug("AVG-Point x:" + avgPoints.get(i).x + " y:"
+						+ avgPoints.get(i).y + " z:" + avgPoints.get(i).z);
 			}
 		}
 		avg.updateLength();
@@ -164,41 +202,78 @@ public class VectorLineStatistics implements IBoxplotData {
 		return avg;
 	}
 
+	/**
+	 * Get calculated Median
+	 */
 	public float getMedian() {
 		return median;
 	}
 
+	/**
+	 * Get calculated Maximum
+	 */
 	public float getMax() {
 		return max;
 	}
 
+	/**
+	 * Get calculated Minimum
+	 */
 	public float getMin() {
 		return min;
 	}
 
+	/**
+	 * Get calculated upper quantile
+	 */
 	public float getUpperQuantile() {
 		return upperQuantile;
 	}
 
+	/**
+	 * Get calculated lower quantile
+	 */
 	public float getLowerQuantile() {
 		return lowerQuantile;
 	}
 
+	/**
+	 * Get maximum object
+	 */
 	public VectorLine getMaxObj() {
 		return lines.get(lines.size() - 1);
 	}
 
+	/**
+	 * Get minimum object
+	 */
 	public VectorLine getMinObj() {
 		return lines.get(0);
 	}
 
+	/**
+	 * Get average object
+	 */
 	public VectorLine getAvgObj() {
 		return avgLine;
 	}
 
 	@Override
-	public ArrayList<IStatisticsValue> getOutliners() {
-		return outliners;
+	public ArrayList<IStatisticsValue> getOutliersUpper() {
+		return outlinersUpper;
+	}
+
+	@Override
+	public ArrayList<IStatisticsValue> getOutliersLower() {
+		return outlinersLower;
+	}
+
+	@Override
+	public ArrayList<IStatisticsValue> getOutliers() {
+		ArrayList<IStatisticsValue> outliers = new ArrayList<IStatisticsValue>();
+		outliers.addAll(outlinersLower);
+		outliers.addAll(outlinersUpper);
+		return outliers;
 	}
 
 	@Override

@@ -1,13 +1,13 @@
 package imuanalyzer.ui.swing.menu;
 
 import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
+import imuanalyzer.data.DatasetMetadata;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
-import imuanalyzer.ui.DeviceDummy;
-import imuanalyzer.ui.InfoBox;
-import imuanalyzer.ui.Visual3d;
+import imuanalyzer.ui.jmonkey.DeviceDummy;
+import imuanalyzer.ui.jmonkey.Visual3d;
+import imuanalyzer.ui.swing.InfoBox;
 import imuanalyzer.ui.swing.charts.AccelerationChartManager;
 import imuanalyzer.ui.swing.charts.FeelingChartManager;
 import imuanalyzer.ui.swing.charts.JointRelationChartManager;
@@ -27,6 +27,7 @@ import javax.swing.JPopupMenu;
 
 /**
  * factory for creating some often used specific menus
+ * e.g. for popups and so on
  * 
  * @author "Christopher-Eyk Hrabia"
  * 
@@ -88,7 +89,7 @@ public class MenuFactory {
 		return popUp;
 	}
 
-	public JPopupMenu getDatasetPopUpMenu(final Marker currentMarker,
+	public JPopupMenu getDatasetPopUpMenu(final DatasetMetadata currentMarker,
 			final FinishListenerHandler finishHandler) {
 		JPopupMenu popUp = new JPopupMenu();
 

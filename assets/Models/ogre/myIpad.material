@@ -14,75 +14,138 @@ material _missing_material_
     }
 }
 
+
+// blender material: Material.Body
 material Material.Body 
 {
-	receive_shadows on
-	technique
-	{
-		pass
-		{
-			cull_hardware none
-			ambient 0.800000011920929 0.800000011920929 0.800000011920929 0.6577540040016174
-			diffuse 0.6400000190734865 0.6400000190734865 0.6400000190734865 0.6577540040016174
-			specular 0.5 0.5 0.5 0.6577540040016174 12.5
-			emissive 0.0 0.0 0.0 0.6577540040016174
-			scene_blend one zero
-		}
-	}
+    receive_shadows on
+    technique
+    {
+        pass Material.Body
+        {
+            ambient 0.800000011920929 0.800000011920929 0.800000011920929 0.6577540040016174
+            diffuse 0.6400000190734865 0.6400000190734865 0.6400000190734865 0.6577540040016174
+            specular 0.5 0.5 0.5 0.6577540040016174 12.5
+            emissive 0.0 0.0 0.0 0.6577540040016174
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
 }
+
+// blender material: Material.Sceen
 material Material.Sceen 
 {
-	receive_shadows on
-	technique
-	{
-		pass
-		{
-			cull_hardware none
-			ambient 0.2529367208480835 0.2529367208480835 0.2529367208480835 1.0
-			diffuse 0.15013890432922494 0.15013890432922494 0.15013890432922494 1.0
-			specular 0.9358288645744324 0.9358288645744324 0.9358288645744324 1.0 27.0
-			emissive 0.0 0.0 0.0 1.0
-			scene_blend one zero
-		}
-	}
+    receive_shadows on
+    technique
+    {
+        pass Material.Sceen
+        {
+            ambient 0.2529367208480835 0.2529367208480835 0.2529367208480835 1.0
+            diffuse 0.15013890432922494 0.15013890432922494 0.15013890432922494 1.0
+            specular 0.9358288645744324 0.9358288645744324 0.9358288645744324 1.0 27.0
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
 }
+
+// blender material: Material.HomeButton
 material Material.HomeButton 
 {
-	receive_shadows on
-	technique
-	{
-		pass
-		{
-			cull_hardware none
-			ambient 1.0 1.0 1.0 1.0
-			diffuse 0.800000011920929 0.800000011920929 0.800000011920929 1.0
-			specular 0.5 0.5 0.5 1.0 12.5
-			emissive 0.0 0.0 0.0 1.0
-			scene_blend one zero
-			texture_unit
-			{
-				texture Home Button.jpg
-				tex_address_mode clamp
-				scale 1.0 1.0
-				env_map planar
-				colour_op_ex blend_manual src_current src_texture 0.0
-			}
-		}
-	}
+    receive_shadows on
+    technique
+    {
+        pass Material.HomeButton
+        {
+            ambient 1.0 1.0 1.0 1.0
+            diffuse 0.800000011920929 0.800000011920929 0.800000011920929 1.0
+            specular 0.5 0.5 0.5 1.0 12.5
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+            texture_unit 
+            {
+                texture Home Button.jpg
+                tex_address_mode clamp
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
 }
+
+// blender material: Material.front
 material Material.front 
 {
-	receive_shadows on
-	technique
-	{
-		pass
-		{
-			cull_hardware none
-			ambient 0.0 0.0 0.0 1.0
-			diffuse 0.0 0.0 0.0 1.0
-			specular 0.5 0.5 0.5 1.0 42.25
-			emissive 0.0 0.0 0.0 1.0
-			scene_blend one zero
-		}
-	}
+    receive_shadows on
+    technique
+    {
+        pass Material.front
+        {
+            ambient 0.0 0.0 0.0 1.0
+            diffuse 0.0 0.0 0.0 1.0
+            specular 0.5 0.5 0.5 1.0 42.25
+            emissive 0.0 0.0 0.0 1.0
+            alpha_to_coverage off
+            colour_write on
+            cull_hardware clockwise
+            depth_check on
+            depth_func less_equal
+            depth_write on
+            illumination_stage 
+            light_clip_planes off
+            light_scissor off
+            lighting on
+            normalise_normals off
+            polygon_mode solid
+            scene_blend one zero
+            scene_blend_op add
+            shading gouraud
+            transparent_sorting on
+        }
+    }
 }

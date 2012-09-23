@@ -1,6 +1,7 @@
 package imuanalyzer.filter;
 
-import imuanalyzer.utils.math.LowPass;
+import imuanalyzer.utils.math.LowPassQuad;
+import imuanalyzer.utils.math.Quaternion;
 import imuanalyzer.utils.math.RunningAvg;
 
 import org.apache.log4j.Logger;
@@ -8,6 +9,9 @@ import org.apache.log4j.Logger;
 import Jama.Matrix;
 
 /**
+ * Base class for all sensor filters includes some general code and defines
+ * abstract methods
+ * 
  * Based on http://code.google.com/p/9dof-orientation-estimation/
  * 
  * @author "Christopher-Eyk Hrabia"
@@ -28,7 +32,7 @@ public abstract class Filter implements ITuneFilter {
 
 	protected volatile boolean calibrationMode = false;
 
-	protected volatile int obsMethod = 0;
+	protected volatile int obsMethod = 1;
 
 	// sampling period in seconds on host filter updating routine
 	protected double samplePeriod = 0.025;
@@ -67,7 +71,7 @@ public abstract class Filter implements ITuneFilter {
 
 	protected abstract Quaternion filterStep(double w_x, double w_y,
 			double w_z, double a_x, double a_y, double a_z, double m_x,
-			double m_y, double m_z, float temp);
+			double m_y, double m_z, double temp);
 
 	public abstract Quaternion getFilteredQuaternions();
 
@@ -389,15 +393,9 @@ public abstract class Filter implements ITuneFilter {
 
 	public void filterStep(double samplePeriod, double w_x, double w_y,
 			double w_z, double a_x, double a_y, double a_z, double m_x,
-			double m_y, double m_z, float temp) {
-		
-		this.samplePeriod = samplePeriod;
+			double m_y, double m_z, double temp) {
 
-		// TODO möglicherweise besser die gerade berechnete orientierung zu
-		// nutzen, allerdings kann so die beschleunigung direkt für die
-		// bestimmung der Orientierung verwendet werden
-		// currentDynAcceleration = calculateDynAcceleration(a_x, a_y, a_z,
-		// getFilteredQuaternions());
+		this.samplePeriod = samplePeriod;
 
 		Quaternion currentOrientation = filterStep(w_x, w_y, w_z, a_x, a_y,
 				a_z, m_x, m_y, m_z, temp);
@@ -442,7 +440,7 @@ public abstract class Filter implements ITuneFilter {
 		}
 	}
 
-	LowPass accelLowPass = new LowPass(0.8f);
+	LowPassQuad accelLowPass = new LowPassQuad(0.8f);
 
 	private Quaternion calculateDynAcceleration(double a_x, double a_y,
 			double a_z, Quaternion currentOrientation) {
@@ -602,6 +600,11 @@ public abstract class Filter implements ITuneFilter {
 
 	@Override
 	public String getParameterName(int index) {
+		return "";
+	}
+	
+	@Override
+	public String getParameterDescription(int index) {
 		return "";
 	}
 }

@@ -1,9 +1,9 @@
 package imuanalyzer.signalprocessing;
 
 import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
-import imuanalyzer.filter.Quaternion;
+import imuanalyzer.data.DatasetMetadata;
 import imuanalyzer.utils.math.AngleHelper;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +13,15 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Represents human hand. This is the base class for the handmodell
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class Hand {
+
+	private static final Logger LOGGER = Logger.getLogger(Hand.class.getName());
 
 	/**
 	 * Representation of the finger bones: First letter D = Daumen Z =
@@ -24,31 +32,58 @@ public class Hand {
 		HAND_ROOT, THUMB_BOTTOM, INDEX_BOTTOM, MIDDLE_BOTTOM, RING_BOTTOM, LITTLE_BOTTOM, THUMB_MID, INDEX_MID, MIDDLE_MID, RING_MID, LITTLE_MID, THUMB_TOP, INDEX_TOP, MIDDLE_TOP, RING_TOP, LITTLE_TOP
 	};
 
+	/**
+	 * Current orientation sensors
+	 */
 	protected IOrientationSensors sensors;
 
+	/**
+	 * Set of joints
+	 */
 	private EnumMap<JointType, Joint> joints = new EnumMap<JointType, Joint>(
 			JointType.class);
 
-	protected Marker currentMarker;
+	/**
+	 * Current dataset description
+	 */
+	protected DatasetMetadata currentDataset;
 
-	private static final Logger LOGGER = Logger.getLogger(Hand.class.getName());
-
+	/**
+	 * Database
+	 */
 	protected Database db;
 
+	/**
+	 * Current enabled analysis for touch
+	 */
 	protected ArrayList<TouchAnalysis> runningTouchAnalysis = new ArrayList<TouchAnalysis>();
 
+	/**
+	 * Current enabled analysis for motion
+	 */
 	protected ArrayList<MotionAnalysis> runningMotionAnalysis = new ArrayList<MotionAnalysis>();
 
-	Object analysisLock = new Object();
+	/**
+	 * Lock for changeing analysis conficuration
+	 */
+	private Object analysisLock = new Object();
 
 	/**
 	 * save subjective feelings about gesture
 	 */
 	protected volatile FeelingScale feelingScale;
 
-	public Hand(IOrientationSensors sensors, Marker marker) {
+	/**
+	 * Constructor
+	 * 
+	 * @param sensors
+	 *            current used sensors
+	 * @param marker
+	 *            dataset description
+	 */
+	public Hand(IOrientationSensors sensors, DatasetMetadata marker) {
 		this.sensors = sensors;
-		this.currentMarker = marker;
+		this.currentDataset = marker;
 
 		try {
 			db = Database.getInstance();
@@ -129,6 +164,9 @@ public class Hand {
 		loadJointRelations();
 	}
 
+	/**
+	 * Update motion radius constraints from DB
+	 */
 	public void refreshJointConstraintsFromDB() {
 		for (JointType j : JointType.values()) {
 			getJoint(j).setRestriction(db.getJointConstraint(j));
@@ -141,7 +179,7 @@ public class Hand {
 	public void loadJointMappingFromMarker() {
 		if (sensors != null) {
 			for (JointType j : JointType.values()) {
-				int id = db.getJointSensorMapping(currentMarker, j);
+				int id = db.getJointSensorMapping(currentDataset, j);
 				setSensorID(j, id);
 			}
 		}
@@ -163,10 +201,20 @@ public class Hand {
 		}
 	}
 
+	/**
+	 * Get current set of joints
+	 * 
+	 * @return
+	 */
 	public Set<Entry<JointType, Joint>> getJointSet() {
 		return joints.entrySet();
 	}
 
+	/**
+	 * Create a map from a joint and all of its children
+	 * 
+	 * @param elem
+	 */
 	private void addAllElementsToMap(Joint elem) {
 		joints.put(elem.type, elem);
 		for (Joint e : elem.children) {
@@ -174,44 +222,61 @@ public class Hand {
 		}
 	}
 
-	public void setInitialOrientation(JointType finger, Quaternion quad) {
-		Joint joint = ((Joint) joints.get(finger));
-		joint.setLocalRestOrientation(quad);
 
-	}
-
+	/**
+	 * Change sensor id of joint
+	 * 
+	 * @param type
+	 * @param id
+	 */
 	public void setSensorID(JointType type, int id) {
 		Joint joint = ((Joint) joints.get(type));
 		joint.setSensorID(id);
 	}
 
+	/**
+	 * Save mapping of one joint
+	 * 
+	 * @param type
+	 */
 	public void saveJointSensorMapping(JointType type) {
 		Joint joint = ((Joint) joints.get(type));
-		db.setJointSensorMapping(currentMarker, type, joint.getSensorID());
+		db.setJointSensorMapping(currentDataset, type, joint.getSensorID());
 	}
 
-	public Quaternion getLocalJointOrientation(JointType type) {
-		Joint joint = ((Joint) joints.get(type));
-		return joint.getLocalOrientation();
-	}
-
-	public Quaternion setLocalJointOrientation(JointType type, Quaternion quad) {
-		Joint joint = ((Joint) joints.get(type));
-		return joint.update(quad, false);
-	}
-
+	/**
+	 * Get joint
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public Joint getJoint(JointType type) {
 		return ((Joint) joints.get(type));
 	}
 
-	public Marker getCurrentMarker() {
-		return currentMarker;
+	/**
+	 * Get current dataset description
+	 * 
+	 * @return
+	 */
+	public DatasetMetadata getCurrentDatasetDescription() {
+		return currentDataset;
 	}
 
-	public void setCurrentMarker(Marker currentMarker) {
-		this.currentMarker = currentMarker;
+	/**
+	 * Set current dataset description
+	 * 
+	 * @param dataset
+	 */
+	public void setCurrentDatasetDescription(DatasetMetadata dataset) {
+		this.currentDataset = dataset;
 	}
 
+	/**
+	 * Get notification about updated joint
+	 * 
+	 * @param updatedBy
+	 */
 	public synchronized void informJointsUpdated(Joint updatedBy) {
 
 		synchronized (analysisLock) {
@@ -222,17 +287,22 @@ public class Hand {
 			for (MotionAnalysis motionAnalyis : runningMotionAnalysis) {
 				motionAnalyis.update(updatedBy);
 			}
-
 		}
-
 	}
 
-	// Motion analyses
-
+	/**
+	 * Get current running motion analyses
+	 */
 	public ArrayList<MotionAnalysis> getRunningMotionAnalysis() {
 		return runningMotionAnalysis;
 	}
 
+	/**
+	 * Get specific motion analysis
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public MotionAnalysis getMotionAnalysis(JointType type) {
 		for (MotionAnalysis touch : runningMotionAnalysis) {
 			if (touch.getObservedJoint().getType() == type) {
@@ -289,6 +359,11 @@ public class Hand {
 		return haveRemovedOldOnes;
 	}
 
+	/**
+	 * Remove motion analyis of one joint
+	 * 
+	 * @param joint
+	 */
 	public void removeSaveMotionJoint(JointType joint) {
 		MotionAnalysis current = getMotionAnalysis(joint);
 		synchronized (analysisLock) {
@@ -296,12 +371,20 @@ public class Hand {
 		}
 	}
 
+	/**
+	 * Disalble all motion analysis
+	 */
 	public void disableMotionAnalysis() {
 		synchronized (analysisLock) {
 			runningMotionAnalysis.clear();
 		}
 	}
 
+	/**
+	 * Get current number of saved motion steps
+	 * 
+	 * @return
+	 */
 	public int getNumberOfSavedMotionSteps() {
 		int size = 0;
 		for (MotionAnalysis m : getRunningMotionAnalysis()) {
@@ -311,8 +394,9 @@ public class Hand {
 		return size;
 	}
 
-	// touch analysis
-
+	/**
+	 * Get current specific touch analysis
+	 */
 	public TouchAnalysis getTouchAnalysis(JointType type) {
 		for (TouchAnalysis touch : runningTouchAnalysis) {
 			if (touch.getObservedJoint().getType() == type) {
@@ -322,6 +406,11 @@ public class Hand {
 		return null;
 	}
 
+	/**
+	 * Add new touch analysis on joint
+	 * 
+	 * @param saveMovementLineJoint
+	 */
 	public void addSaveTouchLineJoint(JointType saveMovementLineJoint) {
 		TouchAnalysis current = getTouchAnalysis(saveMovementLineJoint);
 		if (current != null) {
@@ -335,6 +424,11 @@ public class Hand {
 		}
 	}
 
+	/**
+	 * Remove touch analysis
+	 * 
+	 * @param saveMovementLineJoint
+	 */
 	public void removeSaveTouchLineJoint(JointType saveMovementLineJoint) {
 
 		TouchAnalysis current = getTouchAnalysis(saveMovementLineJoint);
@@ -343,16 +437,29 @@ public class Hand {
 		}
 	}
 
+	/**
+	 * Disable all touch analysis
+	 */
 	public void disableTouchAnalysis() {
 		synchronized (analysisLock) {
 			runningTouchAnalysis.clear();
 		}
 	}
 
+	/**
+	 * Get all runnuing touch analysis
+	 * 
+	 * @return
+	 */
 	public ArrayList<TouchAnalysis> getRunningTouchAnalysis() {
 		return runningTouchAnalysis;
 	}
 
+	/**
+	 * Get max touch lines of all analyses
+	 * 
+	 * @return
+	 */
 	public ArrayList<VectorLine> getMaxTouchLines() {
 		ArrayList<VectorLine> maxLines = new ArrayList<VectorLine>();
 		for (TouchAnalysis touch : runningTouchAnalysis) {
@@ -361,13 +468,25 @@ public class Hand {
 		return maxLines;
 	}
 
+	/**
+	 * Get current feeling scale
+	 * 
+	 * @return
+	 */
 	public FeelingScale getComfortScale() {
 		return feelingScale;
 	}
 
-	public JointRelation getJointRelation(JointType indipendent,
+	/**
+	 * Get a joint relation
+	 * 
+	 * @param independent
+	 * @param dependent
+	 * @return relation
+	 */
+	public JointRelation getJointRelation(JointType independent,
 			JointType dependent) {
-		Joint joint = getJoint(indipendent);
+		Joint joint = getJoint(independent);
 		for (JointRelation r : joint.getRelationsToOtherJoints()) {
 			if (r.getDependent().getType().equals(dependent)) {
 				return r;
@@ -376,6 +495,12 @@ public class Hand {
 		return null;
 	}
 
+	/**
+	 * Build string name from joint type
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public static String jointTypeToName(JointType type) {
 		String name = type.toString().replaceAll("_", " ").toLowerCase();
 		name = name.substring(0, 1).toUpperCase()
@@ -383,12 +508,23 @@ public class Hand {
 		return name;
 	}
 
+	/**
+	 * Get joint type from joint name
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public static JointType nameToJointType(String name) {
 		name = name.replace(" ", "_");
 
 		return JointType.valueOf(name.toUpperCase());
 	}
 
+	/**
+	 * Write default constraints to database This is only used on first start
+	 * 
+	 * @param db
+	 */
 	public static void writeDefaultJointConstraints(Database db) {
 		Restriction fingerTopRestriction = new Restriction(
 				-AngleHelper.radFromDeg(70), AngleHelper.radFromDeg(10), 0, 0,
@@ -428,12 +564,18 @@ public class Hand {
 		db.setJointConstraint(JointType.INDEX_BOTTOM, fingerBottomRestriction);
 
 		Restriction thumbBottomRestriction = new Restriction(
-				-AngleHelper.radFromDeg(50), AngleHelper.radFromDeg(30),
-				-AngleHelper.radFromDeg(25), AngleHelper.radFromDeg(10), 0, 0);
+				-AngleHelper.radFromDeg(70), AngleHelper.radFromDeg(35),
+				-AngleHelper.radFromDeg(89), AngleHelper.radFromDeg(10),
+				-AngleHelper.radFromDeg(70), AngleHelper.radFromDeg(30));
 		db.setJointConstraint(JointType.THUMB_BOTTOM, thumbBottomRestriction);
 
 	}
 
+	/**
+	 * Write default relation to db, this is only used on first start
+	 * 
+	 * @param db
+	 */
 	public static void writeDefaultJointRelations(Database db) {
 
 		JointRelation relation = new JointRelation(new Joint(null,

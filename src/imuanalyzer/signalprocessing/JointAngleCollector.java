@@ -6,6 +6,12 @@ import imuanalyzer.utils.math.AngleHelper;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 
+/**
+ * Class for collecting calculated joint angles of a calculated analysis
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class JointAngleCollector implements IAnalysisExtension {
 
 	ArrayList<Hand> hands;
@@ -52,7 +58,7 @@ public class JointAngleCollector implements IAnalysisExtension {
 
 	}
 
-	public synchronized void update(Hand hand, int idx) {
+	public synchronized void update(long time, Hand hand, int idx) {
 
 		double[] angles1 = hand.getJoint(type1).getLocalOrientation()
 				.getAnglesRad();
@@ -66,7 +72,7 @@ public class JointAngleCollector implements IAnalysisExtension {
 				|| Math.abs(angles2[0] - currentAngles2[0]) > 0.0001
 				|| Math.abs(angles2[1] - currentAngles2[1]) > 0.0001
 				|| Math.abs(angles2[2] - currentAngles2[2]) > 0.0001) {
-			
+
 			currentAngles1 = angles1;
 			currentAngles2 = angles2;
 			int i = 0;

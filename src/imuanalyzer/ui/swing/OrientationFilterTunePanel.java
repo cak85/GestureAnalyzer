@@ -2,6 +2,7 @@ package imuanalyzer.ui.swing;
 
 import imuanalyzer.filter.ITuneFilter;
 import imuanalyzer.signalprocessing.IOrientationSensors;
+import imuanalyzer.ui.swing.help.HelpManager;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -35,6 +36,8 @@ public class OrientationFilterTunePanel extends JPanel {
 
 	public OrientationFilterTunePanel(IOrientationSensors orientationManager) {
 		this.orientationManager = orientationManager;
+		
+		HelpManager.getInstance().enableHelpKey(this, "settings");
 
 		this.setLayout(new GridLayout(0, 1));
 
@@ -69,8 +72,12 @@ public class OrientationFilterTunePanel extends JPanel {
 			final int index) {
 		JPanel controllerPanel = new JPanel(new GridLayout(1, 0));
 
-		controllerPanel.add(new JLabel(filterTuning.getParameterName(index)
-				+ ": ", SwingConstants.RIGHT));
+		JLabel nameLabel = new JLabel(filterTuning.getParameterName(index)
+				+ ": ", SwingConstants.RIGHT);
+		
+		nameLabel.setToolTipText(filterTuning.getParameterDescription(index));
+		
+		controllerPanel.add(nameLabel);
 
 		SpinnerModel spinnerModel = new SpinnerNumberModel(new Float(
 				filterTuning.getParameter(index)), new Float(
@@ -98,6 +105,8 @@ public class OrientationFilterTunePanel extends JPanel {
 		});
 
 		parameterSpinner.setPreferredSize(new Dimension(100, 25));
+		
+		parameterSpinner.setToolTipText(filterTuning.getParameterDescription(index));
 
 		controllerPanel.add(parameterSpinner);
 

@@ -2,6 +2,11 @@ package imuanalyzer.ui.swing.menu;
 
 import java.util.ArrayList;
 
+/**
+ * Handler for managing the hand of an menu selection
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class FinishListenerHandler {
 
 	ArrayList<IPopUpFinished> finishListeners = new ArrayList<IPopUpFinished>(); 

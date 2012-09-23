@@ -1,10 +1,10 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.ui.IInfoContent;
-import imuanalyzer.ui.Utils;
+import imuanalyzer.ui.jmonkey.Utils;
 import imuanalyzer.utils.math.AngleHelper;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -13,6 +13,11 @@ import org.apache.log4j.Logger;
 
 import com.jme3.math.Vector3f;
 
+/**
+ * Analysis of finger motion
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class MotionAnalysis implements IInfoContent {
 
 	private static final Logger LOGGER = Logger.getLogger(MotionAnalysis.class
@@ -211,6 +216,10 @@ public class MotionAnalysis implements IInfoContent {
 		return lines;
 	}
 
+	/**
+	 * Get the maximum motion passes through one position over all positions
+	 * @return
+	 */
 	public int getMaxCount() {
 		return maxCount;
 	}

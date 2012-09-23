@@ -4,6 +4,12 @@ import com.jme3.math.ColorRGBA;
 
 import imuanalyzer.signalprocessing.Hand.JointType;
 
+/**
+ * Class for storing settings from one joint
+ * like colors and visibility
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class JointSetting {
 	JointType type;
 
@@ -29,6 +35,9 @@ public class JointSetting {
 		this.type = type;
 	}
 
+	/**
+	 * Reset all colors
+	 */
 	public void resetColor() {
 		liveMotionColor = ColorRGBA.White.clone();
 

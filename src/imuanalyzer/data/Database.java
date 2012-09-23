@@ -1,8 +1,7 @@
 package imuanalyzer.data;
 
-import imuanalyzer.device.ImuRawData;
+import imuanalyzer.device.MARGRawData;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.FeelingScale;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
@@ -10,6 +9,7 @@ import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.JointRelation;
 import imuanalyzer.signalprocessing.Restriction;
 import imuanalyzer.utils.SensorVector;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -25,6 +25,13 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.h2.tools.Csv;
 
+/**
+ * Contains all database access specific code: creation of database and tables,
+ * first init and select insert update delete methods for several different data
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class Database {
 
 	final static String DATABASE_NAME = "IMUAnalyzerData";
@@ -36,6 +43,7 @@ public class Database {
 	final static String IMU_DATA_TABLE_ACCELEROMETER_PRE = "Accel_";
 	final static String IMU_DATA_TABLE_GYROSCOPE_PRE = "Gyro_";
 	final static String IMU_DATA_TABLE_MAGNETOMETER_PRE = "Magneto_";
+	final static String IMU_DATA_TABLE_TEMP = "Temperature";
 
 	final static String COMFORT_TABLE_NAME = "FeelingData";
 	final static String COMFORT_TABLE_TIME = "Time";
@@ -107,8 +115,6 @@ public class Database {
 
 	Connection conn;
 
-	// TODO extends with temp --> not important right now, temperature is not
-	// used on pc
 	static final StringBuilder writeImuData = new StringBuilder("insert into ")
 			.append(IMU_DATA_TABLE_NAME).append(" (")
 			.append(IMU_DATA_TABLE_TIME).append(",")
@@ -123,7 +129,8 @@ public class Database {
 			.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("x,")
 			.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("y,")
 			.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("z,")
-			.append(") values (?,?,?,?,?,?,?,?,?,?,?,?)");
+			.append(IMU_DATA_TABLE_TEMP)
+			.append(") values (?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 	static final StringBuilder writeComfortData = new StringBuilder(
 			"insert into ").append(COMFORT_TABLE_NAME).append(" (")
@@ -169,11 +176,14 @@ public class Database {
 		}
 	}
 
+	/**
+	 * Check if all tables exists in db if not create new and init
+	 */
 	public void createTables() {
 
 		StringBuilder createString;
 
-		Marker defaultMarker = Marker.getDefaultMarker();
+		DatasetMetadata defaultMarker = DatasetMetadata.getDefaultMarker();
 
 		if (!existsTable(IMU_DATA_TABLE_NAME)) {
 			// create DATATABLE
@@ -196,7 +206,8 @@ public class Database {
 					.append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
 					.append("y DOUBLE, ")
 					.append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
-					.append("z DOUBLE, ").append(");");
+					.append("z DOUBLE, ").append(IMU_DATA_TABLE_TEMP)
+					.append(" DOUBLE, ").append(");");
 			execute(createString.toString());
 		}
 
@@ -328,7 +339,7 @@ public class Database {
 					.append(IMU_CONFIGURATION_TABLE_FILTER_ID).append(" INT, ")
 					.append(");");
 			execute(createString.toString());
-			setFilterType(FilterTypes.QUATERNION_COMPLEMENTARY);
+			setFilterType(FilterTypes.CF_QUATERNION);
 		}
 
 		if (!existsTable(FEELING_CONFIGURATION_TABLE_NAME)) {
@@ -348,6 +359,11 @@ public class Database {
 		}
 	}
 
+	/**
+	 * Check if a db table exists
+	 * @param tablename
+	 * @return
+	 */
 	private boolean existsTable(String tablename) {
 		DatabaseMetaData dmd;
 		try {
@@ -395,7 +411,7 @@ public class Database {
 		}
 	}
 
-	public void deleteFeelingData(Marker marker) {
+	public void deleteFeelingData(DatasetMetadata marker) {
 
 		PreparedStatement statement = null;
 
@@ -434,7 +450,7 @@ public class Database {
 		}
 	}
 
-	public ArrayList<FeelingScale> selectFeelings(Marker marker) {
+	public ArrayList<FeelingScale> selectFeelings(DatasetMetadata marker) {
 		ArrayList<FeelingScale> result = new ArrayList<FeelingScale>();
 
 		StringBuilder select = new StringBuilder("select ")
@@ -511,7 +527,8 @@ public class Database {
 	}
 
 	public void writeImuData(int id, SensorVector accel, SensorVector gyro,
-			SensorVector magneto, double samplePeriod, java.util.Date timestamp) {
+			SensorVector magneto, double temperature, double samplePeriod,
+			java.util.Date timestamp) {
 
 		PreparedStatement stmt = null;
 		try {
@@ -528,6 +545,7 @@ public class Database {
 			stmt.setDouble(10, magneto.x);
 			stmt.setDouble(11, magneto.y);
 			stmt.setDouble(12, magneto.z);
+			stmt.setDouble(13, temperature);
 			stmt.execute();
 			stmt.close();
 		} catch (SQLException ex) {
@@ -543,7 +561,7 @@ public class Database {
 		}
 	}
 
-	public void deleteImuData(Marker marker) {
+	public void deleteImuData(DatasetMetadata marker) {
 
 		PreparedStatement statement = null;
 
@@ -583,8 +601,8 @@ public class Database {
 
 	}
 
-	public ResultSet selectImuData(PreparedStatement statement, Marker marker)
-			throws SQLException {
+	public ResultSet selectImuData(PreparedStatement statement,
+			DatasetMetadata marker) throws SQLException {
 
 		ResultSet rs = null;
 
@@ -603,9 +621,9 @@ public class Database {
 				.append("x").append(",")
 				.append(IMU_DATA_TABLE_MAGNETOMETER_PRE).append("y")
 				.append(",").append(IMU_DATA_TABLE_MAGNETOMETER_PRE)
-				.append("z").append(" from ").append(IMU_DATA_TABLE_NAME)
-				.append(" where ").append(IMU_DATA_TABLE_TIME)
-				.append(" between ? and ?");
+				.append("z").append(",").append(IMU_DATA_TABLE_TEMP)
+				.append(" from ").append(IMU_DATA_TABLE_NAME).append(" where ")
+				.append(IMU_DATA_TABLE_TIME).append(" between ? and ?");
 
 		statement = conn.prepareStatement(select.toString());
 		statement.setTimestamp(1, new Timestamp(marker.start.getTime()));
@@ -615,8 +633,8 @@ public class Database {
 		return rs;
 	}
 
-	public ArrayList<ImuRawData> getImuData(Marker marker) {
-		ArrayList<ImuRawData> data = new ArrayList<ImuRawData>();
+	public ArrayList<MARGRawData> getImuData(DatasetMetadata marker) {
+		ArrayList<MARGRawData> data = new ArrayList<MARGRawData>();
 
 		PreparedStatement statement = null;
 		try {
@@ -638,11 +656,12 @@ public class Database {
 						rs.getDouble(IMU_DATA_TABLE_MAGNETOMETER_PRE + "y"),
 						rs.getDouble(IMU_DATA_TABLE_MAGNETOMETER_PRE + "z"));
 
-				ImuRawData dataItem = new ImuRawData(
+				MARGRawData dataItem = new MARGRawData(
 						rs.getInt(IMU_DATA_TABLE_SENSOR_ID),
 						rs.getTimestamp(IMU_DATA_TABLE_TIME),
 						rs.getDouble(IMU_DATA_TABLE_SAMPLEPERIOD),
-						accelerometer, gyroskope, magnetometer);
+						accelerometer, gyroskope, magnetometer,
+						rs.getDouble(IMU_DATA_TABLE_TEMP));
 				data.add(dataItem);
 			}
 
@@ -667,7 +686,7 @@ public class Database {
 	 * @param marker
 	 * @return
 	 */
-	public int getCount(Marker marker) {
+	public int getCount(DatasetMetadata marker) {
 		int count = 0;
 
 		PreparedStatement statement = null;
@@ -705,7 +724,7 @@ public class Database {
 
 	}
 
-	public void writeImuDataToCsv(Marker marker, String filename) {
+	public void writeImuDataToCsv(DatasetMetadata marker, String filename) {
 		PreparedStatement statement = null;
 		try {
 			ResultSet rs = selectImuData(statement, marker);
@@ -814,7 +833,7 @@ public class Database {
 		}
 	}
 
-	private boolean updateMarkerById(Marker marker) {
+	private boolean updateMarkerById(DatasetMetadata marker) {
 
 		boolean ret = false;
 
@@ -850,7 +869,7 @@ public class Database {
 		return ret;
 	}
 
-	public boolean removeMarker(Marker marker) {
+	public boolean removeMarker(DatasetMetadata marker) {
 
 		if (marker.getId() < 1) {
 			return false;
@@ -882,12 +901,12 @@ public class Database {
 		return ret;
 	}
 
-	public ArrayList<Marker> getAvailableMarkers() {
+	public ArrayList<DatasetMetadata> getAvailableMarkers() {
 		return getAvailableMarkers(false);
 	}
 
-	public ArrayList<Marker> getAvailableMarkers(boolean withDefault) {
-		ArrayList<Marker> markers = new ArrayList<Marker>();
+	public ArrayList<DatasetMetadata> getAvailableMarkers(boolean withDefault) {
+		ArrayList<DatasetMetadata> markers = new ArrayList<DatasetMetadata>();
 
 		Statement statement = null;
 		ResultSet rs = null;
@@ -910,7 +929,7 @@ public class Database {
 			statement = conn.createStatement();
 			rs = statement.executeQuery(select.toString());
 			while (rs.next()) {
-				Marker newMarker = new Marker(
+				DatasetMetadata newMarker = new DatasetMetadata(
 						rs.getString(IMU_MARKER_TABLE_MARKER_NAME),
 						rs.getString(IMU_MARKER_TABLE_MARKER_DESCRIPTION),
 						rs.getLong(IMU_MARKER_TABLE_ID),
@@ -933,7 +952,7 @@ public class Database {
 		return markers;
 	}
 
-	public void setMarker(Marker marker) {
+	public void setMarker(DatasetMetadata marker) {
 
 		if (marker.getId() > 0) {
 			if (updateMarkerById(marker)) {
@@ -977,8 +996,8 @@ public class Database {
 		}
 	}
 
-	private boolean updateInitialQuaternion(String tablename, Marker marker,
-			JointType jointType, Quaternion quaternion) {
+	private boolean updateInitialQuaternion(String tablename,
+			DatasetMetadata marker, JointType jointType, Quaternion quaternion) {
 
 		boolean ret = false;
 
@@ -1015,19 +1034,19 @@ public class Database {
 		return ret;
 	}
 
-	public void setInitialPosition(Marker marker, JointType jointType,
+	public void setInitialPosition(DatasetMetadata marker, JointType jointType,
 			Quaternion position) {
 		setInitialQuaternion(IMU_POSITION_TABLE_NAME, marker, jointType,
 				position);
 	}
 
-	public void setInitialOrientation(Marker marker, JointType jointType,
-			Quaternion orientation) {
+	public void setInitialOrientation(DatasetMetadata marker,
+			JointType jointType, Quaternion orientation) {
 		setInitialQuaternion(IMU_ORIENTATION_TABLE_NAME, marker, jointType,
 				orientation);
 	}
 
-	public void setInitialQuaternion(String tablename, Marker marker,
+	public void setInitialQuaternion(String tablename, DatasetMetadata marker,
 			JointType jointType, Quaternion quaternion) {
 		if (updateInitialQuaternion(tablename, marker, jointType, quaternion)) {
 			return;
@@ -1066,17 +1085,19 @@ public class Database {
 		}
 	}
 
-	public Quaternion getInitialOrientation(Marker marker, JointType jointType) {
+	public Quaternion getInitialOrientation(DatasetMetadata marker,
+			JointType jointType) {
 		return getInitialQuaternion(IMU_ORIENTATION_TABLE_NAME, marker,
 				jointType);
 	}
 
-	public Quaternion getInitialPosition(Marker marker, JointType jointType) {
+	public Quaternion getInitialPosition(DatasetMetadata marker,
+			JointType jointType) {
 		return getInitialQuaternion(IMU_POSITION_TABLE_NAME, marker, jointType);
 	}
 
-	public Quaternion getInitialQuaternion(String tablename, Marker marker,
-			JointType jointType) {
+	public Quaternion getInitialQuaternion(String tablename,
+			DatasetMetadata marker, JointType jointType) {
 
 		Quaternion ret = new Quaternion();
 
@@ -1115,7 +1136,7 @@ public class Database {
 		return ret;
 	}
 
-	private boolean updateJointSensorMapping(Marker marker,
+	private boolean updateJointSensorMapping(DatasetMetadata marker,
 			JointType jointType, int sensorId) {
 
 		boolean ret = false;
@@ -1149,8 +1170,8 @@ public class Database {
 		return ret;
 	}
 
-	public void setJointSensorMapping(Marker marker, JointType jointType,
-			int sensorId) {
+	public void setJointSensorMapping(DatasetMetadata marker,
+			JointType jointType, int sensorId) {
 		if (updateJointSensorMapping(marker, jointType, sensorId)) {
 			return;
 		}
@@ -1183,7 +1204,7 @@ public class Database {
 		}
 	}
 
-	public int getJointSensorMapping(Marker marker, JointType jointType) {
+	public int getJointSensorMapping(DatasetMetadata marker, JointType jointType) {
 
 		int retID = -1;
 

@@ -3,7 +3,7 @@ package imuanalyzer.ui.swing;
 import imuanalyzer.configuration.Configuration;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
 import imuanalyzer.signalprocessing.IOrientationSensors;
-import imuanalyzer.ui.HelpManager;
+import imuanalyzer.ui.swing.help.HelpManager;
 
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 /**
- * Panel with different non default
+ * Panel for configuring application settings
  * 
  * @author "Christopher-Eyk Hrabia"
  * 
@@ -37,6 +37,8 @@ public class SettingsPanel extends JPanel {
 
 	public SettingsPanel(final IOrientationSensors sensors) {
 		myInstance = this;
+		
+		HelpManager.getInstance().enableHelpKey(this, "settings");
 		
 		JPanel mainPanel = new JPanel(new GridBagLayout());
 		

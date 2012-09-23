@@ -4,6 +4,11 @@ import java.util.ArrayList;
 
 import com.jme3.math.Vector3f;
 
+/**
+ * Represents a multipoint line of vectors
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class VectorLine implements Comparable<VectorLine>, IStatisticsValue {
 	ArrayList<Vector3f> lineBuffer = new ArrayList<Vector3f>();
 

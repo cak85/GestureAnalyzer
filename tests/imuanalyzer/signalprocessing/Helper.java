@@ -120,6 +120,36 @@ public class Helper {
 		p2.add(new Vector3f(2, 6, 0));
 		VectorLine t2 = new VectorLine(p2);
 		touchlines.add(t2);
+		
+		p2 = new ArrayList<Vector3f>();
+		p2.add(new Vector3f(2, 1, 0));
+		p2.add(new Vector3f(2, 2, 0));
+		p2.add(new Vector3f(2, 3, 0));
+		p2.add(new Vector3f(2, 4, 0));
+		p2.add(new Vector3f(2, 5, 0));
+		p2.add(new Vector3f(2, 6, 0));
+		t2 = new VectorLine(p2);
+		touchlines.add(t2);
+		
+		p2 = new ArrayList<Vector3f>();
+		p2.add(new Vector3f(2, 1, 0));
+		p2.add(new Vector3f(2, 2, 0));
+		p2.add(new Vector3f(2, 3, 0));
+		p2.add(new Vector3f(2, 4, 0));
+		p2.add(new Vector3f(2, 5, 0));
+		p2.add(new Vector3f(2, 6, 0));
+		t2 = new VectorLine(p2);
+		touchlines.add(t2);
+		
+		p2 = new ArrayList<Vector3f>();
+		p2.add(new Vector3f(2, 1, 0));
+		p2.add(new Vector3f(2, 2, 0));
+		p2.add(new Vector3f(2, 3, 0));
+		p2.add(new Vector3f(2, 4, 0));
+		p2.add(new Vector3f(2, 5, 0));
+		p2.add(new Vector3f(2, 6, 0));
+		t2 = new VectorLine(p2);
+		touchlines.add(t2);
 
 		ArrayList<Vector3f> p3 = new ArrayList<Vector3f>();
 		p3.add(new Vector3f(1, 1, 0));

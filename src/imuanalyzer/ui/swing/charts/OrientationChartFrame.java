@@ -1,9 +1,10 @@
 package imuanalyzer.ui.swing.charts;
 
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
+import imuanalyzer.ui.swing.help.HelpManager;
 import imuanalyzer.utils.math.AngleHelper;
+import imuanalyzer.utils.math.Quaternion;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.IAxis.AxisTitle;
 import info.monitorenter.gui.chart.ITrace2D;
@@ -19,7 +20,13 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-//TODO only possible axes! see relation..
+/**
+ * Frame which includes orientation graph in degree 
+ * TODO only possible axes! see relation..
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class OrientationChartFrame extends JFrame {
 
 	/**
@@ -35,7 +42,7 @@ public class OrientationChartFrame extends JFrame {
 
 	OrientationChartFrame instance;
 
-	private long starttime = System.currentTimeMillis();
+	private long starttime = 0;
 
 	ArrayList<ITrace2D> traces = new ArrayList<ITrace2D>();
 
@@ -46,6 +53,8 @@ public class OrientationChartFrame extends JFrame {
 		instance = this;
 		this.hand = hand;
 		this.type = _type;
+		
+		HelpManager.getInstance().enableHelpKey(this, "diagramms");
 
 		chart = new Chart2D();
 
@@ -95,7 +104,14 @@ public class OrientationChartFrame extends JFrame {
 		});
 	}
 
-	public void update(int traceGroup) {
+	public void update(long currentTime, int traceGroup) {
+
+		// leave first update for getting starttime
+		if (starttime == 0) {
+			starttime = currentTime;
+			return;
+		}
+
 		Quaternion orientation = hand.getJoint(type).getLocalOrientation();
 
 		double[] angles = orientation.getAnglesRad();
@@ -106,8 +122,7 @@ public class OrientationChartFrame extends JFrame {
 
 		for (int j = start; j < start + 3; j++) {
 
-			traces.get(j).addPoint(
-					((double) System.currentTimeMillis() - this.starttime),
+			traces.get(j).addPoint(((double) currentTime - this.starttime),
 					AngleHelper.degFromRad(angles[i]));
 			i++;
 		}

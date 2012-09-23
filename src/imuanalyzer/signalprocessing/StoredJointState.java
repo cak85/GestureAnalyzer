@@ -1,8 +1,8 @@
 package imuanalyzer.signalprocessing;
 
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.utils.math.AngleHelper;
+import imuanalyzer.utils.math.Quaternion;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -21,8 +21,11 @@ public class StoredJointState implements IJoint, Comparable<StoredJointState> {
 	
 	private static final double MAX_ANGLE_DIFFERENCE = 8 * (Math.PI / 180);
 	
+	/**
+	 * Offset from Joint to finger top position
+	 */
 	private static final Quaternion FINGER_TOP_OFFSET = new Quaternion(0, 0,
-			1.9, 0);
+			1.35, 0);
 
 	protected JointType type;
 

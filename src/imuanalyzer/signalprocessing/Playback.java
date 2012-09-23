@@ -1,8 +1,8 @@
 package imuanalyzer.signalprocessing;
 
 import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
-import imuanalyzer.device.ImuRawData;
+import imuanalyzer.data.DatasetMetadata;
+import imuanalyzer.device.MARGRawData;
 import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.lang.Thread.State;
@@ -13,6 +13,11 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+/**
+ * 
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class Playback {
 
 	private static final Logger LOGGER = Logger.getLogger(Playback.class
@@ -42,7 +47,7 @@ public class Playback {
 		}
 	}
 
-	public void play(Marker marker, boolean loop) {
+	public void play(DatasetMetadata marker, boolean loop) {
 		if (currentThread != null
 				&& (currentThread.getState() == State.RUNNABLE || currentThread
 						.getState() == State.TIMED_WAITING)) {
@@ -67,12 +72,12 @@ public class Playback {
 		stop = true;
 	}
 
-	protected void internalPlay(Marker marker, boolean loop) {
-		ArrayList<ImuRawData> rawData = db.getImuData(marker);
+	protected void internalPlay(DatasetMetadata marker, boolean loop) {
+		ArrayList<MARGRawData> rawData = db.getImuData(marker);
 		ArrayList<FeelingScale> feelingData = db.selectFeelings(marker);
 
-		Marker oldMarker = hand.getCurrentMarker();
-		hand.setCurrentMarker(marker);
+		DatasetMetadata oldMarker = hand.getCurrentDatasetDescription();
+		hand.setCurrentDatasetDescription(marker);
 		hand.loadJointMappingFromMarker();
 
 		do {
@@ -90,7 +95,7 @@ public class Playback {
 			if (rawData.size() > 0) {
 
 				Date currentPeriod = rawData.get(0).getTimeStamp();
-				ImuRawData[] currentSet = new ImuRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
+				MARGRawData[] currentSet = new MARGRawData[OrientationSensorManagerFactory.NUMBER_OF_SENSORS];
 
 				for (int i = 0; i < rawData.size(); i++) {
 
@@ -99,7 +104,7 @@ public class Playback {
 						break;
 					}
 
-					ImuRawData newData = rawData.get(i);
+					MARGRawData newData = rawData.get(i);
 					Date newPeriod = newData.getTimeStamp();
 
 					if (newPeriod.compareTo(currentPeriod) == 0
@@ -127,7 +132,7 @@ public class Playback {
 			}
 		} while (loop);
 
-		hand.setCurrentMarker(oldMarker);
+		hand.setCurrentDatasetDescription(oldMarker);
 		hand.loadJointMappingFromMarker();
 
 		if (notifier != null) {
@@ -141,11 +146,11 @@ public class Playback {
 
 	class PlaybackRunnable implements Runnable {
 
-		Marker marker;
+		DatasetMetadata marker;
 		Playback player;
 		boolean loop;
 
-		public PlaybackRunnable(Playback player, Marker marker, boolean loop) {
+		public PlaybackRunnable(Playback player, DatasetMetadata marker, boolean loop) {
 			this.player = player;
 			this.marker = marker;
 			this.loop = loop;

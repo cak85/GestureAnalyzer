@@ -1,6 +1,7 @@
 package imuanalyzer.ui.swing.charts;
 
 import imuanalyzer.signalprocessing.Hand;
+import imuanalyzer.ui.swing.help.HelpManager;
 import imuanalyzer.utils.parallel.IIntervalUpdate;
 import info.monitorenter.gui.chart.Chart2D;
 import info.monitorenter.gui.chart.ITrace2D;
@@ -18,6 +19,12 @@ import java.util.SortedSet;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+/**
+ * Frame which shows graphs of configured feeling scales
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 
 	/**
@@ -29,7 +36,7 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 			Color.ORANGE, Color.MAGENTA, Color.GREEN, Color.CYAN, Color.BLUE,
 			Color.PINK };
 
-	private long starttime = System.currentTimeMillis();
+	private long starttime = 0;
 
 	protected Chart2D chart;
 
@@ -48,6 +55,8 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 		this.valuesLimit = valueLimit;
 		this.hand = hand;
 		instance = this;
+		
+		HelpManager.getInstance().enableHelpKey(this, "diagramms");
 
 		chart = new Chart2D();
 		LayoutFactory lfct = LayoutFactory.getInstance();
@@ -55,7 +64,7 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 
 		for (int i = 0; i < hand.getComfortScale().getCurrentValues().size(); i++) {
 			ITrace2D traceX = new Trace2DLtd(valueLimit);
-			traceX.setName("Nr." + (i + 1));
+			traceX.setName(hand.getComfortScale().getDescription(i));
 			traceX.setColor(COLOR_LOCK_UP_TABLE[i % COLOR_LOCK_UP_TABLE.length]);
 			chart.addTrace(traceX);
 		}
@@ -82,7 +91,13 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 		});
 	}
 
-	public void update() {
+	public void update(long currentTime) {
+		// leave first update for getting starttime
+		if (starttime == 0) {
+			starttime = currentTime;
+			return;
+		}
+
 		ArrayList<Integer> cScale = hand.getComfortScale().getCurrentValues();
 
 		int sizeDiff = cScale.size() - chart.getTraces().size();
@@ -90,7 +105,7 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 			int start = chart.getTraces().size();
 			for (int i = start; i < start + sizeDiff; i++) {
 				ITrace2D trace = new Trace2DLtd(valuesLimit);
-				trace.setName("Nr." + (i + 1));
+				trace.setName(hand.getComfortScale().getDescription(i));
 				trace.setColor(COLOR_LOCK_UP_TABLE[i
 						% COLOR_LOCK_UP_TABLE.length]);
 				chart.addTrace(trace);
@@ -104,8 +119,7 @@ public class FeelingChartFrame extends JFrame implements IIntervalUpdate {
 		SortedSet<ITrace2D> traces = chart.getTraces();
 		int i = 0;
 		for (ITrace2D trace : traces) {
-			trace.addPoint(
-					((double) System.currentTimeMillis() - this.starttime),
+			trace.addPoint(((double) currentTime - this.starttime),
 					cScale.get(i));
 			i++;
 		}

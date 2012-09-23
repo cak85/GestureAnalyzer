@@ -1,14 +1,8 @@
 package imuanalyzer.filter.filterimpl;
 
 import imuanalyzer.filter.Filter;
-import imuanalyzer.filter.IIRFilter;
-import imuanalyzer.filter.Quaternion;
 import imuanalyzer.utils.math.AngleHelper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
+import imuanalyzer.utils.math.Quaternion;
 import Jama.Matrix;
 
 /**
@@ -32,27 +26,6 @@ public class KalmanFilter extends Filter {
 
 	Matrix weOld;
 
-	public List<Double> aAcc;
-	public List<Double> bAcc;
-	public List<Double> aMagn;
-	public List<Double> bMagn;
-
-	public List<Double> AccObservX;
-	public List<Double> AccObservY;
-	public List<Double> AccObservZ;
-
-	public List<Double> AccFiltX;
-	public List<Double> AccFiltY;
-	public List<Double> AccFiltZ;
-
-	public List<Double> MagnObservX;
-	public List<Double> MagnObservY;
-	public List<Double> MagnObservZ;
-
-	public List<Double> MagnFiltX;
-	public List<Double> MagnFiltY;
-	public List<Double> MagnFiltZ;
-
 	double w_x_old;
 	double w_y_old;
 	double w_z_old;
@@ -74,13 +47,6 @@ public class KalmanFilter extends Filter {
 	Matrix P_Update; // the variance of the update of the
 						// state
 	Matrix K; // the gain of the filter
-
-	Stack<double[]> MagnOsserv;
-	Stack<double[]> AccOsserv;
-
-	int countdata;
-	IIRFilter magnFilter;
-	IIRFilter accFilter;
 
 	public KalmanFilter() {
 
@@ -107,11 +73,6 @@ public class KalmanFilter extends Filter {
 		P_Update = new Matrix(4, 4); // the variance of the update of the
 										// state
 		K = new Matrix(4, 4); // the gain of the filter
-
-		MagnOsserv = new Stack<double[]>();
-		AccOsserv = new Stack<double[]>();
-
-		countdata = 0;
 
 		// Compute matrix Q (costant if the time interval is costant)
 		Q.set(0, 0, sigmaRoll + sigmaPitch + sigmaYaw);
@@ -159,47 +120,6 @@ public class KalmanFilter extends Filter {
 				.getQuaternionAsVector();
 		P_Update = Matrix.identity(4, 4).times(0.1);
 
-		aAcc = new ArrayList<Double>();
-		bAcc = new ArrayList<Double>();
-		aMagn = new ArrayList<Double>();
-		bMagn = new ArrayList<Double>();
-
-		aAcc.add(1.0);
-		aAcc.add(-2.9529);
-		aAcc.add(2.9069);
-		aAcc.add(-0.954);
-
-		bAcc.add(0.000001597);
-		bAcc.add(0.000004792);
-		bAcc.add(0.000004792);
-		bAcc.add(0.000001597);
-
-		accFilter = new IIRFilter(aAcc, bAcc);
-
-		aMagn.add(1.0);
-		aMagn.add(-1.73);
-		aMagn.add(0.76);
-
-		bMagn.add(0.0078);
-		bMagn.add(0.0156);
-		bMagn.add(0.0078);
-
-		magnFilter = new IIRFilter(aMagn, bMagn);
-
-		AccObservX = new ArrayList<Double>();
-		AccObservY = new ArrayList<Double>();
-		AccObservZ = new ArrayList<Double>();
-		AccFiltX = new ArrayList<Double>();
-		AccFiltY = new ArrayList<Double>();
-		AccFiltZ = new ArrayList<Double>();
-
-		MagnObservX = new ArrayList<Double>();
-		MagnObservY = new ArrayList<Double>();
-		MagnObservZ = new ArrayList<Double>();
-		MagnFiltX = new ArrayList<Double>();
-		MagnFiltY = new ArrayList<Double>();
-		MagnFiltZ = new ArrayList<Double>();
-
 		weOld = new Matrix(4, 1);
 		weOld = weOld.times(0.0);
 
@@ -208,10 +128,12 @@ public class KalmanFilter extends Filter {
 	@Override
 	public Quaternion filterStep(double w_x, double w_y, double w_z,
 			double a_x, double a_y, double a_z, double m_x, double m_y,
-			double m_z, float temperatur) {
+			double m_z, double temperatur) {
 		double norm;
 		Matrix temp;// =new Matrix(4,4);
 		double mu;
+
+		Matrix state_filtered = new Matrix(this.state_filtered.getArray());
 
 		// normalise the accelerometer measurement
 		norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
@@ -230,71 +152,6 @@ public class KalmanFilter extends Filter {
 		m_x /= norm;
 		m_y /= norm;
 		m_z /= norm;
-
-		if (AccObservX.size() < 10) {
-			AccObservX.add(a_x);
-			AccObservY.add(a_y);
-			AccObservZ.add(a_z);
-		} else {
-			AccObservX.remove(0);
-			AccObservY.remove(0);
-			AccObservZ.remove(0);
-
-			AccObservX.add(a_x);
-			AccObservY.add(a_y);
-			AccObservZ.add(a_z);
-		}
-		if (MagnObservX.size() < 10) {
-			MagnObservX.add(m_x);
-			MagnObservY.add(m_y);
-			MagnObservZ.add(m_z);
-		} else {
-			MagnObservX.remove(0);
-			MagnObservY.remove(0);
-			MagnObservZ.remove(0);
-			MagnObservX.add(m_x);
-			MagnObservY.add(m_y);
-			MagnObservZ.add(m_z);
-
-			// Filter stabilization
-			accFilter.Applyfilter(AccObservX, AccFiltX);
-			accFilter.Applyfilter(AccObservY, AccFiltY);
-			accFilter.Applyfilter(AccObservZ, AccFiltZ);
-
-			magnFilter.Applyfilter(MagnObservX, MagnFiltX);
-			magnFilter.Applyfilter(MagnObservY, MagnFiltY);
-			magnFilter.Applyfilter(MagnObservZ, MagnFiltZ);
-		}
-
-		if (countdata > 10) {
-			a_x = AccFiltX.get(AccFiltX.size() - 1);
-			a_y = AccFiltY.get(AccFiltY.size() - 1);
-			a_z = AccFiltZ.get(AccFiltZ.size() - 1);
-
-			m_x = MagnFiltX.get(MagnFiltX.size() - 1);
-			m_y = MagnFiltY.get(MagnFiltY.size() - 1);
-			m_z = MagnFiltZ.get(MagnFiltZ.size() - 1);
-
-			// normalise the accelerometer measurement
-			norm = Math.sqrt(a_x * a_x + a_y * a_y + a_z * a_z);
-			if (norm == 0) {
-				return updateAndAdjust(new Quaternion(state_filtered));
-			}
-			a_x /= norm;
-			a_y /= norm;
-			a_z /= norm;
-
-			// normalise the magnetometer measurement
-			norm = Math.sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
-			if (norm == 0) {
-				return updateAndAdjust(new Quaternion(state_filtered));
-			}
-			m_x /= norm;
-			m_y /= norm;
-			m_z /= norm;
-		}
-
-		countdata++;
 
 		if (this.obsMethod == 0) {
 			norm = Math.sqrt(w_x * w_x + w_y * w_y + w_z * w_z);
@@ -362,7 +219,7 @@ public class KalmanFilter extends Filter {
 
 		Quaternion ret = updateAndAdjust(new Quaternion(state_filtered));
 
-		state_filtered = ret.getQuaternionAsVector();
+		this.state_filtered = ret.getQuaternionAsVector();
 
 		return ret;
 	}
@@ -429,11 +286,25 @@ public class KalmanFilter extends Filter {
 		case 1:
 			return "Sigma Pitch";
 		case 2:
-
 			return "Sigma Yaw";
 		case 3:
 		default:
 			return "Optimization Algorithm";
+		}
+	}
+	
+	@Override
+	public String getParameterDescription(int index) {
+		switch (index) {
+		case 0:
+			return "Variance Sigma of Roll";
+		case 1:
+			return "Variance Sigma of Pitch";
+		case 2:
+			return "Variance Sigma of Yaw";
+		case 3:
+		default:
+			return "Optimization Algorithm select 0 = Gradient-Decent-Method ; 1 = Gaus-Newton-Method ";
 		}
 	}
 

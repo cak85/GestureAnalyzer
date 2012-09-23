@@ -4,6 +4,12 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 
 import java.util.EnumMap;
 
+/**
+ * Saved data of one motions step
+ * Contains all stored joints
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class MovementStep {
 	StoredJointState move;
 

@@ -1,10 +1,10 @@
 package imuanalyzer.ui;
 
 import imuanalyzer.data.Database;
-import imuanalyzer.data.Marker;
+import imuanalyzer.data.DatasetMetadata;
 import imuanalyzer.filter.FilterFactory.FilterTypes;
-import imuanalyzer.signalprocessing.Analyses;
-import imuanalyzer.signalprocessing.Analyses.AnalysesMode;
+import imuanalyzer.signalprocessing.Analysis;
+import imuanalyzer.signalprocessing.Analysis.AnalysesMode;
 import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.JointAngleCollector;
@@ -28,16 +28,17 @@ public class MarkerControlTest {
 		db = Database.getInstance();
 	}
 
-	protected int getMaxDataLength(ArrayList<Marker> selectedMarkers) {
+	protected int getMaxDataLength(ArrayList<DatasetMetadata> selectedMarkers) {
 		int maxCount = 0;
-		for (Marker m : selectedMarkers) {
+		for (DatasetMetadata m : selectedMarkers) {
 			maxCount = Math.max(maxCount, db.getCount(m));
 		}
 		return maxCount;
 	}
 
-	// @Test
+	@Test
 	public void automaticMassRegressionTest() {
+		System.out.println("TOP and MID Test");
 
 		final String[] fingers = new String[5];
 		fingers[0] = "L";
@@ -59,6 +60,77 @@ public class MarkerControlTest {
 		fingersTyp2[2] = JointType.MIDDLE_TOP;
 		fingersTyp2[3] = JointType.INDEX_TOP;
 		fingersTyp2[4] = JointType.THUMB_TOP;
+
+		final String[] hands = new String[2];
+		hands[0] = "L";
+		hands[1] = "R";
+
+		ArrayList<String> names = new ArrayList<String>();
+		names.add("chris");
+		names.add("baerbel");
+		names.add("frank");
+		names.add("anne");
+		names.add("gerriet");
+		names.add("daniel");
+		names.add("sonny");
+		names.add("katrin");
+		names.add("renate");
+		names.add("hardy");
+		names.add("Christian");
+		names.add("Mathias");
+		names.add("Victor");
+		names.add("Ly");
+		names.add("Sascha");
+		names.add("Juliane");
+		names.add("Thomas");
+		names.add("Sabine");
+		names.add("Frank");
+
+		for (int n = 0; n < names.size(); n++) {
+
+			for (int f = 0; f < fingers.length; f++) {
+
+				for (int h = 0; h < hands.length; h++) {
+
+					String searchRegexStr = names.get(n) + " " + hands[h] + " "
+							+ fingers[f] + ".*";
+
+					int numberOfItemsToSum = 4;
+
+					calcAllRegression(names.get(n), hands[h], fingers[f],
+							fingersTyp1[f], fingersTyp2[f], searchRegexStr,
+							numberOfItemsToSum);
+				}
+
+			}
+		}
+	}
+	
+	@Test
+	public void automaticMassRegressionTest2() {
+		
+		System.out.println("Bottom and MID Test");
+
+		final String[] fingers = new String[5];
+		fingers[0] = "L";
+		fingers[1] = "R";
+		fingers[2] = "M";
+		fingers[3] = "I";
+		fingers[4] = "T";
+
+		final JointType[] fingersTyp1 = new JointType[5];
+		fingersTyp1[0] = JointType.LITTLE_MID;
+		fingersTyp1[1] = JointType.RING_MID;
+		fingersTyp1[2] = JointType.MIDDLE_MID;
+		fingersTyp1[3] = JointType.INDEX_MID;
+		fingersTyp1[4] = JointType.THUMB_MID;
+
+		final JointType[] fingersTyp2 = new JointType[5];
+		fingersTyp2[0] = JointType.LITTLE_BOTTOM;
+		fingersTyp2[1] = JointType.RING_BOTTOM;
+		fingersTyp2[2] = JointType.MIDDLE_BOTTOM;
+		fingersTyp2[3] = JointType.INDEX_BOTTOM;
+		fingersTyp2[4] = JointType.THUMB_BOTTOM;
 
 		final String[] hands = new String[2];
 		hands[0] = "L";
@@ -140,28 +212,28 @@ public class MarkerControlTest {
 	protected void calcAllRegression(String name, String hand, String finger,
 			JointType type1, JointType type2, String searchRegexStr,
 			int numberOfItemsToSum) {
-		ArrayList<Marker> availableMarker = db.getAvailableMarkers();
+		ArrayList<DatasetMetadata> availableMarker = db.getAvailableMarkers();
 
-		ArrayList<ArrayList<Marker>> proceedItems = new ArrayList<ArrayList<Marker>>();
+		ArrayList<ArrayList<DatasetMetadata>> proceedItems = new ArrayList<ArrayList<DatasetMetadata>>();
 
-		proceedItems.add(new ArrayList<Marker>());
+		proceedItems.add(new ArrayList<DatasetMetadata>());
 
 		// sort matching datasets
-		for (Marker m : availableMarker) {
+		for (DatasetMetadata m : availableMarker) {
 			if (m.getName().matches(searchRegexStr)) {
-				ArrayList<Marker> current = proceedItems.get(proceedItems
+				ArrayList<DatasetMetadata> current = proceedItems.get(proceedItems
 						.size() - 1);
 				if (current.size() >= numberOfItemsToSum) {
-					current = new ArrayList<Marker>();
+					current = new ArrayList<DatasetMetadata>();
 					proceedItems.add(current);
 				}
 				current.add(m);
 			}
 		}
 
-		for (ArrayList<Marker> list : proceedItems) {
-			for (Marker single : list) {
-				ArrayList<Marker> singleList = new ArrayList<Marker>(1);
+		for (ArrayList<DatasetMetadata> list : proceedItems) {
+			for (DatasetMetadata single : list) {
+				ArrayList<DatasetMetadata> singleList = new ArrayList<DatasetMetadata>(1);
 				singleList.add(single);
 				calculateRegression(single.getName(), type1, type2, singleList);
 			}
@@ -171,10 +243,10 @@ public class MarkerControlTest {
 	}
 
 	protected void calculateRegression(String name, JointType type1,
-			JointType type2, ArrayList<Marker> markerList) {
-		Analyses newAnalysis = new Analyses(null);
+			JointType type2, ArrayList<DatasetMetadata> markerList) {
+		Analysis newAnalysis = new Analysis(null);
 
-		Hand hand = new Hand(null, Marker.getDefaultMarker());
+		Hand hand = new Hand(null, DatasetMetadata.getDefaultMarker());
 
 		int numValues = getMaxDataLength(markerList);
 
@@ -187,7 +259,7 @@ public class MarkerControlTest {
 				type1, type2, numValues);
 
 		newAnalysis.calculate(AnalysesMode.WITHOUTPOSTPROCCESIG, markerList,
-				FilterTypes.AHRS, new ArrayList<Hand.JointType>(1),
+				FilterTypes.CF_MAHONY_MAGNETIC_DISTORSION, new ArrayList<Hand.JointType>(1),
 				new ArrayList<Hand.JointType>(1), new ArrayList<Float>(1),
 				collector, false, false, false);
 
@@ -289,28 +361,28 @@ public class MarkerControlTest {
 			String name, String hand, String finger, JointType type1,
 			JointType type2, String searchRegexStr, int numberOfItemsToSum)
 			throws IOException {
-		ArrayList<Marker> availableMarker = db.getAvailableMarkers();
+		ArrayList<DatasetMetadata> availableMarker = db.getAvailableMarkers();
 
-		ArrayList<ArrayList<Marker>> proceedItems = new ArrayList<ArrayList<Marker>>();
+		ArrayList<ArrayList<DatasetMetadata>> proceedItems = new ArrayList<ArrayList<DatasetMetadata>>();
 
-		proceedItems.add(new ArrayList<Marker>());
+		proceedItems.add(new ArrayList<DatasetMetadata>());
 
 		// sort matching datasets
-		for (Marker m : availableMarker) {
+		for (DatasetMetadata m : availableMarker) {
 			if (m.getName().matches(searchRegexStr)) {
-				ArrayList<Marker> current = proceedItems.get(proceedItems
+				ArrayList<DatasetMetadata> current = proceedItems.get(proceedItems
 						.size() - 1);
 				if (current.size() >= numberOfItemsToSum) {
-					current = new ArrayList<Marker>();
+					current = new ArrayList<DatasetMetadata>();
 					proceedItems.add(current);
 				}
 				current.add(m);
 			}
 		}
 
-		for (ArrayList<Marker> list : proceedItems) {
-			for (Marker single : list) {
-				ArrayList<Marker> singleList = new ArrayList<Marker>(1);
+		for (ArrayList<DatasetMetadata> list : proceedItems) {
+			for (DatasetMetadata single : list) {
+				ArrayList<DatasetMetadata> singleList = new ArrayList<DatasetMetadata>(1);
 				singleList.add(single);
 				calculateAngles(out, "" + propandNr + ";" + single.getName(),
 						type1, type2, singleList);
@@ -319,11 +391,11 @@ public class MarkerControlTest {
 	}
 
 	protected void calculateAngles(BufferedWriter out, String name,
-			JointType type1, JointType type2, ArrayList<Marker> markerList)
+			JointType type1, JointType type2, ArrayList<DatasetMetadata> markerList)
 			throws IOException {
-		Analyses newAnalysis = new Analyses(null);
+		Analysis newAnalysis = new Analysis(null);
 
-		Hand hand = new Hand(null, Marker.getDefaultMarker());
+		Hand hand = new Hand(null, DatasetMetadata.getDefaultMarker());
 
 		int numValues = getMaxDataLength(markerList);
 
@@ -336,7 +408,7 @@ public class MarkerControlTest {
 				type1, type2, numValues);
 
 		newAnalysis.calculate(AnalysesMode.WITHOUTPOSTPROCCESIG, markerList,
-				FilterTypes.AHRS, new ArrayList<Hand.JointType>(1),
+				FilterTypes.CF_MAHONY_MAGNETIC_DISTORSION, new ArrayList<Hand.JointType>(1),
 				new ArrayList<Hand.JointType>(1), new ArrayList<Float>(1),
 				collector, false, false, false);
 

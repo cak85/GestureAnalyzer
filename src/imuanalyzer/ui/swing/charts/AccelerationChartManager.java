@@ -7,6 +7,13 @@ import imuanalyzer.utils.parallel.IntervalUpdater;
 
 import java.util.ArrayList;
 
+/**
+ * Manager for several acceleration chart frames,
+ * handles updates, creation and so on
+ * 
+ * @author Christopher-Eyk Hrabia
+ *
+ */
 public class AccelerationChartManager {
 
 	/**

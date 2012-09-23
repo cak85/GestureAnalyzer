@@ -4,6 +4,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.Restriction;
+import imuanalyzer.ui.swing.help.HelpManager;
 import imuanalyzer.utils.math.AngleHelper;
 import imuanalyzer.utils.math.LinearRegression;
 import imuanalyzer.utils.parallel.IIntervalUpdate;
@@ -29,6 +30,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * Frame which includes relation points and fitted linear regression line and
+ * some additional info data
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 
 	/**
@@ -72,6 +80,8 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 			boolean calculateRegressionLive) {
 		super("Relation " + type1 + " / " + type2 + " " + namePostfix);
 		instance = this;
+		
+		HelpManager.getInstance().enableHelpKey(this, "diagramms");
 
 		this.setLayout(new BorderLayout());
 
@@ -170,7 +180,7 @@ public class JointRelationChartFrame extends JFrame implements IIntervalUpdate {
 		return this.type1 == type1 && this.type2 == type2;
 	}
 
-	public void update() {
+	public void update(long time) {
 
 		double[] angles1 = hand.getJoint(type1).getLocalOrientation()
 				.getAnglesRad();

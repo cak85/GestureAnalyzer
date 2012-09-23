@@ -6,6 +6,13 @@ import imuanalyzer.signalprocessing.Hand.JointType;
 import java.util.EnumMap;
 import java.util.Map.Entry;
 
+/**
+ * Manager for several orientation chart frames, handles updates, creation and
+ * so on
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class OrientationChartManager {
 
 	/**
@@ -21,6 +28,9 @@ public class OrientationChartManager {
 
 	protected Hand hand;
 
+	/**
+	 * Thread for periodic update
+	 */
 	protected UpdaterOrientation thread;
 
 	public OrientationChartManager(Hand hand) {
@@ -31,8 +41,8 @@ public class OrientationChartManager {
 
 		if (charts.get(type) == null) {
 
-			OrientationChartFrame frame = new OrientationChartFrame(this, hand, type, 1,
-					VALUES_LIMIT);
+			OrientationChartFrame frame = new OrientationChartFrame(this, hand,
+					type, 1, VALUES_LIMIT);
 			charts.put(type, frame);
 			frame.setVisible(visible);
 
@@ -43,6 +53,14 @@ public class OrientationChartManager {
 		}
 	}
 
+	/**
+	 * Get static non updated chart with predefined value count
+	 * 
+	 * @param type
+	 * @param nrOfTraceGroups
+	 * @param valueLimit
+	 * @return
+	 */
 	public OrientationChartFrame getStaticChart(final JointType type,
 			int nrOfTraceGroups, int valueLimit) {
 
@@ -51,6 +69,10 @@ public class OrientationChartManager {
 
 	}
 
+	/**
+	 * Remove one maintained chart
+	 * @param type
+	 */
 	public void removeChart(JointType type) {
 		OrientationChartFrame chart = charts.get(type);
 		if (chart != null) {
@@ -61,10 +83,19 @@ public class OrientationChartManager {
 		}
 	}
 
+	/**
+	 * Get all managed charts
+	 * @return
+	 */
 	public EnumMap<JointType, OrientationChartFrame> getCharts() {
 		return charts;
 	}
 
+	/**
+	 * Update thread for orientation charts
+	 * @author Christopher-Eyk Hrabia
+	 *
+	 */
 	private static class UpdaterOrientation extends Thread {
 
 		private EnumMap<JointType, OrientationChartFrame> charts;
@@ -89,7 +120,7 @@ public class OrientationChartManager {
 						OrientationChartFrame chart = entry.getValue();
 
 						if (chart != null) {
-							chart.update(0);
+							chart.update(System.currentTimeMillis(), 0);
 						}
 					}
 					Thread.sleep(UPDATE_CYCLE);

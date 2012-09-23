@@ -5,7 +5,7 @@ import imuanalyzer.signalprocessing.Hand;
 import imuanalyzer.signalprocessing.Hand.JointType;
 import imuanalyzer.signalprocessing.Joint;
 import imuanalyzer.signalprocessing.JointRelation;
-import imuanalyzer.ui.HelpManager;
+import imuanalyzer.ui.swing.help.HelpManager;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -61,6 +61,8 @@ public class RelationPanel extends JPanel {
 	public RelationPanel(Hand hand) {
 		this.hand = hand;
 		this.setLayout(new GridBagLayout());
+		
+		HelpManager.getInstance().enableHelpKey(this, "relations");
 
 		JPanel managePanel = createManageRelationPanel();
 
@@ -168,7 +170,7 @@ public class RelationPanel extends JPanel {
 
 		JLabel filterLabel = new JLabel("Joint: ", SwingConstants.LEFT);
 
-		HelpManager.getInstance().enableHelpKey(filterLabel, "jointrelation");
+		HelpManager.getInstance().enableHelpKey(filterLabel, "relations");
 
 		panel.add(filterLabel);
 
@@ -182,7 +184,7 @@ public class RelationPanel extends JPanel {
 		jointDependent.setToolTipText("Select joint");
 
 		HelpManager.getInstance().enableHelpKey(jointDependent,
-				"sensorfusionalgorithm");
+				"relations");
 
 		panel.add(jointDependent);
 
@@ -190,7 +192,7 @@ public class RelationPanel extends JPanel {
 
 		// relation
 		SpinnerModel percentSpinnerModel = new SpinnerNumberModel(new Float(0),
-				new Float(0.000), new Float(1), new Float(0.001));
+				new Float(-10), new Float(10), new Float(0.001));
 		factorSpinner = new JSpinner(percentSpinnerModel);
 		
 		final JSpinner.NumberEditor editor = new JSpinner.NumberEditor(
@@ -216,7 +218,7 @@ public class RelationPanel extends JPanel {
 		jointIndependent.setToolTipText("Select joint");
 
 		HelpManager.getInstance().enableHelpKey(jointIndependent,
-				"sensorfusionalgorithm");
+				"relations");
 
 		panel.add(jointIndependent);
 

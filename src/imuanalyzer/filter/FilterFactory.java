@@ -1,17 +1,24 @@
 package imuanalyzer.filter;
 
-import imuanalyzer.filter.filterimpl.AHRSFilter;
-import imuanalyzer.filter.filterimpl.AHRSFilterMadgwick;
-import imuanalyzer.filter.filterimpl.AHRSFilterMadgwickFreeIMU;
-import imuanalyzer.filter.filterimpl.AHRSFilterMahony;
+import imuanalyzer.filter.filterimpl.CFMayhonyWithMagneticDistorsion;
+import imuanalyzer.filter.filterimpl.CFMadgwick;
+import imuanalyzer.filter.filterimpl.CFFreeIMU;
+import imuanalyzer.filter.filterimpl.CFMahony;
 import imuanalyzer.filter.filterimpl.KalmanFilter;
+import imuanalyzer.filter.filterimpl.MyTemperatureCorrectedFilter;
 import imuanalyzer.filter.filterimpl.QuaternionComplementaryFilter;
 import imuanalyzer.filter.filterimpl.VaranesoDOF;
 
+/**
+ * Create filters by type in this factory
+ * 
+ * @author "Christopher-Eyk Hrabia"
+ * 
+ */
 public class FilterFactory {
 
 	public enum FilterTypes {
-		KALMAN, QUATERNION_COMPLEMENTARY, AHRS, AHRSMAHONY, AHRSMADGWICK, VARANESO_DOF, AHRSMADGWICK_FREEIMU
+		KALMAN, CF_QUATERNION, CF_MAHONY_MAGNETIC_DISTORSION, CF_MAHONY, CF_MADGWICK_GRADIENT_DECENT, VARANESO_DOF, CF_FREEIMU, MY_FILTER
 	}
 
 	public static Filter getFilter(FilterTypes type) {
@@ -21,26 +28,29 @@ public class FilterFactory {
 		case KALMAN:
 			filter = new KalmanFilter();
 			break;
-		case AHRS:
-			filter = new AHRSFilter();
+		case CF_MAHONY_MAGNETIC_DISTORSION:
+			filter = new CFMayhonyWithMagneticDistorsion();
 			break;
-		case QUATERNION_COMPLEMENTARY:
+		case CF_QUATERNION:
 			filter = new QuaternionComplementaryFilter();
 			break;
-		case AHRSMAHONY:
-			filter = new AHRSFilterMahony();
+		case CF_MAHONY:
+			filter = new CFMahony();
 			break;
-		case AHRSMADGWICK:
-			filter = new AHRSFilterMadgwick();
+		case CF_MADGWICK_GRADIENT_DECENT:
+			filter = new CFMadgwick();
 			break;
-		case AHRSMADGWICK_FREEIMU:
-			filter = new AHRSFilterMadgwickFreeIMU();
+		case CF_FREEIMU:
+			filter = new CFFreeIMU();
 			break;
 		case VARANESO_DOF:
 			filter = new VaranesoDOF();
 			break;
+		case MY_FILTER:
+			filter = new MyTemperatureCorrectedFilter();
+			break;
 		default:
-			filter = new AHRSFilter();
+			filter = new CFMayhonyWithMagneticDistorsion();
 		}
 		return filter;
 	}

@@ -9,6 +9,13 @@ import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Class for holding customizable feeling data It is possible to configure
+ * number and range of scales data will be safed in database
+ * 
+ * @author Christopher-Eyk Hrabia
+ * 
+ */
 public class FeelingScale implements IRecordDataNotify {
 
 	private static final Logger LOGGER = Logger.getLogger(FeelingScale.class
@@ -22,10 +29,26 @@ public class FeelingScale implements IRecordDataNotify {
 
 	ArrayList<String> descriptions = new ArrayList<String>();
 
+	/**
+	 * Default construction with one scale
+	 */
 	public FeelingScale() {
 		this("Feeling", -5, 5, 1);
 	}
 
+	/**
+	 * Constructor
+	 * 
+	 * @param description
+	 *            description of available scales. Description must be separated
+	 *            by ;
+	 * @param min
+	 *            minimum value of scale
+	 * @param max
+	 *            maximum value of scale
+	 * @param nrOfValues
+	 *            of scales/axis
+	 */
 	public FeelingScale(String description, int min, int max, int nrOfValues) {
 
 		// parse multiple data from one field, a bit hacky but ...
@@ -49,6 +72,12 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
+	/**
+	 * Change number of available scales
+	 * 
+	 * @param count
+	 *            new number
+	 */
 	public void setNrOfValues(int count) {
 		// adjust item size
 		while (currentValues.size() < count) {
@@ -60,53 +89,114 @@ public class FeelingScale implements IRecordDataNotify {
 		db.setFeeling(this);
 	}
 
+	/**
+	 * Get current minimum scale value
+	 * 
+	 * @return
+	 */
 	public int getMin() {
 		return min;
 	}
 
+	/**
+	 * set current minimum scale value
+	 * 
+	 * @param min
+	 */
 	public void setMin(int min) {
 		this.min = min;
 		db.setFeeling(this);
 	}
 
+	/**
+	 * get current maximum scale value
+	 * 
+	 * @return
+	 */
 	public int getMax() {
 		return max;
 	}
 
+	/**
+	 * set current maximum scale value
+	 * 
+	 * @param max
+	 */
 	public void setMax(int max) {
 		this.max = max;
 		db.setFeeling(this);
 	}
 
+	/**
+	 * Get values in percent
+	 * 
+	 * @param index
+	 * @return
+	 */
 	public double getPercentValue(int index) {
 		return (double) (currentValues.get(index) - min) / (double) (max - min);
 	}
 
+	/**
+	 * Get notification about new data
+	 */
 	@Override
 	public synchronized void notifyRecordNewData(Date timestamp) {
 		db.writeFeelingData(this, timestamp);
 	}
 
+	/**
+	 * get current values
+	 * 
+	 * @return
+	 */
 	public ArrayList<Integer> getCurrentValues() {
 		return currentValues;
 	}
 
+	/**
+	 * Set current values
+	 * 
+	 * @param currentValues
+	 */
 	public void setCurrentValues(ArrayList<Integer> currentValues) {
 		this.currentValues = currentValues;
 	}
 
+	/**
+	 * Add new value/scale/axis
+	 * 
+	 * @param value
+	 */
 	public void addValue(int value) {
 		currentValues.add(value);
 	}
 
+	/**
+	 * Add new value/scale/axis in percent
+	 * 
+	 * @param value
+	 */
 	public void addValueInPercent(double value) {
 		addValue(percentToValue(value));
 	}
 
+	/**
+	 * Convert current value into percent based on scale range
+	 * 
+	 * @param value
+	 * @return value in percent
+	 */
 	private int percentToValue(double value) {
 		return (int) (min + (max - min) * value);
 	}
 
+	/**
+	 * Set one value in percent
+	 * 
+	 * @param i
+	 * @param value
+	 */
 	public void setValueInPercent(int i, double value) {
 		if (currentValues.size() <= i) {
 			currentValues.add(percentToValue(value));
@@ -115,6 +205,11 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
+	/**
+	 * Change/set all values, ranges and descriptions
+	 * 
+	 * @param feeling
+	 */
 	public void setAllValues(FeelingScale feeling) {
 		this.max = feeling.max;
 		this.min = feeling.min;
@@ -122,7 +217,9 @@ public class FeelingScale implements IRecordDataNotify {
 		this.currentValues = feeling.currentValues;
 	}
 
-	// create data from multiple data to one field, a bit hacky but ...
+	/**
+	 * create data from multiple data to one field, a bit hacky but works...
+	 */
 	public String getAllDescriptions() {
 		StringBuilder all = new StringBuilder();
 		for (int i = 0; i < descriptions.size(); i++) {
@@ -133,6 +230,13 @@ public class FeelingScale implements IRecordDataNotify {
 		return all.toString();
 	}
 
+	/**
+	 * Get description of scale with index
+	 * 
+	 * @param id
+	 *            btw. index
+	 * @return
+	 */
 	public String getDescription(int id) {
 		if (id < descriptions.size()) {
 			return descriptions.get(id);
@@ -141,6 +245,12 @@ public class FeelingScale implements IRecordDataNotify {
 		}
 	}
 
+	/**
+	 * Change description of one scale
+	 * 
+	 * @param id
+	 * @param description
+	 */
 	public void setDescription(int id, String description) {
 
 		if (id < descriptions.size()) {
@@ -148,7 +258,7 @@ public class FeelingScale implements IRecordDataNotify {
 		} else {
 			descriptions.add(description);
 		}
-		//LOGGER.debug("new feeling description: " + description);
+		// LOGGER.debug("new feeling description: " + description);
 		db.setFeeling(this);
 	}
 }
