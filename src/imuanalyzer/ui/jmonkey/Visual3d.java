@@ -587,8 +587,8 @@ public class Visual3d extends SimpleApplication {
 		chaseCam.setMinDistance(0f);
 		chaseCam.setMaxDistance(30f);
 		chaseCam.setZoomSensitivity(2);
-		chaseCam.setMinVerticalRotation(0);
-		chaseCam.setMaxVerticalRotation((float) Math.PI * 2);
+		chaseCam.setMinVerticalRotation(-(float) Math.PI * 4);
+		chaseCam.setMaxVerticalRotation((float) Math.PI * 4);
 		chaseCam.setRotationSensitivity(8);
 		chaseCam.setDefaultHorizontalRotation((float) Math.PI / 4);
 		chaseCam.setLookAtOffset(new Vector3f(0, 3, 0));

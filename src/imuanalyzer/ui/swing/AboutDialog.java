@@ -38,6 +38,10 @@ public class AboutDialog extends JDialog {
 		JLabel institue = new JLabel("<html><body>TU-Berlin 2012</body></html>");
 		institue.setHorizontalAlignment(SwingConstants.CENTER);
 		add(institue);
+		
+		JLabel version = new JLabel("<html><body>GestureAnalyzer Version 1.0</body></html>");
+		version.setHorizontalAlignment(SwingConstants.CENTER);
+		add(version);
 
 		JPanel buttonPanel = new JPanel();
 

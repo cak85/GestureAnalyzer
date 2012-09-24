@@ -3,7 +3,6 @@ package imuanalyzer.signalprocessing;
 import imuanalyzer.data.Database;
 import imuanalyzer.data.DatasetMetadata;
 import imuanalyzer.utils.math.AngleHelper;
-import imuanalyzer.utils.math.Quaternion;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

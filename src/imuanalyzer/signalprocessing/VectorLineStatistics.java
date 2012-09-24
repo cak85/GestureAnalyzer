@@ -173,8 +173,6 @@ public class VectorLineStatistics implements IBoxplotData {
 		ArrayList<Vector3f> avgPoints = avg.getLineBuffer();
 		ArrayList<Integer> count = new ArrayList<Integer>();
 
-		VectorLine lastOne = calcSet.get(calcSet.size() - 1);
-
 		for (VectorLine current : calcSet) {
 			ArrayList<Vector3f> currentPoints = current.getLineBuffer();
 			for (int i = 0; i < currentPoints.size(); i++) {
@@ -182,21 +180,22 @@ public class VectorLineStatistics implements IBoxplotData {
 				if (i < count.size()) {
 					// increase count
 					count.set(i, count.get(i) + 1);
-					avgPoints
-							.set(i, avgPoints.get(i).add(currentPoints.get(i)));
+					avgPoints.set(i,
+							avgPoints.get(i).add(currentPoints.get(i).clone()));
 				} else {
 					count.add(1);
 					avgPoints.add(currentPoints.get(i).clone());
 				}
-
-				// if it is the last line lets divide
-				if (current.equals(lastOne)) {
-					avgPoints.set(i, avgPoints.get(i).divide(count.get(i)));
-				}
-				LOGGER.debug("AVG-Point x:" + avgPoints.get(i).x + " y:"
-						+ avgPoints.get(i).y + " z:" + avgPoints.get(i).z);
 			}
 		}
+		
+		for (int i = 0; i < avgPoints.size(); i++) {
+			avgPoints.set(i, avgPoints.get(i).divide(count.get(i)));
+
+			LOGGER.debug("AVG-Point x:" + avgPoints.get(i).x + " y:"
+					+ avgPoints.get(i).y + " z:" + avgPoints.get(i).z);
+		}
+		
 		avg.updateLength();
 
 		return avg;

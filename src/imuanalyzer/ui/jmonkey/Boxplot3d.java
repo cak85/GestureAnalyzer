@@ -48,7 +48,7 @@ public class Boxplot3d extends Node {
 	ColorRGBA medianColor = ColorRGBA.Black;
 	ColorRGBA boxColor = ColorRGBA.Orange;
 	ColorRGBA extremaColor = ColorRGBA.Pink;
-	ColorRGBA outlinerColor = ColorRGBA.Pink;
+	ColorRGBA outlinerColor = ColorRGBA.Cyan;
 	ColorRGBA specialLineColor = ColorRGBA.Gray;
 	ColorRGBA specialPointColor = ColorRGBA.Red;
 

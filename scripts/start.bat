@@ -1,1 +1,1 @@
-java -Djava.library.path=./IMUAnalyzer_lib -jar IMUAnalyzer.jar >> log_win.txt
+java -Djava.library.path=./GestureAnalyzer_lib -jar GestureAnalyzer.jar >> log_win.txt
