@@ -62,7 +62,7 @@ public class FingerSensorMapping extends JPanel {
 
 	Hand hand;
 
-	JComboBox datasetComboBox;
+	JComboBox<String> datasetComboBox;
 	protected ArrayList<DatasetMetadata> markers;
 	protected DatasetMetadata currentActiveMarker;
 
@@ -106,7 +106,7 @@ public class FingerSensorMapping extends JPanel {
 
 		datasetPanel.add(infoText);
 
-		datasetComboBox = new JComboBox();
+		datasetComboBox = new JComboBox<String>();
 		datasetComboBox.setToolTipText("Select dataset joint mapping");
 		datasetComboBox.setEditable(true);
 

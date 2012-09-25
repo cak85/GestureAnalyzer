@@ -15,11 +15,13 @@ import com.jme3.math.Vector3f;
 
 /**
  * Analysis of finger motion
+ * 
  * @author Christopher-Eyk Hrabia
- *
+ * 
  */
 public class MotionAnalysis implements IInfoContent {
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(MotionAnalysis.class
 			.getName());
 
@@ -218,6 +220,7 @@ public class MotionAnalysis implements IInfoContent {
 
 	/**
 	 * Get the maximum motion passes through one position over all positions
+	 * 
 	 * @return
 	 */
 	public int getMaxCount() {

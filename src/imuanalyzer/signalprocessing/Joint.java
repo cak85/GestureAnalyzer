@@ -22,6 +22,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class Joint implements IFilterListener, IJoint, IInfoContent {
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger
 			.getLogger(Joint.class.getName());
 
@@ -127,7 +128,7 @@ public class Joint implements IFilterListener, IJoint, IInfoContent {
 		if (!oldLocalOrientation.equals(this.worldOrientation)) {
 			// update joints in relation to this one
 			Quaternion lastChange = this.localOrientation
-			.quaternionProduct(oldLocalOrientation.getConjugate());
+					.quaternionProduct(oldLocalOrientation.getConjugate());
 
 			double dotProduct = lastChange.dotProdcut(Quaternion.EMPTY);
 			if (dotProduct < 0.999999999) // Dotproduct near 1 means equal

@@ -16,11 +16,6 @@ import java.util.ArrayList;
  */
 public class AccelerationChartManager {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	public static final long UPDATE_CYCLE = 250;
 	private static final int VALUES_LIMIT = 50;
 

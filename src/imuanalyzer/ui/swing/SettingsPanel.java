@@ -90,7 +90,7 @@ public class SettingsPanel extends JPanel {
 
 		filterPanel.add(filterLabel);
 
-		final JComboBox filterTypes = new JComboBox(
+		final JComboBox<FilterTypes> filterTypes = new JComboBox<FilterTypes>(
 				sensors.getAvailableFilters());
 
 		filterTypes

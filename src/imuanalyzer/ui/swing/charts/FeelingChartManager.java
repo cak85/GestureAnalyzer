@@ -15,11 +15,6 @@ import java.util.ArrayList;
  */
 public class FeelingChartManager {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	private static final long SLEEP_TIME = 250;
 	private static final int VALUES_LIMIT = 50;
 

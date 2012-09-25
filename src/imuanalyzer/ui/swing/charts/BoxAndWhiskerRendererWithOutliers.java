@@ -92,6 +92,7 @@ public class BoxAndWhiskerRendererWithOutliers extends BoxAndWhiskerRenderer {
 	 * @param column
 	 *            the column index (zero-based).
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void drawVerticalItem(Graphics2D g2,
 			CategoryItemRendererState state, Rectangle2D dataArea,
@@ -215,26 +216,20 @@ public class BoxAndWhiskerRendererWithOutliers extends BoxAndWhiskerRenderer {
 			}
 		}
 
-		// draw yOutliers...
-		double maxAxisValue = rangeAxis.valueToJava2D(
-				rangeAxis.getUpperBound(), dataArea, location) + aRadius;
-		double minAxisValue = rangeAxis.valueToJava2D(
-				rangeAxis.getLowerBound(), dataArea, location) - aRadius;
-
 		g2.setPaint(itemPaint);
 
 		// draw outliers
 		double oRadius = state.getBarWidth() / 30.0; // outlier radius
-		List outliers = new ArrayList();
+		List<Outlier> outliers = new ArrayList<Outlier>();
 		OutlierListCollection outlierListCollection = new OutlierListCollection();
 
 		// From outlier array sort out which are outliers and put these into a
 		// list If there are any farouts, set the flag on the
 		// OutlierListCollection
-		List yOutliers = bawDataset.getOutliers(row, column);
+		List<Number> yOutliers = bawDataset.getOutliers(row, column);
 		if (yOutliers != null) {
 			for (int i = 0; i < yOutliers.size(); i++) {
-				double outlier = ((Number) yOutliers.get(i)).doubleValue();
+				double outlier = yOutliers.get(i).doubleValue();
 				Number minOutlier = bawDataset.getMinOutlier(row, column);
 				Number maxOutlier = bawDataset.getMaxOutlier(row, column);
 				Number minRegular = bawDataset.getMinRegularValue(row, column);
@@ -247,7 +242,7 @@ public class BoxAndWhiskerRendererWithOutliers extends BoxAndWhiskerRenderer {
 					yyOutlier = rangeAxis.valueToJava2D(outlier, dataArea,
 							location);
 					outliers.add(new Outlier(xx + state.getBarWidth() / 2.0,
-							yyOutlier + oRadius/2.0, oRadius));
+							yyOutlier + oRadius / 2.0, oRadius));
 				} else if (outlier < minRegular.doubleValue()) {
 					yyOutlier = rangeAxis.valueToJava2D(outlier, dataArea,
 							location);
@@ -259,14 +254,15 @@ public class BoxAndWhiskerRendererWithOutliers extends BoxAndWhiskerRenderer {
 
 			// Process outliers. Each outlier is either added to the
 			// appropriate outlier list or a new outlier list is made
-			for (Iterator iterator = outliers.iterator(); iterator.hasNext();) {
-				Outlier outlier = (Outlier) iterator.next();
+			for (Iterator<Outlier> iterator = outliers.iterator(); iterator
+					.hasNext();) {
+				Outlier outlier = iterator.next();
 				outlierListCollection.add(outlier);
 			}
 
-			for (Iterator iterator = outlierListCollection.iterator(); iterator
-					.hasNext();) {
-				OutlierList list = (OutlierList) iterator.next();
+			for (Iterator<OutlierList> iterator = outlierListCollection
+					.iterator(); iterator.hasNext();) {
+				OutlierList list = iterator.next();
 				Outlier outlier = list.getAveragedOutlier();
 				Point2D point = outlier.getPoint();
 

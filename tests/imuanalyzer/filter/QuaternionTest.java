@@ -22,9 +22,11 @@ public class QuaternionTest {
 
 		Quaternion qFinal = qTransition.quaternionProduct(qInitial);
 
-		Quaternion qResolveInitial = qTransition.getConjugate().quaternionProduct(qFinal);
+		Quaternion qResolveInitial = qTransition.getConjugate()
+				.quaternionProduct(qFinal);
 
-		Quaternion qResolveTransition = qFinal.quaternionProduct(qInitial.getConjugate());
+		Quaternion qResolveTransition = qFinal.quaternionProduct(qInitial
+				.getConjugate());
 
 		qInitial.printDegree(3);
 
@@ -37,27 +39,24 @@ public class QuaternionTest {
 		assertEquals("q1=q4", qResolveInitial.equals(qInitial), true);
 
 		assertEquals("q1=q4", qResolveTransition.equals(qTransition), true);
-		
-		
+
 		Quaternion q1 = new Quaternion(AngleHelper.radFromDeg(0),
 				AngleHelper.radFromDeg(-11.459), AngleHelper.radFromDeg(0));
-		
-		Quaternion q2 =new Quaternion(AngleHelper.radFromDeg(-34.463),
+
+		Quaternion q2 = new Quaternion(AngleHelper.radFromDeg(-34.463),
 				AngleHelper.radFromDeg(0), AngleHelper.radFromDeg(0));
-		
-		Quaternion q3 =new Quaternion(AngleHelper.radFromDeg(-70),
+
+		Quaternion q3 = new Quaternion(AngleHelper.radFromDeg(-70),
 				AngleHelper.radFromDeg(0), AngleHelper.radFromDeg(0));
-		
+
 		q3.quaternionProduct(q2.quaternionProduct(q1)).printDegree(3);
-		
+
 		q1.quaternionProduct(q2.quaternionProduct(q3)).printDegree(3);
-		
+
 		Quaternion q4 = q2.quaternionProduct(q3);
 		q4.printDegree(3);
-		
-		q1.quaternionProduct(q4).printDegree(3);
-		
 
+		q1.quaternionProduct(q4).printDegree(3);
 
 	}
 
@@ -108,11 +107,11 @@ public class QuaternionTest {
 
 		Quaternion resPow = input.pow(power);
 
-		double[] angles = resPow.getAnglesDeg();
+		// double[] angles = resPow.getAnglesDeg();
 
-//		for (int i = 0; i < angles.length; i++) {
-//			System.out.println(angles[i]);
-//		}
+		// for (int i = 0; i < angles.length; i++) {
+		// System.out.println(angles[i]);
+		// }
 
 		assertEquals("angle w", 0.914, resPow.get(0), 0.001);
 		assertEquals("angle x", 0.350, resPow.get(1), 0.001);
@@ -244,9 +243,9 @@ public class QuaternionTest {
 
 		double[] angles = quatRes.getAnglesDeg();
 
-//		for (int i = 0; i < angles.length; i++) {
-//			System.out.println(angles[i]);
-//		}
+		// for (int i = 0; i < angles.length; i++) {
+		// System.out.println(angles[i]);
+		// }
 
 		assertEquals(angles[0], 60, 0.000000000001);
 

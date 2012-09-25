@@ -41,7 +41,6 @@ public class ScreenshotAppState extends AbstractAppState implements
 	private Renderer renderer;
 	private ByteBuffer outBuf;
 	private String screenShotFile;
-	private int shotIndex = 0;
 	private BufferedImage awtImage;
 	ActionListener readyAction;
 
@@ -103,8 +102,6 @@ public class ScreenshotAppState extends AbstractAppState implements
 	public void postFrame(FrameBuffer out) {
 		if (capture) {
 			capture = false;
-			shotIndex++;
-
 			renderer.readFrameBuffer(out, outBuf);
 			Screenshots.convertScreenShot(outBuf, awtImage);
 

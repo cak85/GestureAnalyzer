@@ -88,7 +88,7 @@ public class BottomToolbarPanel extends JPanel {
 
 	protected IOrientationSensors sensor;
 
-	protected JComboBox markerComboBox;
+	protected JComboBox<String> markerComboBox;
 
 	protected Hand hand;
 
@@ -467,7 +467,7 @@ public class BottomToolbarPanel extends JPanel {
 		comboBoxPanel.setBorder(new CompoundBorder(roundedLineBorder, margin));
 		comboBoxPanel.add(new JLabel("Dataset:"), BorderLayout.NORTH);
 
-		markerComboBox = new JComboBox();
+		markerComboBox = new JComboBox<String>();
 		markerComboBox.setToolTipText("Select or create new dataset");
 		markerComboBox.setEditable(true);
 

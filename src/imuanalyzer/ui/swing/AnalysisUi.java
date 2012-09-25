@@ -47,8 +47,9 @@ import org.apache.log4j.Logger;
 
 /**
  * Dialog for configuring the offlien analysis
+ * 
  * @author Christopher-Eyk Hrabia
- *
+ * 
  */
 public class AnalysisUi extends JDialog {
 
@@ -64,7 +65,7 @@ public class AnalysisUi extends JDialog {
 
 	protected ArrayList<DatasetMetadata> selectedMarkers = new ArrayList<DatasetMetadata>();
 
-	protected JList list;
+	protected JList<DatasetMetadata> list;
 
 	protected AnalysesMode selectedCalculationMode = AnalysesMode.NONE;
 
@@ -96,7 +97,7 @@ public class AnalysisUi extends JDialog {
 	JComboBox<Integer> pointList = null;
 	JCheckBox checkShowRelationsBoxplot = null;
 	JCheckBox checkSingleRelationPlots = null;
-	
+
 	JButton graphButton = null;
 	JButton addChart = null;
 	MenuFactory menuFactory = null;
@@ -124,7 +125,7 @@ public class AnalysisUi extends JDialog {
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		this.setLayout(new BorderLayout());
 
-		list = new JList(markers.toArray());
+		list = new JList<DatasetMetadata>((DatasetMetadata[])markers.toArray());
 
 		list.setLayoutOrientation(JList.VERTICAL);
 		list.setVisibleRowCount(-1);
@@ -325,7 +326,7 @@ public class AnalysisUi extends JDialog {
 
 	protected void updateDatasetList() {
 		markers = getDatasetList();
-		list.setListData(getDatasetList().toArray());
+		list.setListData((DatasetMetadata[]) getDatasetList().toArray());
 	}
 
 	protected ArrayList<DatasetMetadata> getDatasetList() {
@@ -342,7 +343,7 @@ public class AnalysisUi extends JDialog {
 
 		specialPointsPanel.add(percentSpinner);
 
-		pointList = new JComboBox();
+		pointList = new JComboBox<Integer>();
 		pointList.setEditable(false);
 
 		specialPointsPanel.add(pointList);
@@ -394,7 +395,7 @@ public class AnalysisUi extends JDialog {
 
 		chartPanel.add(new JLabel("Charts: "));
 
-		chartList = new JComboBox();
+		chartList = new JComboBox<String>();
 		chartList.setEditable(false);
 
 		chartPanel.add(chartList);
@@ -448,8 +449,7 @@ public class AnalysisUi extends JDialog {
 
 		JPanel relationPanel = new JPanel(new FlowLayout());
 
-		checkShowRelationsBoxplot = new JCheckBox(
-				"Show relations boxplot");
+		checkShowRelationsBoxplot = new JCheckBox("Show relations boxplot");
 		checkShowRelationsBoxplot
 				.setToolTipText("Show an additional 2D boxplot for calculated relations");
 		checkShowRelationsBoxplot.setSelected(false);
@@ -465,8 +465,7 @@ public class AnalysisUi extends JDialog {
 
 		relationPanel.add(checkShowRelationsBoxplot);
 
-		checkSingleRelationPlots = new JCheckBox(
-				"Calculate single relations");
+		checkSingleRelationPlots = new JCheckBox("Calculate single relations");
 		checkSingleRelationPlots.setSelected(false);
 		checkSingleRelationPlots.addChangeListener(new ChangeListener() {
 
@@ -479,7 +478,7 @@ public class AnalysisUi extends JDialog {
 		checkSingleRelationPlots.setEnabled(false);
 
 		relationPanel.add(checkSingleRelationPlots);
-		
+
 		return relationPanel;
 	}
 
@@ -519,10 +518,10 @@ public class AnalysisUi extends JDialog {
 					+ Hand.jointTypeToName(chart.getType2()));
 			numberOfCharts++;
 		}
-		if(menuFactory.getChartsRelation().getCharts().size()>0){
+		if (menuFactory.getChartsRelation().getCharts().size() > 0) {
 			checkShowRelationsBoxplot.setEnabled(true);
 			checkSingleRelationPlots.setEnabled(true);
-		}else{
+		} else {
 			checkShowRelationsBoxplot.setEnabled(false);
 			checkSingleRelationPlots.setEnabled(false);
 		}

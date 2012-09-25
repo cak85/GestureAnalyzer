@@ -25,18 +25,18 @@ public class FastLinearRegression {
 
 	/**
 	 * Calculate the linerar regression
+	 * 
 	 * @param values
 	 */
 	private void calculate(Iterable<double[]> values) {
 		// first pass: read in data, compute xbar and ybar
-		double sumx = 0.0, sumy = 0.0, sumx2 = 0.0;
+		double sumx = 0.0, sumy = 0.0;
 
 		int numberOfElements = 0;
 
 		for (double[] v : values) {
 			numberOfElements++;
 			sumx += v[0];
-			sumx2 += v[0] * v[0];
 			sumy += v[1];
 		}
 		double xbar = sumx / numberOfElements;
@@ -62,7 +62,7 @@ public class FastLinearRegression {
 			SSR += (fit - ybar) * (fit - ybar);
 		}
 		R2 = SSR / yybar;
-		LOGGER.debug("R²:"+R2);
+		LOGGER.debug("R²:" + R2);
 	}
 
 	public double getR2() {

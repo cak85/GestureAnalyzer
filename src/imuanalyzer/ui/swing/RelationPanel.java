@@ -53,8 +53,8 @@ public class RelationPanel extends JPanel {
 
 	JSpinner factorSpinner;
 
-	JComboBox jointDependent;
-	JComboBox jointIndependent;
+	JComboBox<String> jointDependent;
+	JComboBox<String> jointIndependent;
 
 	Database db;
 
@@ -175,7 +175,7 @@ public class RelationPanel extends JPanel {
 		panel.add(filterLabel);
 
 		// joint 1
-		jointDependent = new JComboBox();
+		jointDependent = new JComboBox<String>();
 
 		for (JointType type : JointType.values()) {
 			jointDependent.addItem(Hand.jointTypeToName(type));
@@ -209,7 +209,7 @@ public class RelationPanel extends JPanel {
 		panel.add(new JLabel(" * "));
 
 		// joint 2
-		jointIndependent = new JComboBox();
+		jointIndependent = new JComboBox<String>();
 
 		for (JointType type : JointType.values()) {
 			jointIndependent.addItem(Hand.jointTypeToName(type));

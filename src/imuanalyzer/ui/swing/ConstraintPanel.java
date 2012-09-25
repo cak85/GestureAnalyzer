@@ -39,7 +39,7 @@ public class ConstraintPanel extends JPanel {
 
 	Hand hand;
 
-	JComboBox jointCB;
+	JComboBox<String> jointCB;
 
 	Database db;
 
@@ -66,7 +66,7 @@ public class ConstraintPanel extends JPanel {
 
 		grid.add(new JLabel("Joint: ", SwingConstants.RIGHT));
 
-		jointCB = new JComboBox();
+		jointCB = new JComboBox<String>();
 
 		for (JointType type : JointType.values()) {
 			jointCB.addItem(Hand.jointTypeToName(type));

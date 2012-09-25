@@ -18,6 +18,7 @@ import com.jme3.math.Vector3f;
  */
 public class TouchAnalysis implements IInfoContent {
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(TouchAnalysis.class
 			.getName());
 
@@ -96,12 +97,12 @@ public class TouchAnalysis implements IInfoContent {
 
 				Quaternion newDirection = newPos.minus(lastPos);
 
-				//newDirection.print(3);
+				// newDirection.print(3);
 
 				// low pass
 				newDirection = directionLowPass.filter(newDirection);
 
-				//newDirection.print(8);
+				// newDirection.print(8);
 
 				float directionLength = (float) newDirection.getNorm();
 

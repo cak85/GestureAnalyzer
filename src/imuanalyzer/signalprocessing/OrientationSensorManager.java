@@ -72,6 +72,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger
 			.getLogger(OrientationSensorManager.class.getName());
 
@@ -189,7 +190,6 @@ public class OrientationSensorManager implements IOrientationSensors {
 		imureader.close();
 	}
 
-	
 	/**
 	 * Only the best working are shown
 	 */
@@ -198,7 +198,7 @@ public class OrientationSensorManager implements IOrientationSensors {
 		Vector<FilterTypes> types = new Vector<FilterFactory.FilterTypes>();
 		types.add(FilterTypes.CF_MAHONY_MAGNETIC_DISTORSION);
 		types.add(FilterTypes.KALMAN);
-		//types.add(FilterTypes.CF_QUATERNION);
+		// types.add(FilterTypes.CF_QUATERNION);
 		types.add(FilterTypes.CF_MAHONY);
 		types.add(FilterTypes.CF_MADGWICK_GRADIENT_DECENT);
 		// not well usable

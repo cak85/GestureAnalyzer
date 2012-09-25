@@ -36,6 +36,7 @@ public class Boxplot2d extends JFrame {
 	 */
 	private static final long serialVersionUID = 7933849892180600991L;
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(Boxplot2d.class
 			.getName());
 
@@ -63,7 +64,7 @@ public class Boxplot2d extends JFrame {
 
 	public Boxplot2d(String title, ArrayList<IBoxplotData> statistics) {
 		super(title);
-		
+
 		HelpManager.getInstance().enableHelpKey(this, "diagramms");
 
 		ImageIcon icon = new ImageIcon(getClass()

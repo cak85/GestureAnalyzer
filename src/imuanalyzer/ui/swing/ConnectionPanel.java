@@ -31,7 +31,7 @@ public class ConnectionPanel extends JPanel {
 	 */
 	private static final long serialVersionUID = -9021696224045648401L;
 
-	JComboBox cbPort;
+	JComboBox<String> cbPort;
 
 	IOrientationSensors sensor;
 
@@ -79,7 +79,7 @@ public class ConnectionPanel extends JPanel {
 		c.weightx = 1;
 		c.weighty = 1;
 
-		cbPort = new JComboBox(CommPortLister.getSerialList());
+		cbPort = new JComboBox<String>(CommPortLister.getSerialList());
 
 		this.add(cbPort, c);
 
