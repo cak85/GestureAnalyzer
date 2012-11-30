@@ -582,13 +582,6 @@ public class BottomToolbarPanel extends JPanel {
 			if (!selectedFile.getAbsolutePath().endsWith(".csv")) {
 				selectedFile = new File(selectedFile + ".csv");
 			}
-			
-			Object[] options = {"all sensors in one row", "every sensor in a single row"};
-			JOptionPane.showOptionDialog(
-					frame, "Choose data output format", 
-					"Data ouput format", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-					null, options, options[0]);
-//			boolean dontShow = checkbox.isSelected(); 
 
 			LOGGER.info(selectedFile.getAbsolutePath());
 			db.writeImuDataToCsv(getCurrentMarker(),
