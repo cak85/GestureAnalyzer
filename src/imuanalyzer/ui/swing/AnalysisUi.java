@@ -125,7 +125,7 @@ public class AnalysisUi extends JDialog {
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		this.setLayout(new BorderLayout());
 
-		list = new JList<DatasetMetadata>((DatasetMetadata[])markers.toArray());
+		list = new JList<DatasetMetadata>(markers.toArray(new DatasetMetadata[0]));
 
 		list.setLayoutOrientation(JList.VERTICAL);
 		list.setVisibleRowCount(-1);
@@ -326,7 +326,7 @@ public class AnalysisUi extends JDialog {
 
 	protected void updateDatasetList() {
 		markers = getDatasetList();
-		list.setListData((DatasetMetadata[]) getDatasetList().toArray());
+		list.setListData(getDatasetList().toArray(new DatasetMetadata[0]));
 	}
 
 	protected ArrayList<DatasetMetadata> getDatasetList() {

@@ -1,5 +1,6 @@
 package imuanalyzer.device;
 
+import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -17,7 +18,7 @@ public class MARGEventManager {
 	private static final Logger LOGGER = Logger
 			.getLogger(MARGEventManager.class.getName());
 
-	private MARGUpdateListener currentListener = null;
+	private ArrayList<MARGUpdateListener> currentListeners = new ArrayList<MARGUpdateListener>();
 
 	private BlockingQueue<MARGEvent> events = new ArrayBlockingQueue<MARGEvent>(
 			1000, false);
@@ -41,7 +42,7 @@ public class MARGEventManager {
 	 * End consumer thread
 	 */
 	private void stopWorker() {
-		worker.stopWorker = false;
+		worker.stopWorker = true;
 		worker = null;
 	}
 
@@ -51,8 +52,8 @@ public class MARGEventManager {
 	 * @param listener
 	 */
 	public void addEventListener(MARGUpdateListener listener) {
-		if (currentListener == null) {
-			currentListener = listener;
+		currentListeners.add(listener);
+		if (worker == null) {
 			startWorker();
 		}
 	}
@@ -63,9 +64,10 @@ public class MARGEventManager {
 	 * @param listener
 	 */
 	public void removeEventListener(MARGUpdateListener listener) {
-		if (currentListener == listener) {
+		currentListeners.remove(listener);
+		listener = null;
+		if (currentListeners.isEmpty()) {
 			stopWorker();
-			listener = null;
 		}
 	}
 
@@ -94,7 +96,9 @@ public class MARGEventManager {
 			while (!stopWorker) {
 				MARGEvent event = events.poll();
 				if (event != null) {
-					currentListener.notifyImuDataUpdate(event);
+					for (MARGUpdateListener listener: currentListeners) {
+						listener.notifyImuDataUpdate(event);
+					}
 				}
 			}
 		}
